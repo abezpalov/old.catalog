@@ -61,6 +61,7 @@ class Product(models.Model):
 	vendor = models.ForeignKey(Vendor)
 	category = models.ForeignKey(Category, null=True, default=None)
 	unit = models.ForeignKey(Unit)
+	description = models.TextField()
 	duble = models.ForeignKey('self', null=True, default=None)
 	state = models.BooleanField()
 
