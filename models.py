@@ -73,17 +73,17 @@ class PriceType(models.Model):
 
 # Currency
 class Currency(models.Model):
-        name = models.CharField(max_length=100)
-        alias = models.CharField(max_length=100)
-        rate = models.DecimalField(max_digits=10, decimal_places=4)
-        quantity = models.IntegerField()
-        state = models.BooleanField()
+	name = models.CharField(max_length=100)
+	alias = models.CharField(max_length=100)
+	rate = models.DecimalField(max_digits=10, decimal_places=4)
+	quantity = models.IntegerField()
+	state = models.BooleanField()
 
 # Party
 class Party(models.Model):
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
-	price = models.DecimalField(max_digits=12, decimal_place=2)
+	price = models.DecimalField(max_digits=12, decimal_places=2)
 	currency = models.ForeignKey(Currency)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
@@ -92,14 +92,14 @@ class Party(models.Model):
 # Price
 class Price(models.Model):
 	product = models.ForeignKey(Product)
-	price = models.DecimalField(max_digits=12, decimal_place=2)
+	price = models.DecimalField(max_digits=12, decimal_places=2)
 	currency = models.ForeignKey(Currency)
 	state = models.BooleanField()
 
 # Price Hystory
 class PriceHystory(models.Model):
 	product = models.ForeignKey(Product)
-	price = models.DecimalField(max_digits=12, decimal_place=2)
+	price = models.DecimalField(max_digits=12, decimal_places=2)
 	currency = models.ForeignKey(Currency)
 	date = models.DateField()
 
