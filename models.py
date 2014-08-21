@@ -8,6 +8,8 @@ class Connector(models.Model):
 	login = models.CharField(max_length=100)
 	password = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Distributor
 class Distributor(models.Model):
@@ -16,6 +18,8 @@ class Distributor(models.Model):
 	description = models.TextField()
 	connector = models.ForeignKey(Connector, null=True, default=None)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 class DistributorAdmin(admin.ModelAdmin):
 	list_display = ('name', 'state')
@@ -28,6 +32,8 @@ class Updater(models.Model):
 	login = models.CharField(max_length=100)
 	password = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Stock
 class Stock(models.Model):
@@ -37,6 +43,8 @@ class Stock(models.Model):
 	delivery_time_min = models.IntegerField()
 	delivery_time_max = models.IntegerField()
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Category
 class Category(models.Model):
@@ -47,6 +55,8 @@ class Category(models.Model):
 	level = models.IntegerField()
 	order = models.IntegerField()
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Vendor
 class Vendor(models.Model):
@@ -54,12 +64,16 @@ class Vendor(models.Model):
 	alias = models.CharField(max_length=100)
 	description = models.TextField()
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Unit
 class Unit(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Product
 class Product(models.Model):
@@ -72,12 +86,16 @@ class Product(models.Model):
 	description = models.TextField()
 	duble = models.ForeignKey('self', null=True, default=None)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Price Type
 class PriceType(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Currency
 class Currency(models.Model):
@@ -86,6 +104,8 @@ class Currency(models.Model):
 	rate = models.DecimalField(max_digits=10, decimal_places=4)
 	quantity = models.IntegerField()
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Party
 class Party(models.Model):
@@ -97,6 +117,8 @@ class Party(models.Model):
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Price
 class Price(models.Model):
@@ -106,6 +128,8 @@ class Price(models.Model):
 	currency = models.ForeignKey(Currency)
 	fixed = models.BooleanField(default=False)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Price Hystory
 class PriceHystory(models.Model):
@@ -122,6 +146,8 @@ class Quantity(models.Model):
 	unit = models.ForeignKey(Unit)
 	fixed = models.BooleanField(default=False)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Quantity Hystory
 class QuantityHystory(models.Model):
@@ -136,12 +162,16 @@ class ParameterType(models.Model):
 	alias = models.CharField(max_length=100)
 	data_type = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Parameter Type to Category
 class ParameterTypeToCategory(models.Model):
 	parameter_type = models.ForeignKey(ParameterType)
 	category = models.ForeignKey(Category)
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Parameter
 class Parameter(models.Model):
@@ -149,6 +179,8 @@ class Parameter(models.Model):
 	product = models.ForeignKey(Product)
 	value = models.TextField()
 	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Category Synonym
 class CategorySynonym(models.Model):
@@ -156,6 +188,8 @@ class CategorySynonym(models.Model):
 	updater = models.ForeignKey(Updater, null=True, default=None)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	category = models.ForeignKey(Category, null=True, default=None)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 # Vendor Synonym
 class VendorSynonym(models.Model):
@@ -163,5 +197,7 @@ class VendorSynonym(models.Model):
 	updater = models.ForeignKey(Updater, null=True, default=None)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	vendor = models.ForeignKey(Vendor, null=True, default=None)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
 
 admin.site.register(Distributor, DistributorAdmin)
