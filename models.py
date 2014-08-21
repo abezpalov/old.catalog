@@ -96,6 +96,7 @@ class Price(models.Model):
 	price = models.DecimalField(max_digits=12, decimal_places=2)
 	price_type = models.ForeignKey(PriceType)
 	currency = models.ForeignKey(Currency)
+	fixed = models.BooleanField()
 	state = models.BooleanField()
 
 # Price Hystory
@@ -111,6 +112,7 @@ class Quantity(models.Model):
 	product = models.ForeignKey(Product)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
+	fixed = models.BooleanField()
 	state = models.BooleanField()
 
 # Quantity Hystory
