@@ -84,6 +84,7 @@ class Party(models.Model):
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
+	price_type = models.ForeignKey(PriceType)
 	currency = models.ForeignKey(Currency)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
@@ -93,6 +94,7 @@ class Party(models.Model):
 class Price(models.Model):
 	product = models.ForeignKey(Product)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
+	price_type = models.ForeignKey(PriceType)
 	currency = models.ForeignKey(Currency)
 	state = models.BooleanField()
 
@@ -100,6 +102,7 @@ class Price(models.Model):
 class PriceHystory(models.Model):
 	product = models.ForeignKey(Product)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
+	price_type = models.ForeignKey(PriceType)
 	currency = models.ForeignKey(Currency)
 	date = models.DateField()
 
