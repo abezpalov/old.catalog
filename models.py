@@ -150,7 +150,7 @@ class CategorySynonym(models.Model):
 	category = models.ForeignKey(Category, null=True, default=None)
 
 # Vendor Synonym
-class CategorySynonym(models.Model):
+class VendorSynonym(models.Model):
 	name = models.CharField(max_length=100)
 	updater = models.ForeignKey(Updater, null=True, default=None)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
