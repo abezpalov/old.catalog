@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib import admin
 
 # Connector
 class Connector(models.Model):
@@ -6,14 +7,18 @@ class Connector(models.Model):
 	alias = models.CharField(max_length=100)
 	login = models.CharField(max_length=100)
 	password = models.CharField(max_length=100)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Distributor
 class Distributor(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
+	description = models.TextField()
 	connector = models.ForeignKey(Connector, null=True, default=None)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
+
+class DistributorAdmin(admin.ModelAdmin):
+	list_display = ('name', 'state')
 
 # Updater
 class Updater(models.Model):
@@ -22,7 +27,7 @@ class Updater(models.Model):
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	login = models.CharField(max_length=100)
 	password = models.CharField(max_length=100)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Stock
 class Stock(models.Model):
@@ -31,45 +36,48 @@ class Stock(models.Model):
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	delivery_time_min = models.IntegerField()
 	delivery_time_max = models.IntegerField()
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Category
 class Category(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
+	description = models.TextField()
 	parent = models.ForeignKey('self', null=True, default=None)
 	level = models.IntegerField()
 	order = models.IntegerField()
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Vendor
 class Vendor(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
-	state = models.BooleanField()
+	description = models.TextField()
+	state = models.BooleanField(default=True)
 
 # Unit
 class Unit(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Product
 class Product(models.Model):
-	name = models.CharField(max_length=500)
+	name = models.CharField(max_length=100)
+	full_name = models.CharField(max_length=500)
 	article = models.CharField(max_length=100)
 	vendor = models.ForeignKey(Vendor)
 	category = models.ForeignKey(Category, null=True, default=None)
 	unit = models.ForeignKey(Unit)
 	description = models.TextField()
 	duble = models.ForeignKey('self', null=True, default=None)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Price Type
 class PriceType(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Currency
 class Currency(models.Model):
@@ -77,7 +85,7 @@ class Currency(models.Model):
 	alias = models.CharField(max_length=100)
 	rate = models.DecimalField(max_digits=10, decimal_places=4)
 	quantity = models.IntegerField()
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Party
 class Party(models.Model):
@@ -88,7 +96,7 @@ class Party(models.Model):
 	currency = models.ForeignKey(Currency)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Price
 class Price(models.Model):
@@ -96,8 +104,8 @@ class Price(models.Model):
 	price = models.DecimalField(max_digits=12, decimal_places=2)
 	price_type = models.ForeignKey(PriceType)
 	currency = models.ForeignKey(Currency)
-	fixed = models.BooleanField()
-	state = models.BooleanField()
+	fixed = models.BooleanField(default=False)
+	state = models.BooleanField(default=True)
 
 # Price Hystory
 class PriceHystory(models.Model):
@@ -112,8 +120,8 @@ class Quantity(models.Model):
 	product = models.ForeignKey(Product)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
-	fixed = models.BooleanField()
-	state = models.BooleanField()
+	fixed = models.BooleanField(default=False)
+	state = models.BooleanField(default=True)
 
 # Quantity Hystory
 class QuantityHystory(models.Model):
@@ -127,20 +135,20 @@ class ParameterType(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
 	data_type = models.CharField(max_length=100)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Parameter Type to Category
 class ParameterTypeToCategory(models.Model):
 	parameter_type = models.ForeignKey(ParameterType)
 	category = models.ForeignKey(Category)
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Parameter
 class Parameter(models.Model):
 	parameter_type = models.ForeignKey(ParameterType)
 	product = models.ForeignKey(Product)
 	value = models.TextField()
-	state = models.BooleanField()
+	state = models.BooleanField(default=True)
 
 # Category Synonym
 class CategorySynonym(models.Model):
@@ -155,3 +163,5 @@ class VendorSynonym(models.Model):
 	updater = models.ForeignKey(Updater, null=True, default=None)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	vendor = models.ForeignKey(Vendor, null=True, default=None)
+
+admin.site.register(Distributor, DistributorAdmin)
