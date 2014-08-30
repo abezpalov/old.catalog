@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib import admin
 
 # Connector
 class Connector(models.Model):
@@ -11,6 +10,9 @@ class Connector(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	def __str__(self):
+		return self.name
+
 # Distributor
 class Distributor(models.Model):
 	name = models.CharField(max_length=100)
@@ -21,8 +23,8 @@ class Distributor(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
-class DistributorAdmin(admin.ModelAdmin):
-	list_display = ('name', 'state')
+	def __str__(self):
+		return self.name
 
 # Updater
 class Updater(models.Model):
@@ -35,6 +37,9 @@ class Updater(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	def __str__(self):
+		return self.name
+
 # Stock
 class Stock(models.Model):
 	name = models.CharField(max_length=100)
@@ -45,6 +50,9 @@ class Stock(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+
+	def __str__(self):
+		return self.name
 
 # Category
 class Category(models.Model):
@@ -58,6 +66,9 @@ class Category(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	def __str__(self):
+		return self.name
+
 # Vendor
 class Vendor(models.Model):
 	name = models.CharField(max_length=100)
@@ -67,6 +78,9 @@ class Vendor(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	def __str__(self):
+		return self.name
+
 # Unit
 class Unit(models.Model):
 	name = models.CharField(max_length=100)
@@ -74,6 +88,9 @@ class Unit(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+
+	def __str__(self):
+		return self.name
 
 # Product
 class Product(models.Model):
@@ -89,6 +106,9 @@ class Product(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	def __str__(self):
+		return self.name
+
 # Price Type
 class PriceType(models.Model):
 	name = models.CharField(max_length=100)
@@ -96,6 +116,9 @@ class PriceType(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+
+	def __str__(self):
+		return self.name
 
 # Currency
 class Currency(models.Model):
@@ -106,6 +129,9 @@ class Currency(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+
+	def __str__(self):
+		return self.name
 
 # Party
 class Party(models.Model):
@@ -165,6 +191,9 @@ class ParameterType(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	def __str__(self):
+		return self.name
+
 # Parameter Type to Category
 class ParameterTypeToCategory(models.Model):
 	parameter_type = models.ForeignKey(ParameterType)
@@ -191,6 +220,9 @@ class CategorySynonym(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	def __str__(self):
+		return self.name
+
 # Vendor Synonym
 class VendorSynonym(models.Model):
 	name = models.CharField(max_length=100)
@@ -200,4 +232,5 @@ class VendorSynonym(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
-admin.site.register(Distributor, DistributorAdmin)
+	def __str__(self):
+		return self.name
