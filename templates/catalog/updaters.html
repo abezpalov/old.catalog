@@ -1,0 +1,10 @@
+<h2>Загрузчики.</h2>
+{% if updaters_list %}
+	<ul>
+	{% for updater in updaters_list %}
+		<li><a href="/catalog/updater/{{ updater.alias }}/">{{ updater.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Загрузчиков нет.</p>
+{% endif %}
