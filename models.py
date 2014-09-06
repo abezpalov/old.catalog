@@ -146,6 +146,17 @@ class Party(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+# Party Hystory
+class PartyHystory(models.Model):
+	product = models.ForeignKey(Product)
+	stock = models.ForeignKey(Stock)
+	price = models.DecimalField(max_digits=12, decimal_places=2)
+	price_type = models.ForeignKey(PriceType)
+	currency = models.ForeignKey(Currency)
+	quantity = models.IntegerField()
+	unit = models.ForeignKey(Unit)
+	date = models.DateField()
+
 # Price
 class Price(models.Model):
 	product = models.ForeignKey(Product)
