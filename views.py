@@ -18,6 +18,6 @@ def updater(request, alias):
 	return HttpResponse("Загрузчик %s." % alias)
 
 def update(request, alias):
-
 	Updater = __import__('catalog.updaters.' + alias, fromlist=['Update'])
-	return HttpResponse("Выполнение загрузчика %s." % Updater.Update.name)
+	update = Updater.Update()
+	return HttpResponse("Выполнение загрузчика %s." % update.name)
