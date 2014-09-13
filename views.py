@@ -20,4 +20,5 @@ def updater(request, alias):
 def update(request, alias):
 	Updater = __import__('catalog.updaters.' + alias, fromlist=['Update'])
 	update = Updater.Update()
-	return HttpResponse("Выполнение загрузчика %s." % update.name)
+	context = {'update_name': update.name, 'update_message': update.message}
+	return render(request, 'catalog/update.html', context)

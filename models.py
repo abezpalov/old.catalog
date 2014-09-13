@@ -123,6 +123,7 @@ class PriceType(models.Model):
 # Currency
 class Currency(models.Model):
 	name = models.CharField(max_length=100)
+	full_name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
 	rate = models.DecimalField(max_digits=10, decimal_places=4)
 	quantity = models.IntegerField()
