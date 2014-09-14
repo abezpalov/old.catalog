@@ -1,7 +1,5 @@
-class Update():
-
-	name = 'OCS'
-	alias = 'ocs'
+class Update:
 
 	def __init__(self):
-		return true
+		self.name = 'OCS'
+		self.alias = 'ocs'
