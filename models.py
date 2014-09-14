@@ -225,7 +225,7 @@ class Parameter(models.Model):
 
 # Category Synonym
 class CategorySynonym(models.Model):
-	name = models.CharField(max_length=100)
+	name = models.CharField(max_length=1024)
 	updater = models.ForeignKey(Updater, null=True, default=None)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	category = models.ForeignKey(Category, null=True, default=None)
@@ -237,7 +237,7 @@ class CategorySynonym(models.Model):
 
 # Vendor Synonym
 class VendorSynonym(models.Model):
-	name = models.CharField(max_length=100)
+	name = models.CharField(max_length=1024)
 	updater = models.ForeignKey(Updater, null=True, default=None)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	vendor = models.ForeignKey(Vendor, null=True, default=None)
