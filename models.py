@@ -36,6 +36,7 @@ class Updater(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	updated = models.DateTimeField()
 
 	def __str__(self):
 		return self.name

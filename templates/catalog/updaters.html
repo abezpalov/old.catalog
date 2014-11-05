@@ -1,10 +1,19 @@
-<h2>Загрузчики.</h2>
-{% if updaters_list %}
-	<ul>
-	{% for updater in updaters_list %}
-		<li><a href="/catalog/updater/{{ updater.alias }}/">{{ updater.name }}</a></li>
-    {% endfor %}
-    </ul>
+{% extends "main.html" %}
+{% block content %}
+{% if updaters %}
+<table>
+<tr>
+	<th>Наименование</th>
+	<th>Дистрибьютор</th>
+</tr>
+{% for updater in updaters %}
+<tr>
+	<td><a href="/catalog/updater/{{ updater.alias }}/">{{ updater.name }}</a></td>
+	<td>{{ updater.distributor }}</td>
+</tr>
+{% endfor %}
+</table>
 {% else %}
     <p>Загрузчиков нет.</p>
 {% endif %}
+{% endblock %}

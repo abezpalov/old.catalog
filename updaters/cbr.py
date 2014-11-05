@@ -18,7 +18,7 @@ class Update:
 		try: # self.updater
 			self.updater = Updater.objects.get(alias=self.alias)
 		except Updater.DoesNotExist:
-			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now())
+			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
 			self.updater.save()
 
 		try: # self.currency
@@ -66,6 +66,6 @@ class Update:
 			trn += 1
 
 		# Отмечаемся и уходим
-		self.updater.modified = datetime.now()
+		self.updater.updated = datetime.now()
 		self.updater.save()
 		return True

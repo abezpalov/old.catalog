@@ -1,6 +1,4 @@
-from catalog.models import Updater
-from catalog.models import Currency
-from catalog.models import CategorySynonym
+from catalog.models import Updater, Currency, CategorySynonym, VendorSynonym, Category, Vendor
 from datetime import date
 from datetime import datetime
 import lxml.html
@@ -20,7 +18,7 @@ class Update:
 		try: # self.updater
 			self.updater = Updater.objects.get(alias=self.alias)
 		except Updater.DoesNotExist:
-			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now())
+			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
 			self.updater.save()
 
 		try: # self.currency_rub
@@ -37,70 +35,130 @@ class Update:
 
 		if self.updater.state: self.run()
 
-
 	def run(self):
 
 		# Создаем сессию
 		s = requests.Session()
 
+		# Получаем куки
+		url = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2f'
+		r = s.get(url)
+		cookies = r.cookies
+
 		# Авторизуемся
-		url = 'https://b2b.treolan.ru/processlogin.asp'
-		payload = {'client': 'GST_zhd', 'pass': 'uatokhjt', 'remember': 'on', 'x': '8', 'y': '7'}
-		r = s.post(url, data=payload, allow_redirects=False, verify=False)
+		url = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
+		payload = {'UserName': 'GST_zhd', 'Password': 'uatokhjt', 'RememberMe': 'false'}
+		r = s.post(url, cookies=cookies, data=payload, allow_redirects=True, verify=False)
+		cookies = r.cookies
 
 		# Загружаем общий прайс
-		url = 'https://b2b.treolan.ru/catalog.excel.asp?category=04030AB1-678B-457D-8976-AC7297C65CE6&vendor=0&ncfltr=1&daysback=0&reporttype=stock&price_min=&price_max=&hdn_extParams=&tvh=0&srh=&sart=on&podbor=1'
-		r = s.get(url, allow_redirects=False, verify=False)
-		self.message = r.text
+		url = 'https://b2b.treolan.ru/Catalog/SearchToExcel?&comodity=true&withMarketingProgramsOnly=false&availableAtStockOnly=false&rusDescription=true&condition=0&catalogProductsOnly=true&order=0&getExcel=true&searchBylink=false&take=50&skip=0'
+		r = s.get(url, cookies=cookies, allow_redirects=False, verify=False)
+		# self.message = r.text+"\n"
+		self.message += "Прайс загружен.\n"
 		tree = lxml.html.fromstring(r.text)
 
 		# Парсим
-		table = tree.xpath("//table/tr")
+		table = tree.xpath("//table")[0]
+		head = True;
 		for tr in table:
 
 			# Заголовок таблицы
-			if tr.attrib["class"] == "sHead" :
+			if True == head :
 				tdn = 0
+				n = 0
 				for td in tr :
-					if   td.text == 'Артикул'       : nArticle     = tdn
-					elif td.text == 'Наименование'  : nName        = tdn
-					elif td.text == 'Производитель' : nVendor      = tdn
-					elif td.text == 'Св.'           : nStock       = tdn
-					elif td.text == 'Св.+Тр.'       : nTransit     = tdn
-					elif td.text == 'Б. Тр.'        : nTransitDate = tdn
-					elif td.text == 'Цена*'         : nPriceUSD    = tdn
-					elif td.text == 'Цена руб.**'   : nPriceRUB    = tdn
-					elif td.text == 'Доп.'          : nDop         = tdn
-					elif td.text == 'Гар.'          : nWarranty    = tdn
+					if td[0].text == 'Артикул' :
+						nArticle = tdn
+						n += 1
+					elif td[0].text == 'Наименование' :
+						nName = tdn
+						n += 1
+					elif td[0].text == 'Производитель' :
+						nVendor = tdn
+						n += 1
+					elif td[0].text == 'Св.' :
+						nStock = tdn
+						n += 1
+					elif td[0].text == 'Св.+Тр.' :
+						nTransit = tdn
+						self.message += str(tdn) + "\n"
+						n += 1
+					elif td[0].text == 'Б. Тр.' :
+						nTransitDate = tdn
+						self.message += str(tdn) + "\n"
+						n += 1
+					elif td[0].text == 'Цена*' :
+						nPriceUSD = tdn
+						self.message += str(tdn) + "\n"
+						n += 1
+					elif td[0].text == 'Цена руб.**' :
+						nPriceRUB = tdn
+						self.message += str(tdn) + "\n"
+						n += 1
+					elif td[0].text == 'Доп.' :
+						nDop = tdn
+						self.message += str(tdn) + "\n"
+						n += 1
 					tdn += 1
 
-			# Категория TODO test
-			elif tr.attrib["class"] == "sGroup" :
-				categorySynonymName = tr[0].text.strip()
-				self.message = categorySynonymName
-			try:
-				categorySynonym = CategorySynonym.objects.get(name=categorySynonymName)
-			except CategorySynonym.DoesNotExist:
-				categorySynonym = CategorySynonym(name=categorySynonymName, updater=self.updater, created=datetime.now(), modified=datetime.now())
-				categorySynonym.save()
+				# Проверяем, все ли столбцы распознались
+				if n < 8 :
+					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
+					return False
+
+			# Категория
+			elif len(tr) == 1 :
+				# Обрабатываем синоним категории
+				categorySynonymName = tr[0][0].text.strip()
+				try:
+					categorySynonym = CategorySynonym.objects.get(name=categorySynonymName)
+				except CategorySynonym.DoesNotExist:
+					categorySynonym = CategorySynonym(name=categorySynonymName, updater=self.updater, created=datetime.now(), modified=datetime.now())
+					categorySynonym.save()
 
 			# Товар
-			elif tr.attrib["class"] == "sGroup" :
+			elif len(tr) == 9 :
 				tdn = 0
 				for td in tr :
-					if   tdn == nArticle     : article     = td.text
-					elif tdn == nName        : name        = td.text
-					elif tdn == nVendor      : vendor      = td.text
-					elif tdn == nStock       : stock       = td.text
-					elif tdn == nTransit     : transit     = td.text
-					elif tdn == nTransitDate : transitDate = td.text
-					elif tdn == nPriceUSD    : priceUSD    = td.text
-					elif tdn == nPriceRUB    : priceRUB    = td.text
-					elif tdn == nDop         : dop         = td.text
-					elif tdn == nWarranty    : warranty    = td.text
+					if   tdn == nArticle :
+						article = str(td.text).strip()
+					elif tdn == nName :
+						name = str(td.text).strip()
+					elif tdn == nVendor :
+						vendorSynonymName = str(td.text).strip()
+					elif tdn == nStock :
+						stock = str(td.text).strip()
+					elif tdn == nTransit :
+						transit = str(td.text).strip()
+					elif tdn == nTransitDate :
+						transitDate = str(td.text).strip()
+					elif tdn == nPriceUSD :
+						priceUSD = str(td.text).strip()
+					elif tdn == nPriceRUB :
+						priceRUB = str(td.text).strip()
+					elif tdn == nDop :
+						dop = str(td.text).strip()
 					tdn += 1
 
+				# Обрабатываем синоним производителя
+				if vendorSynonymName != "" :
+					try:
+						vendorSynonym = VendorSynonym.objects.get(name=vendorSynonymName)
+					except VendorSynonym.DoesNotExist:
+						vendorSynonym = VendorSynonym(name=vendorSynonymName, updater=self.updater, created=datetime.now(), modified=datetime.now())
+						vendorSynonym.save()
+
+				# Обрабатываем товар
+
+				# Обрабатываем партии
+
+			head = False
+
+
+		# Обрабатываем цены
+
 		# Отмечаемся и уходим
-		self.updater.modified = datetime.now()
+		self.updater.updated = datetime.now()
 		self.updater.save()
 		return True

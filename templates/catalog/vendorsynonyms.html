@@ -1,0 +1,30 @@
+{% extends "main.html" %}
+{% block content %}
+{% if synonyms %}
+<table>
+<tr>
+	<th>Наименование</th>
+	<th>Загрузчик</th>
+	<th>Поставщик</th>
+	<th>Производитель</th>
+</tr>
+{% for synonym in synonyms %}
+<tr data-id="{{ synonym.id }}">
+	<td><a href="/catalog/vendor-synonym/{{ synonym.id }}/">{{ synonym.name }}</a></td>
+	<td>{{ synonym.updater }}</td>
+	<td>{{ synonym.distributor }}</td>
+	<td>
+		<select>
+			<option value="None" {% if synonym.vendor != None %}selected{% endif %}>None</option>
+			{% for vendor in vendors %}
+			<option value="{{ vendor.id }}">{{ vendor.name }}</option>
+			{% endfor %}
+		</select>
+	</td>
+</tr>
+{% endfor %}
+</table>
+{% else %}
+    <p>Синонимов нет.</p>
+{% endif %}
+{% endblock %}

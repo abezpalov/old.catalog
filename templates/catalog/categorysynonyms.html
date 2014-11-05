@@ -1,0 +1,23 @@
+{% extends "main.html" %}
+{% block content %}
+{% if synonyms %}
+<table>
+<tr>
+	<th>Наименование</th>
+	<th>Загрузчик</th>
+	<th>Поставщик</th>
+	<th>Категория</th>
+</tr>
+{% for synonym in synonyms %}
+<tr>
+	<td><a href="/catalog/category-synonym/{{ synonym.id }}/">{{ synonym.name }}</a></td>
+	<td>{{ synonym.updater }}</td>
+	<td>{{ synonym.distributor }}</td>
+	<td>{{ synonym.category }}</td>
+</tr>
+{% endfor %}
+</table>
+{% else %}
+    <p>Синонимов нет.</p>
+{% endif %}
+{% endblock %}

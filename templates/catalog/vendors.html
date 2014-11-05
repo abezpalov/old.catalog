@@ -1,0 +1,34 @@
+{% extends "main.html" %}
+{% block content %}
+<table>
+<tr>
+	<th>Наименование</th>
+	<th  width="300">Статус</th>
+</tr>
+<tr id="new-vendor-tr">
+	<td><input id="new-vendor" type="text" placeholder="Новый производитель"></td>
+	<td>
+		<ul class="button-group stack-for-small">
+			<li><i id="do-add-vendor" class="fa fa-plus button small"> Добавить</i></li>
+			<li><i id="do-clear-vendor" class="fa fa-eraser button alert small"></i></li>
+		</ul>
+	</td>
+</tr>
+{% for vendor in vendors %}
+<tr>
+	<td><a href="/catalog/vendor/{{ vendor.alias }}/">{{ vendor.name }}</a></td>
+	<td>
+		<div class="switch small">
+			<input id="vendor-state-{{ vendor.id }}" data-id="{{ vendor.id }}" class="do-switch-vendor-state" type="checkbox"{% if vendor.state %} checked{% endif %}>
+			<label for="vendor-state-{{ vendor.id }}"></label>
+		</div>
+	</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}
+{% block js-content %}
+<script>
+{% include "catalog/js/vendors.js" %}
+</script>
+{% endblock %}
