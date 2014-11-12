@@ -47,5 +47,7 @@ urlpatterns = patterns('',
 
 	# AJAX
 	url(r'^ajax/add/vendor/$', views.ajaxAddVendor, name='ajaxAddVendor'),
+	url(r'^ajax/add/category/$', views.ajaxAddCategory, name='ajaxAddCategory'),
 	url(r'^ajax/switch/vendor/state/$', views.ajaxSwitchVendorState, name='ajaxSwitchVendorState'),
+	url(r'^ajax/switch/category/state/$', views.ajaxSwitchCategoryState, name='ajaxSwitchCategoryState'),
 )

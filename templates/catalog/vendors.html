@@ -1,19 +1,24 @@
 {% extends "main.html" %}
 {% block content %}
+
+<!-- Форма добавления нового производителя -->
+<div class="row collapse">
+	<div class="small-10 columns">
+		<input id="new-vendor" type="text" placeholder="Имя нового производителя">
+	</div>
+	<div class="small-2 columns">
+		<a href="#" id="do-add-vendor" class="button postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></a>
+	</div>
+</div>
+
+<!-- Таблица со списком производителей -->
+<div class="row collapse">
 <table>
-<tr>
+<tr id="vendors-h">
 	<th>Наименование</th>
-	<th  width="300">Статус</th>
+	<th  width="200">Статус</th>
 </tr>
-<tr id="new-vendor-tr">
-	<td><input id="new-vendor" type="text" placeholder="Новый производитель"></td>
-	<td>
-		<ul class="button-group stack-for-small">
-			<li><i id="do-add-vendor" class="fa fa-plus button small"> Добавить</i></li>
-			<li><i id="do-clear-vendor" class="fa fa-eraser button alert small"></i></li>
-		</ul>
-	</td>
-</tr>
+
 {% for vendor in vendors %}
 <tr>
 	<td><a href="/catalog/vendor/{{ vendor.alias }}/">{{ vendor.name }}</a></td>
@@ -26,6 +31,7 @@
 </tr>
 {% endfor %}
 </table>
+</div>
 {% endblock %}
 {% block js-content %}
 <script>

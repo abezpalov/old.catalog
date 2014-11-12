@@ -152,6 +152,7 @@ def ajaxAddVendor(request):
 		return HttpResponse(status=400)
 
 	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
 
 	# Проверяем на пустую строку
 	if (request.POST.get('new_vendor').strip() == ''):
@@ -165,13 +166,71 @@ def ajaxAddVendor(request):
 			name = request.POST.get('new_vendor').strip()
 			alias = name.lower()
 			alias = alias.replace(' ', '-')
-			vendor = Vendor(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())
 			vendor.save()
 			result = {'status': 'success', 'message': 'Производитель ' + name + ' добавлен.', 'vendorId': vendor.id, 'vendorName': vendor.name, 'vendorAlias': vendor.alias}
 
 	# Возвращаем ответ
 	return HttpResponse(simplejson.dumps(result), 'application/javascript')
 
+
+# TODO Add Category
+def ajaxAddCategory(request):
+
+	# Импортируем
+	from catalog.models import Category
+	from django.db.models import Max # TODO test
+	from datetime import datetime
+	from django.utils import simplejson
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST') :
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Проверяем на пустые значения
+	if (request.POST.get('newCategoryName').strip() == '') or (request.POST.get('newCategoryParent').strip() == ''):
+		result = {'status': 'warning', 'message': 'Пожалуй, такого имени быть не может.'}
+	else:
+
+		name = request.POST.get('newCategoryName').strip()
+
+		alias = name.lower()
+		alias = alias.replace(' ', '-')
+
+		if (request.POST.get('newCategoryParent').strip() == 'null'):
+			parent = None
+			level = 1
+		else:
+			try:
+				parent = Category.objects.get(id=request.POST.get('newCategoryParent').strip())
+				level = parent.level + 1
+			except Category.DoesNotExist:
+				return HttpResponse(status=418)
+
+		category = Category(name=name, alias=alias, parent=parent, level=level, order=0, path='', created=datetime.now(), modified=datetime.now())
+		category.save()
+
+		if (parent == None):
+			category.path = '/' + str(category.id) + '/'
+		else:
+			category.path = parent.path + str(category.id) + '/'
+
+		category.order = Category.objects.filter(parent=category.parent).aggregate(Max('order'))['order__max'] + 1
+
+		category.save()
+
+		if (parent == None):
+			parentId = 'none'
+		else:
+			parentId = parent.id
+
+		result = {'status': 'success', 'message': 'Категория ' + name + ' добавлена.', 'categoryId': category.id, 'categoryName': category.name, 'categoryAlias': category.alias, 'parentId': parentId}
+
+	# Возвращаем ответ
+	return HttpResponse(simplejson.dumps(result), 'application/javascript')
 
 # Switch Vendor State
 def ajaxSwitchVendorState(request):
@@ -186,6 +245,7 @@ def ajaxSwitchVendorState(request):
 		return HttpResponse(status=400)
 
 	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
 
 	# TODO Проверяем корректность вводных данных
 	if (request.POST.get('id') == '') or (request.POST.get('state') == ''):
@@ -198,7 +258,7 @@ def ajaxSwitchVendorState(request):
 			else:
 				vendor.state = False;
 			vendor.save();
-			result = {'status': 'success', 'message': 'Состояние производителя ' + vendor.name + ' изменен на ' + str(vendor.state) + '.'}
+			result = {'status': 'success', 'message': 'Статус производителя ' + vendor.name + ' изменен на ' + str(vendor.state) + '.'}
 		except Vendor.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
@@ -206,3 +266,35 @@ def ajaxSwitchVendorState(request):
 	return HttpResponse(simplejson.dumps(result), 'application/javascript')
 
 
+# Switch Category State
+def ajaxSwitchCategoryState(request):
+
+	# Импортируем
+	from catalog.models import Category
+	from datetime import datetime
+	from django.utils import simplejson
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# TODO Проверяем корректность вводных данных
+	if (request.POST.get('id') == '') or (request.POST.get('state') == ''):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			category = Category.objects.get(id=request.POST.get('id'))
+			if request.POST.get('state') == 'true':
+				category.state = True;
+			else:
+				category.state = False;
+			category.save();
+			result = {'status': 'success', 'message': 'Статус категории ' + category.name + ' изменен на ' + str(category.state) + '.'}
+		except Category.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(simplejson.dumps(result), 'application/javascript')

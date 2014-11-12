@@ -2,19 +2,21 @@ $(document).ready(function(){
 
 
 	// Добавить производителя
-	$("#do-add-vendor").click(function() {
+	$("#do-add-category").click(function() {
 
 		// Отправляем данные
-		$.post("/catalog/ajax/add/vendor/", {
-			new_vendor: $("#new-vendor").val(),
+		$.post("/catalog/ajax/add/category/", {
+			newCategoryName: $("#new-category-name").val(),
+			newCategoryParent:  $("#new-category-parent").val(),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
 		},
 
 		// Обрабатываем ответ
 		function(data) {
 			if ('success' == data.status) {
-				$("#vendors-h").after('<tr><td><a href="/catalog/vendor/' + data.vendorAlias + '/">' + data.vendorName + '</a></td><td><div class="switch small"><input id="vendor-status-' + data.vendorId + '" data-id="' + data.vendorId + '" class="do-switch-vendor-status" type="checkbox" checked><label for="vendor-status-' + data.vendorId + '"></label></div></td></tr>');
-				$("#new-vendor").val('');
+				// TODO Обновить таблицу
+				$("#categories-h").after('<tr><td colspan="">Succes</td></tr>');
+				$("#new-category-name").val('');
 				// TODO Вывести сообщение
 			}
 		}, "json");
@@ -23,10 +25,10 @@ $(document).ready(function(){
 
 
 	// Поменять статус производителя
-	$("table").delegate(".do-switch-vendor-state", "click", function(){
+	$("table").delegate(".do-switch-category-state", "click", function(){
 
 		// Отправляем данные
-		$.post("/catalog/ajax/switch/vendor/state/", {
+		$.post("/catalog/ajax/switch/category/state/", {
 			id: $(this).data('id'),
 			state: $(this).prop("checked"),
 			csrfmiddlewaretoken: '{{ csrf_token }}'

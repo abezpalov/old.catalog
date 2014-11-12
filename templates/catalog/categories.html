@@ -1,17 +1,61 @@
 {% extends "main.html" %}
 {% block content %}
-{% if categories %}
+
+<!-- TODO Форма добавления новой категории -->
+<div class="row collapse">
+	<div class="small-5 columns">
+		<input id="new-category-name" type="text" placeholder="Имя новой категории">
+	</div>
+	<div class="small-5 columns">
+		<select id="new-category-parent" >
+			<option value="null"> - Родительская категория - </option>
+			{% for category in categories %}
+			<option value="{{ category.id }}">{{ category.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	<div class="small-2 columns">
+		<a href="#" id="do-add-category" class="button postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></a>
+	</div>
+</div>
+
+<!-- TODO Таблица со списком категорий -->
+<div class="row collapse">
 <table>
 <tr>
 	<th>Наименование</th>
+	<th>Статус</th>
+	<th class="hide-for-small-only">Родитель</th>
+	<th class="hide-for-small-only">Уровень</th>
+	<th class="hide-for-small-only">Порядок</th>
 </tr>
 {% for category in categories %}
 <tr>
 	<td><a href="/catalog/category/{{ category.id }}/">{{ category.name }}</a></td>
+	<td>
+		<div class="switch small">
+			<input id="category-state-{{ category.id }}" data-id="{{ category.id }}" class="do-switch-category-state" type="checkbox"{% if category.state %} checked{% endif %}>
+			<label for="category-state-{{ category.id }}"></label>
+		</div>
+	</td>
+	<td class="hide-for-small-only">
+		<select>
+			<option value="null">- root -</option>
+			{% for category in categories %}
+			<option value="{{ category.id }}">{{ category.name }}</option>
+			{% endfor %}
+		</select>
+		{{ category.parent.name }}
+	</td>
+	<td class="hide-for-small-only">{{ category.level }}</a></td>
+	<td class="hide-for-small-only">{{ category.order }}</a></td>
 </tr>
 {% endfor %}
 </table>
-{% else %}
-    <p>Категорий нет.</p>
-{% endif %}
+</div>
+{% endblock %}
+{% block js-content %}
+<script>
+{% include "catalog/js/categories.js" %}
+</script>
 {% endblock %}

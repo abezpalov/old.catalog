@@ -63,6 +63,7 @@ class Category(models.Model):
 	parent = models.ForeignKey('self', null=True, default=None)
 	level = models.IntegerField()
 	order = models.IntegerField()
+	path = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
@@ -144,6 +145,7 @@ class Party(models.Model):
 	currency = models.ForeignKey(Currency)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
+	comment = models.TextField()
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
@@ -157,6 +159,7 @@ class PartyHystory(models.Model):
 	currency = models.ForeignKey(Currency)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
+	comment = models.TextField()
 	date = models.DateField()
 
 # Price
