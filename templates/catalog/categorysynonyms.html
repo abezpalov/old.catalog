@@ -1,23 +1,73 @@
 {% extends "main.html" %}
 {% block content %}
-{% if synonyms %}
-<table>
-<tr>
-	<th>Наименование</th>
-	<th>Загрузчик</th>
-	<th>Поставщик</th>
-	<th>Категория</th>
-</tr>
-{% for synonym in synonyms %}
-<tr>
-	<td><a href="/catalog/category-synonym/{{ synonym.id }}/">{{ synonym.name }}</a></td>
-	<td>{{ synonym.updater }}</td>
-	<td>{{ synonym.distributor }}</td>
-	<td>{{ synonym.category }}</td>
-</tr>
-{% endfor %}
-</table>
-{% else %}
-    <p>Синонимов нет.</p>
-{% endif %}
+
+<!-- Форма фильтра вывода -->
+<div class="row collapse">
+	<fieldset>
+		<legend>Фильтр отображения</legend>
+		<div class="small-4 columns">
+			<label>Загрузчики
+				<select id="filter-updater" class="do-filter-table">
+					<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
+					{% for updater in updaters %}
+					<option value="{{ updater.id }}"{% if updater.id == updater_selected %} selected{% endif %}>{{ updater.name }}</option>
+					{% endfor %}
+				</select>
+			</label>
+		</div>
+		<div class="small-4 columns">
+			<label>Поставщики
+				<select id="filter-distributor" class="do-filter-table">
+					<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
+					{% for distributor in distributors %}
+					<option value="{{ distributor.id }}"{% if distributor.id == distributor_selected %} selected{% endif %}>{{ distributor.name }}</option>
+					{% endfor %}
+				</select>
+			</label>
+		</div>
+		<div class="small-4 columns">
+			<label>Категория
+				<select id="filter-category" class="do-filter-table">
+					<option value="all"{% if category_selected == 'all' %} selected{% endif %}> - Все категории - </option>
+					<option value="null"{% if category_selected == 'null' %} selected{% endif %}> - Не определена - </option>
+					{% for category in categories %}
+					<option value="{{ category.id }}"{% if category.id == category_selected %} selected{% endif %}>{{ category.name }}</option>
+					{% endfor %}
+				</select>
+			</label>
+		</div>
+	</fieldset>
+</div>
+
+<!-- Таблица со списком синонимов -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th>Наименование</th>
+			<th class="hide-for-small-only">Загрузчик</th>
+			<th class="hide-for-small-only">Поставщик</th>
+			<th width="30%">Категория</th>
+		</tr>
+		{% for synonym in synonyms %}
+		<tr>
+			<td><a href="/catalog/category-synonym/{{ synonym.id }}/">{{ synonym.name }}</a></td>
+			<td class="hide-for-small-only">{{ synonym.updater }}</td>
+			<td class="hide-for-small-only">{{ synonym.distributor }}</td>
+			<td>
+				<select data-id="{{ synonym.id }}" class="do-link-category-synonym">
+					<option value="null"{% if synonym.category == None %} selected{% endif %}> - Не определена - </option>
+					{% for category in categories %}
+					<option value="{{ category.id }}"{% if synonym.category.id == category.id %} selected{% endif %}>{{ category.name }}</option>
+					{% endfor %}
+				</select>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+{% endblock %}
+{% block js-content %}
+<script>
+{% include "catalog/js/categorysynonyms.js" %}
+</script>
 {% endblock %}

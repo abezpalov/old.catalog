@@ -1,0 +1,32 @@
+{% extends "main.html" %}
+{% block content %}
+
+<!-- Фильтр вывода -->
+
+<!-- Таблица со списком синонимов -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th>Артикул</th>
+			<th>Наименование</th>
+			<th>Производитель</th>
+			<th>Цена</th>
+			<th>Количество</th>
+		</tr>
+		{% for product in products %}
+		<tr data-id="{{ product.id }}">
+			<td>{{ product.article }}</td>
+			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{{ product.name }}</a></td>
+			<td><a href="/catalog/vendor/{{ product.vendor.id }}/">{{ product.vendor.name }}</a></td>
+			<td></td>
+			<td></td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+{% endblock %}
+{% block js-content %}
+<script>
+{% include "catalog/js/products.js" %}
+</script>
+{% endblock %}

@@ -8,6 +8,22 @@ def index(request):
     return HttpResponse("Hello, world.")
 
 
+# Список продуктов
+def products(request):
+
+	# Импортируем
+	from catalog.models import Product
+
+	# Получаем список
+	products = Product.objects.all()
+
+	for product in products:
+		product.name = product.name.replace(",", ",&shy;")
+
+	context = {'products': products}
+	return render(request, 'catalog/products.html', context)
+
+
 # Список загрузчиков
 def updaters(request):
 
@@ -70,10 +86,35 @@ def categories(request):
 	# Импортируем
 	from catalog.models import Category
 
-	# Получаем список
-	categories = Category.objects.all()
+	# Получаем дерево категорий
+	categories = []
+	categories = getCategoryTree(categories)
+
+	# Корректируем имена с учетом вложеннот
+	for category in categories:
+		category.name = '— ' * category.level + category.name
+
+
 	context = {'categories': categories}
 	return render(request, 'catalog/categories.html', context)
+
+
+# Дерево категорий (используется рекурсия)
+def getCategoryTree(tree, parent=None):
+
+	# Импортируем
+	from catalog.models import Category
+
+	# Получаем список дочерних категорий
+	categories = Category.objects.filter(parent=parent).order_by('order')
+
+	# Проходим по списку категорий с рекурсивным погружением
+	for category in categories:
+		tree.append(category)
+		tree = getCategoryTree(tree, category)
+
+	# Возвращаем результат
+	return tree
 
 
 # Категория
@@ -88,15 +129,39 @@ def category(request, category_id):
 	return render(request, 'catalog/category.html', context)
 
 # Список синонимов производителей
-def vendorsynonyms(request, alias=None):
+def vendorsynonyms(request, updater_selected='all', distributor_selected='all', vendor_selected='all'):
 
 	# Импортируем
 	from catalog.models import VendorSynonym, Vendor, Updater, Distributor
 
-	# Получаем список
+	# Получаем список объектов синонимов
 	synonyms = VendorSynonym.objects.all().order_by('name')
+	if (updater_selected != 'all'):
+		synonyms = synonyms.filter(updater=updater_selected)
+		updater_selected = int(updater_selected)
+	if (distributor_selected != 'all'):
+		synonyms = synonyms.filter(distributor=distributor_selected)
+		distributor_selected = int(distributor_selected)
+	if (vendor_selected != 'all' and vendor_selected != 'null'):
+		synonyms = synonyms.filter(vendor=vendor_selected)
+		vendor_selected = int(vendor_selected)
+	if (vendor_selected == 'null'):
+		synonyms = synonyms.filter(vendor=None)
+
+	# Получаем дополнительные списки объектов
+	updaters = Updater.objects.all().order_by('name')
+	distributors = Distributor.objects.all().order_by('name')
 	vendors = Vendor.objects.all().order_by('name')
-	context = {'synonyms': synonyms, 'vendors': vendors}
+
+	context = {
+		'updater_selected': updater_selected,
+		'distributor_selected': distributor_selected,
+		'vendor_selected': vendor_selected,
+		'synonyms': synonyms,
+		'updaters': updaters,
+		'distributors': distributors,
+		'vendors': vendors,
+	}
 	return render(request, 'catalog/vendorsynonyms.html', context)
 
 
@@ -113,14 +178,44 @@ def vendorsynonym(request, synonym_id):
 
 
 # Список синонимов категорий
-def categorysynonyms(request, alias=None):
+def categorysynonyms(request, updater_selected='all', distributor_selected='all', category_selected='all'):
 
 	# Импортируем
 	from catalog.models import CategorySynonym, Category, Updater, Distributor
 
-	# Получаем список
+	# Получаем список объектов синонимов
 	synonyms = CategorySynonym.objects.all().order_by('name')
-	context = {'synonyms': synonyms}
+	if (updater_selected != 'all'):
+		synonyms = synonyms.filter(updater=updater_selected)
+		updater_selected = int(updater_selected)
+	if (distributor_selected != 'all'):
+		synonyms = synonyms.filter(distributor=distributor_selected)
+		distributor_selected = int(distributor_selected)
+	if (category_selected != 'all' and category_selected != 'null'):
+		synonyms = synonyms.filter(category=category_selected)
+		category_selected = int(category_selected)
+	if (category_selected == 'null'):
+		synonyms = synonyms.filter(category=None)
+
+	# Получаем дополнительные списки объектов
+	updaters = Updater.objects.all().order_by('name')
+	distributors = Distributor.objects.all().order_by('name')
+	categories = []
+	categories = getCategoryTree(categories)
+
+	# Корректируем имена категорий с учетом вложеннот
+	for category in categories:
+		category.name = '— ' * category.level + category.name
+
+	context = {
+		'updater_selected': updater_selected,
+		'distributor_selected': distributor_selected,
+		'category_selected': category_selected,
+		'synonyms': synonyms,
+		'updaters': updaters,
+		'distributors': distributors,
+		'categories': categories,
+	}
 	return render(request, 'catalog/categorysynonyms.html', context)
 
 
@@ -145,10 +240,10 @@ def ajaxAddVendor(request):
 	# Импортируем
 	from catalog.models import Vendor
 	from datetime import datetime
-	from django.utils import simplejson
+	import json
 
 	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST') :
+	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
 	# TODO Проверяем права доступа
@@ -171,20 +266,20 @@ def ajaxAddVendor(request):
 			result = {'status': 'success', 'message': 'Производитель ' + name + ' добавлен.', 'vendorId': vendor.id, 'vendorName': vendor.name, 'vendorAlias': vendor.alias}
 
 	# Возвращаем ответ
-	return HttpResponse(simplejson.dumps(result), 'application/javascript')
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
-# TODO Add Category
+# Add Category
 def ajaxAddCategory(request):
 
 	# Импортируем
 	from catalog.models import Category
-	from django.db.models import Max # TODO test
+	from django.db.models import Max
 	from datetime import datetime
-	from django.utils import simplejson
+	import json
 
 	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST') :
+	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
 	# TODO Проверяем права доступа
@@ -202,15 +297,15 @@ def ajaxAddCategory(request):
 
 		if (request.POST.get('newCategoryParent').strip() == 'null'):
 			parent = None
-			level = 1
+			level = 0
 		else:
 			try:
 				parent = Category.objects.get(id=request.POST.get('newCategoryParent').strip())
 				level = parent.level + 1
-			except Category.DoesNotExist:
-				return HttpResponse(status=418)
+			except Category.DoesNotExist: # Указанная родительская категория не существует
+				return HttpResponse(status=406)
 
-		category = Category(name=name, alias=alias, parent=parent, level=level, order=0, path='', created=datetime.now(), modified=datetime.now())
+		category = Category(name=name, alias=alias, parent=parent, level=level, order=-1, path='', created=datetime.now(), modified=datetime.now())
 		category.save()
 
 		if (parent == None):
@@ -230,7 +325,7 @@ def ajaxAddCategory(request):
 		result = {'status': 'success', 'message': 'Категория ' + name + ' добавлена.', 'categoryId': category.id, 'categoryName': category.name, 'categoryAlias': category.alias, 'parentId': parentId}
 
 	# Возвращаем ответ
-	return HttpResponse(simplejson.dumps(result), 'application/javascript')
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 # Switch Vendor State
 def ajaxSwitchVendorState(request):
@@ -238,7 +333,7 @@ def ajaxSwitchVendorState(request):
 	# Импортируем
 	from catalog.models import Vendor
 	from datetime import datetime
-	from django.utils import simplejson
+	import json
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
@@ -248,7 +343,7 @@ def ajaxSwitchVendorState(request):
 	#	return HttpResponse(status=403)
 
 	# TODO Проверяем корректность вводных данных
-	if (request.POST.get('id') == '') or (request.POST.get('state') == ''):
+	if not request.POST.get('id') or not request.POST.get('state'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 		try:
@@ -263,7 +358,7 @@ def ajaxSwitchVendorState(request):
 			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
-	return HttpResponse(simplejson.dumps(result), 'application/javascript')
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 # Switch Category State
@@ -272,7 +367,7 @@ def ajaxSwitchCategoryState(request):
 	# Импортируем
 	from catalog.models import Category
 	from datetime import datetime
-	from django.utils import simplejson
+	import json
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
@@ -281,8 +376,8 @@ def ajaxSwitchCategoryState(request):
 	# TODO Проверяем права доступа
 	#	return HttpResponse(status=403)
 
-	# TODO Проверяем корректность вводных данных
-	if (request.POST.get('id') == '') or (request.POST.get('state') == ''):
+	# Проверяем корректность вводных данных
+	if not request.POST.get('id') or not request.POST.get('state'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 		try:
@@ -297,4 +392,123 @@ def ajaxSwitchCategoryState(request):
 			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
-	return HttpResponse(simplejson.dumps(result), 'application/javascript')
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Link Vendor Synonym
+def ajaxLinkVendorSynonym(request):
+
+	# Импортируем
+	from catalog.models import VendorSynonym, Vendor
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('vendor') or not request.POST.get('synonym'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			synonym = VendorSynonym.objects.get(id=request.POST.get('synonym'))
+			if request.POST.get('vendor') == 'null':
+				vendor = None
+				synonym.vendor = None
+				synonym.save()
+				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' отвязан от производителя.'}
+			else:
+				vendor = Vendor.objects.get(id=request.POST.get('vendor'))
+				synonym.vendor = vendor
+				synonym.save()
+				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к производителю ' + vendor.name + '.'}
+		except VendorSynonym.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Синоним с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
+		except Vendor.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('vendor') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Link Vendor Same Synonym
+def ajaxLinkVendorSameSynonym(request):
+
+	# Импортируем
+	from catalog.models import VendorSynonym, Vendor
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('synonym'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			synonym = VendorSynonym.objects.get(id=request.POST.get('synonym'))
+			try:
+				vendor = Vendor.objects.get(name=synonym.name)
+			except Vendor.DoesNotExist:
+				name = synonym.name
+				alias = name.lower()
+				alias = alias.replace(' ', '-')
+				vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())
+				vendor.save()
+			synonym.vendor = vendor
+			synonym.save()
+			result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к одноименному производителю.'}
+
+		except VendorSynonym.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Синоним с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Link Category Synonym
+def ajaxLinkCategorySynonym(request):
+
+	# Импортируем
+	from catalog.models import CategorySynonym, Category
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('category') or not request.POST.get('synonym'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			synonym = CategorySynonym.objects.get(id=request.POST.get('synonym'))
+			if request.POST.get('category') == 'null':
+				category = None
+				synonym.category = None
+				synonym.save()
+				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' отвязан от категории.'}
+			else:
+				category = Category.objects.get(id=request.POST.get('category'))
+				synonym.category = category
+				synonym.save()
+				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к производителю ' + category.name + '.'}
+		except CategorySynonym.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Синоним с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
+		except Category.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('category') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')

@@ -1,4 +1,4 @@
-from catalog.models import Updater, Currency, CategorySynonym, VendorSynonym, Category, Vendor
+from catalog.models import Updater, Distributor, Stock, Currency, Unit, CategorySynonym, VendorSynonym, Category, Vendor, Product, Party, PriceType, Price
 from datetime import date
 from datetime import datetime
 import lxml.html
@@ -21,6 +21,30 @@ class Update:
 			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
 			self.updater.save()
 
+		try: # self.distributor
+			self.distributor = Distributor.objects.get(alias=self.alias)
+		except Distributor.DoesNotExist:
+			self.distributor = Distributor(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now())
+			self.distributor.save()
+
+		try: # self.stock
+			self.stock = Stock.objects.get(alias=self.alias+'-stock')
+		except Stock.DoesNotExist:
+			self.stock = Stock(alias=self.alias+'-stock', name=self.name+': склад', delivery_time_min = 3, delivery_time_max = 10, created=datetime.now(), modified=datetime.now())
+			self.stock.save()
+
+		try: # self.transit
+			self.transit = Stock.objects.get(alias=self.alias+'-transit')
+		except Stock.DoesNotExist:
+			self.transit = Stock(alias=self.alias+'-transit', name=self.name+': транзит', delivery_time_min = 10, delivery_time_max = 40, created=datetime.now(), modified=datetime.now())
+			self.transit.save()
+
+		try: # self.price_type_dp
+			self.price_type_dp = PriceType.objects.get(alias='DP')
+		except PriceType.DoesNotExist:
+			self.price_type_dp = PriceType(alias='DP', name='Диллерская цена', created=datetime.now(), modified=datetime.now())
+			self.price_type_dp.save()
+
 		try: # self.currency_rub
 			self.currency_rub = Currency.objects.get(alias='RUB')
 		except Currency.DoesNotExist:
@@ -32,6 +56,12 @@ class Update:
 		except Currency.DoesNotExist:
 			self.currency_usd = Currency(alias='USD', name='$', full_name='US Dollar', rate=38, quantity=1, created=datetime.now(), modified=datetime.now())
 			self.currency_usd.save()
+
+		try: # self.default_unit
+			self.default_unit = Unit.objects.get(alias='pcs')
+		except Unit.DoesNotExist:
+			self.default_unit = Unit(alias='pcs', name='шт.', created=datetime.now(), modified=datetime.now())
+			self.default_unit.save()
 
 		if self.updater.state: self.run()
 
@@ -64,97 +94,243 @@ class Update:
 		for tr in table:
 
 			# Заголовок таблицы
-			if True == head :
+			if True == head:
 				tdn = 0
 				n = 0
-				for td in tr :
-					if td[0].text == 'Артикул' :
+				for td in tr:
+					if td[0].text == 'Артикул':
 						nArticle = tdn
 						n += 1
-					elif td[0].text == 'Наименование' :
+					elif td[0].text == 'Наименование':
 						nName = tdn
 						n += 1
-					elif td[0].text == 'Производитель' :
+					elif td[0].text == 'Производитель':
 						nVendor = tdn
 						n += 1
-					elif td[0].text == 'Св.' :
+					elif td[0].text == 'Св.':
 						nStock = tdn
 						n += 1
-					elif td[0].text == 'Св.+Тр.' :
+					elif td[0].text == 'Св.+Тр.':
 						nTransit = tdn
 						self.message += str(tdn) + "\n"
 						n += 1
-					elif td[0].text == 'Б. Тр.' :
+					elif td[0].text == 'Б. Тр.':
 						nTransitDate = tdn
 						self.message += str(tdn) + "\n"
 						n += 1
-					elif td[0].text == 'Цена*' :
+					elif td[0].text == 'Цена*':
 						nPriceUSD = tdn
 						self.message += str(tdn) + "\n"
 						n += 1
-					elif td[0].text == 'Цена руб.**' :
+					elif td[0].text == 'Цена руб.**':
 						nPriceRUB = tdn
 						self.message += str(tdn) + "\n"
 						n += 1
-					elif td[0].text == 'Доп.' :
+					elif td[0].text == 'Доп.':
 						nDop = tdn
 						self.message += str(tdn) + "\n"
 						n += 1
 					tdn += 1
 
 				# Проверяем, все ли столбцы распознались
-				if n < 8 :
+				if n < 8:
 					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
 					return False
 
 			# Категория
-			elif len(tr) == 1 :
+			elif len(tr) == 1:
 				# Обрабатываем синоним категории
 				categorySynonymName = tr[0][0].text.strip()
 				try:
 					categorySynonym = CategorySynonym.objects.get(name=categorySynonymName)
 				except CategorySynonym.DoesNotExist:
-					categorySynonym = CategorySynonym(name=categorySynonymName, updater=self.updater, created=datetime.now(), modified=datetime.now())
+					categorySynonym = CategorySynonym(name=categorySynonymName, updater=self.updater, distributor=self.distributor, created=datetime.now(), modified=datetime.now())
 					categorySynonym.save()
 
 			# Товар
-			elif len(tr) == 9 :
+			elif len(tr) == 9:
 				tdn = 0
-				for td in tr :
-					if   tdn == nArticle :
+				for td in tr:
+					if   tdn == nArticle:
 						article = str(td.text).strip()
-					elif tdn == nName :
+					elif tdn == nName:
 						name = str(td.text).strip()
-					elif tdn == nVendor :
+					elif tdn == nVendor:
 						vendorSynonymName = str(td.text).strip()
-					elif tdn == nStock :
+					elif tdn == nStock:
 						stock = str(td.text).strip()
-					elif tdn == nTransit :
+					elif tdn == nTransit:
 						transit = str(td.text).strip()
-					elif tdn == nTransitDate :
+					elif tdn == nTransitDate:
 						transitDate = str(td.text).strip()
-					elif tdn == nPriceUSD :
+					elif tdn == nPriceUSD:
 						priceUSD = str(td.text).strip()
-					elif tdn == nPriceRUB :
+					elif tdn == nPriceRUB:
 						priceRUB = str(td.text).strip()
-					elif tdn == nDop :
+					elif tdn == nDop:
 						dop = str(td.text).strip()
 					tdn += 1
 
 				# Обрабатываем синоним производителя
-				if vendorSynonymName != "" :
+				if vendorSynonymName != "":
 					try:
 						vendorSynonym = VendorSynonym.objects.get(name=vendorSynonymName)
 					except VendorSynonym.DoesNotExist:
 						vendorSynonym = VendorSynonym(name=vendorSynonymName, updater=self.updater, created=datetime.now(), modified=datetime.now())
 						vendorSynonym.save()
 
-				# Обрабатываем товар
+				# Проверяем наличие товара в базе
+				if article and vendorSynonym.vendor and article != '':
+					try:
+						product = Product.objects.get(article=article, vendor=vendorSynonym.vendor)
+					except Product.DoesNotExist:
 
-				# Обрабатываем партии
+						# Проверяем необходимые даннные для добавления товара в базу
+						if article and name and categorySynonym.category and vendorSynonym.vendor and article != '':
+							product = Product(name=name[:500], full_name=name, article=article, vendor=vendorSynonym.vendor, category=categorySynonym.category, unit=self.default_unit, description = '', created=datetime.now(), modified=datetime.now())
+							product.save()
+						else: continue
+				else: continue
+
+				# TODO Обрабатываем партии
+
+				# Склад
+				if stock in ('', '0*'): stock = 0
+				elif stock == 'мало': stock = 5
+				elif stock == 'много': stock = 10
+				else: stock = int(stock)
+
+				# Транзит
+				if transit in ('', '0*'): transit = 0
+				elif transit == 'мало': transit = 5 - stock
+				elif transit == 'много': transit = 10 - stock
+				else: transit = int(transit) - stock
+
+				# Цена в долларах
+				self.message += 'priceUSD = ' + priceUSD + "\n"
+				priceUSD = priceUSD.replace(',', '.')
+				priceUSD = priceUSD.replace(' ', '')
+				if priceUSD != '':
+					float(priceUSD)
+					try:
+
+						# Склад
+						party = Party.objects.get(product=product, stock=self.stock)
+						party.price = priceUSD
+						party.price_type = self.price_type_dp
+						party.currency = self.currency_usd
+						party.quantity = stock
+						party.unit = self.default_unit
+						party.comment = ''
+						party.state = True
+						party.modified = datetime.now()
+						party.save()
+
+						# Транзит
+						party = Party.objects.get(product=product, stock=self.transit)
+						party.price = priceUSD
+						party.price_type = self.price_type_dp
+						party.currency = self.currency_usd
+						party.quantity = transit
+						party.unit = self.default_unit
+						party.comment = ''
+						party.state = True
+						party.modified = datetime.now()
+						party.save()
+
+					except Party.DoesNotExist:
+
+						# Склад
+						party = Party(
+							product=product,
+							stock=self.stock,
+							price = priceUSD,
+							price_type = self.price_type_dp,
+							currency = self.currency_usd,
+							quantity = stock,
+							unit = self.default_unit,
+							comment = '',
+							created=datetime.now(),
+							modified=datetime.now())
+						party.save()
+
+						# Транзит
+						party = Party(
+							product=product,
+							stock=self.transit,
+							price = priceUSD,
+							price_type = self.price_type_dp,
+							currency = self.currency_usd,
+							quantity = transit,
+							unit = self.default_unit,
+							comment = '',
+							created=datetime.now(),
+							modified=datetime.now())
+						party.save()
+
+				# Цена в рублях
+				self.message += 'priceRUB = ' + priceRUB + "\n"
+				priceRUB = priceRUB.replace(',', '.')
+				priceRUB = priceRUB.replace(' ', '')
+				if priceRUB != '':
+					float(priceRUB)
+					try:
+
+						# Склад
+						party = Party.objects.get(product=product, stock=self.stock)
+						party.price = priceRUB
+						party.price_type = self.price_type_dp
+						party.currency = self.currency_rub
+						party.quantity = stock
+						party.unit = self.default_unit
+						party.comment = ''
+						party.state = True
+						party.modified = datetime.now()
+						party.save()
+
+						# Транзит
+						party = Party.objects.get(product=product, stock=self.transit)
+						party.price = priceRUB
+						party.price_type = self.price_type_dp
+						party.currency = self.currency_rub
+						party.quantity = transit
+						party.unit = self.default_unit
+						party.comment = ''
+						party.state = True
+						party.modified = datetime.now()
+						party.save()
+
+					except Party.DoesNotExist:
+
+						# Склад
+						party = Party(
+							product=product,
+							stock=self.stock,
+							price = priceRUB,
+							price_type = self.price_type_dp,
+							currency = self.currency_rub,
+							quantity = stock,
+							unit = self.default_unit,
+							comment = '',
+							created=datetime.now(),
+							modified=datetime.now())
+						party.save()
+
+						# Транзит
+						party = Party(
+							product=product,
+							stock=self.transit,
+							price = priceRUB,
+							price_type = self.price_type_dp,
+							currency = self.currency_rub,
+							quantity = transit,
+							unit = self.default_unit,
+							comment = '',
+							created=datetime.now(),
+							modified=datetime.now())
+						party.save()
 
 			head = False
-
 
 		# Обрабатываем цены
 

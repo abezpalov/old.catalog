@@ -1,14 +1,14 @@
 {% extends "main.html" %}
 {% block content %}
 
-<!-- TODO Форма добавления новой категории -->
+<!-- Форма добавления новой категории -->
 <div class="row collapse">
 	<div class="small-5 columns">
 		<input id="new-category-name" type="text" placeholder="Имя новой категории">
 	</div>
 	<div class="small-5 columns">
 		<select id="new-category-parent" >
-			<option value="null"> - Родительская категория - </option>
+			<option value="null" selected>Корневая категория</option>
 			{% for category in categories %}
 			<option value="{{ category.id }}">{{ category.name }}</option>
 			{% endfor %}
@@ -19,7 +19,7 @@
 	</div>
 </div>
 
-<!-- TODO Таблица со списком категорий -->
+<!-- Таблица со списком категорий -->
 <div class="row collapse">
 <table>
 <tr>
@@ -28,6 +28,7 @@
 	<th class="hide-for-small-only">Родитель</th>
 	<th class="hide-for-small-only">Уровень</th>
 	<th class="hide-for-small-only">Порядок</th>
+	<th class="hide-for-small-only">Путь</th>
 </tr>
 {% for category in categories %}
 <tr>
@@ -40,15 +41,15 @@
 	</td>
 	<td class="hide-for-small-only">
 		<select>
-			<option value="null">- root -</option>
-			{% for category in categories %}
-			<option value="{{ category.id }}">{{ category.name }}</option>
+			<option value="null">Корневая категория</option>
+			{% for parent in categories %}
+			<option value="{{ category.id }}"{% if category.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
 			{% endfor %}
 		</select>
-		{{ category.parent.name }}
 	</td>
 	<td class="hide-for-small-only">{{ category.level }}</a></td>
 	<td class="hide-for-small-only">{{ category.order }}</a></td>
+	<td class="hide-for-small-only">{{ category.path }}</a></td>
 </tr>
 {% endfor %}
 </table>

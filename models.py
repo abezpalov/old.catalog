@@ -96,8 +96,8 @@ class Unit(models.Model):
 
 # Product
 class Product(models.Model):
-	name = models.CharField(max_length=100)
-	full_name = models.CharField(max_length=500)
+	name = models.CharField(max_length=500)
+	full_name = models.TextField()
 	article = models.CharField(max_length=100)
 	vendor = models.ForeignKey(Vendor)
 	category = models.ForeignKey(Category, null=True, default=None)

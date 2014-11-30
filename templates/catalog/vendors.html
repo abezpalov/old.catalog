@@ -13,24 +13,25 @@
 
 <!-- Таблица со списком производителей -->
 <div class="row collapse">
-<table>
-<tr id="vendors-h">
-	<th>Наименование</th>
-	<th  width="200">Статус</th>
-</tr>
-
-{% for vendor in vendors %}
-<tr>
-	<td><a href="/catalog/vendor/{{ vendor.alias }}/">{{ vendor.name }}</a></td>
-	<td>
-		<div class="switch small">
-			<input id="vendor-state-{{ vendor.id }}" data-id="{{ vendor.id }}" class="do-switch-vendor-state" type="checkbox"{% if vendor.state %} checked{% endif %}>
-			<label for="vendor-state-{{ vendor.id }}"></label>
-		</div>
-	</td>
-</tr>
-{% endfor %}
-</table>
+	<div class="small-12 columns">
+		<table>
+			<tr id="vendors-h">
+				<th>Наименование</th>
+				<th>Статус</th>
+			</tr>
+			{% for vendor in vendors %}
+			<tr>
+				<td><a href="/catalog/vendor/{{ vendor.alias }}/">{{ vendor.name }}</a></td>
+				<td>
+					<div class="switch small">
+						<input id="vendor-state-{{ vendor.id }}" data-id="{{ vendor.id }}" class="do-switch-vendor-state" type="checkbox"{% if vendor.state %} checked{% endif %}>
+						<label for="vendor-state-{{ vendor.id }}"></label>
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
 </div>
 {% endblock %}
 {% block js-content %}

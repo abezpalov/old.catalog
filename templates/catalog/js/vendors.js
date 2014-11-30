@@ -13,17 +13,28 @@ $(document).ready(function(){
 		// Обрабатываем ответ
 		function(data) {
 			if ('success' == data.status) {
-				$("#vendors-h").after('<tr><td><a href="/catalog/vendor/' + data.vendorAlias + '/">' + data.vendorName + '</a></td><td><div class="switch small"><input id="vendor-status-' + data.vendorId + '" data-id="' + data.vendorId + '" class="do-switch-vendor-status" type="checkbox" checked><label for="vendor-status-' + data.vendorId + '"></label></div></td></tr>');
-				$("#new-vendor").val('');
-				// TODO Вывести сообщение
+
+				// Вывести сообщение
+				var notification = new NotificationFx({
+					wrapper : document.body,
+					message : '<p>' + data.message + '</p>',
+					layout : 'attached',
+					effect : 'flip',
+					type : data.status,
+					ttl : 3000,
+					onClose : function() { return false; },
+					onOpen : function() { return false; }
+				});
+				notification.show();
 			}
 		}, "json");
+		location.reload();
 		return false;
 	});
 
 
 	// Поменять статус производителя
-	$("table").delegate(".do-switch-vendor-state", "click", function(){
+	$("body").delegate(".do-switch-vendor-state", "click", function(){
 
 		// Отправляем данные
 		$.post("/catalog/ajax/switch/vendor/state/", {
@@ -34,8 +45,19 @@ $(document).ready(function(){
 
 		// Обрабатываем ответ
 		function(data) {
-			if ('success' == data.status) {
-				// TODO Вывести сообщение
+			if (null != data.status) {
+				// Вывести сообщение
+				var notification = new NotificationFx({
+					wrapper : document.body,
+					message : '<p>' + data.message + '</p>',
+					layout : 'attached',
+					effect : 'flip',
+					type : data.status,
+					ttl : 3000,
+					onClose : function() { return false; },
+					onOpen : function() { return false; }
+				});
+				notification.show();
 			}
 		}, "json");
 		return true;

@@ -8,6 +8,10 @@ urlpatterns = patterns('',
 	# ex: /catalog/
 	url(r'^$', views.index, name='index'),
 
+	# Product
+	# ex: /catalog/products/
+	url(r'^products/$', views.products, name='products'),
+
 	# Updater
 	# ex: /catalog/updaters/
 	url(r'^updaters/$', views.updaters, name='updaters'),
@@ -32,16 +36,16 @@ urlpatterns = patterns('',
 	# Vendor Synonym
 	# ex: /catalog/vendor-synonyms/
 	url(r'^vendor-synonyms/$', views.vendorsynonyms, name='vendorsynonyms'),
-	# ex: /catalog/vendor-synonyms/ocs/
-	url(r'^vendor-synonyms/(?P<alias>[a-zA-Z0-9_-]+)/$', views.vendorsynonyms, name='vendorsynonyms'),
+	# ex: /catalog/vendor-synonyms/1/2/none/
+	url(r'^vendor-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<vendor_selected>[a-zA-Z0-9_-]+)/$', views.vendorsynonyms, name='vendorsynonyms'),
 	# ex: /catalog/vendor-synonym/58/
 	url(r'^vendor-synonym/(?P<synonym_id>[0-9]+)/$', views.vendorsynonym, name='vendorsynonym'),
 
 	# Category Synonym
 	# ex: /catalog/category-synonyms/
 	url(r'^category-synonyms/$', views.categorysynonyms, name='categorysynonyms'),
-	# ex: /catalog/category-synonyms/ocs/
-	url(r'^category-synonyms/(?P<alias>[a-zA-Z0-9_-]+)/$', views.categorysynonyms, name='categorysynonyms'),
+	# ex: /catalog/category-synonyms/1/2/none/
+	url(r'^category-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<category_selected>[a-zA-Z0-9_-]+)/$', views.categorysynonyms, name='categorysynonyms'),
 	# ex: /catalog/category-synonym/58/
 	url(r'^category-synonym/(?P<synonym_id>[0-9]+)/$', views.categorysynonym, name='categorysynonym'),
 
@@ -50,4 +54,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/add/category/$', views.ajaxAddCategory, name='ajaxAddCategory'),
 	url(r'^ajax/switch/vendor/state/$', views.ajaxSwitchVendorState, name='ajaxSwitchVendorState'),
 	url(r'^ajax/switch/category/state/$', views.ajaxSwitchCategoryState, name='ajaxSwitchCategoryState'),
+	url(r'^ajax/link/vendor/synonym/$', views.ajaxLinkVendorSynonym, name='ajaxLinkVendorSynonym'),
+	url(r'^ajax/link/vendor/same/synonym/$', views.ajaxLinkVendorSameSynonym, name='ajaxLinkVendorSameSynonym'),
+	url(r'^ajax/link/category/synonym/$', views.ajaxLinkCategorySynonym, name='ajaxLinkCategorySynonym'),
 )
