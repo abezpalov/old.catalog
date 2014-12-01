@@ -1,8 +1,20 @@
-from catalog.models import Updater, Distributor, Stock, Currency, Unit, CategorySynonym, VendorSynonym, Category, Vendor, Product, Party, PriceType, Price
-from datetime import date
-from datetime import datetime
 import lxml.html
 import requests
+from datetime import date
+from datetime import datetime
+from catalog.models import Updater
+from catalog.models import Distributor
+from catalog.models import Stock
+from catalog.models import Currency
+from catalog.models import Unit
+from catalog.models import CategorySynonym
+from catalog.models import VendorSynonym
+from catalog.models import Category
+from catalog.models import Vendor
+from catalog.models import Product
+from catalog.models import Party
+from catalog.models import PriceType
+from catalog.models import Price
 
 
 class Update:
@@ -65,6 +77,7 @@ class Update:
 
 		if self.updater.state: self.run()
 
+
 	def run(self):
 
 		# Создаем сессию
@@ -84,56 +97,28 @@ class Update:
 		# Загружаем общий прайс
 		url = 'https://b2b.treolan.ru/Catalog/SearchToExcel?&comodity=true&withMarketingProgramsOnly=false&availableAtStockOnly=false&rusDescription=true&condition=0&catalogProductsOnly=true&order=0&getExcel=true&searchBylink=false&take=50&skip=0'
 		r = s.get(url, cookies=cookies, allow_redirects=False, verify=False)
-		# self.message = r.text+"\n"
-		self.message += "Прайс загружен.\n"
 		tree = lxml.html.fromstring(r.text)
 
 		# Парсим
 		table = tree.xpath("//table")[0]
-		head = True;
-		for tr in table:
+		head = True
+		for trn, tr in enumerate(table):
 
 			# Заголовок таблицы
-			if True == head:
-				tdn = 0
-				n = 0
-				for td in tr:
-					if td[0].text == 'Артикул':
-						nArticle = tdn
-						n += 1
-					elif td[0].text == 'Наименование':
-						nName = tdn
-						n += 1
-					elif td[0].text == 'Производитель':
-						nVendor = tdn
-						n += 1
-					elif td[0].text == 'Св.':
-						nStock = tdn
-						n += 1
-					elif td[0].text == 'Св.+Тр.':
-						nTransit = tdn
-						self.message += str(tdn) + "\n"
-						n += 1
-					elif td[0].text == 'Б. Тр.':
-						nTransitDate = tdn
-						self.message += str(tdn) + "\n"
-						n += 1
-					elif td[0].text == 'Цена*':
-						nPriceUSD = tdn
-						self.message += str(tdn) + "\n"
-						n += 1
-					elif td[0].text == 'Цена руб.**':
-						nPriceRUB = tdn
-						self.message += str(tdn) + "\n"
-						n += 1
-					elif td[0].text == 'Доп.':
-						nDop = tdn
-						self.message += str(tdn) + "\n"
-						n += 1
-					tdn += 1
+			if trn == 0:
+				for tdn, td in enumerate(tr):
+					if td[0].text == 'Артикул': nArticle = tdn
+					elif td[0].text == 'Наименование': nName = tdn
+					elif td[0].text == 'Производитель': nVendor = tdn
+					elif td[0].text == 'Св.': nStock = tdn
+					elif td[0].text == 'Св.+Тр.': nTransit = tdn
+					elif td[0].text == 'Б. Тр.': nTransitDate = tdn
+					elif td[0].text == 'Цена*': nPriceUSD = tdn
+					elif td[0].text == 'Цена руб.**': nPriceRUB = tdn
+					elif td[0].text == 'Доп.': nDop = tdn
 
 				# Проверяем, все ли столбцы распознались
-				if n < 8:
+				if not nArticle == 0 or not nName or not nVendor or not nStock or not nTransit or not nPriceUSD or not nPriceUSD or not nPriceRUB:
 					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
 					return False
 
@@ -149,27 +134,16 @@ class Update:
 
 			# Товар
 			elif len(tr) == 9:
-				tdn = 0
-				for td in tr:
-					if   tdn == nArticle:
-						article = str(td.text).strip()
-					elif tdn == nName:
-						name = str(td.text).strip()
-					elif tdn == nVendor:
-						vendorSynonymName = str(td.text).strip()
-					elif tdn == nStock:
-						stock = str(td.text).strip()
-					elif tdn == nTransit:
-						transit = str(td.text).strip()
-					elif tdn == nTransitDate:
-						transitDate = str(td.text).strip()
-					elif tdn == nPriceUSD:
-						priceUSD = str(td.text).strip()
-					elif tdn == nPriceRUB:
-						priceRUB = str(td.text).strip()
-					elif tdn == nDop:
-						dop = str(td.text).strip()
-					tdn += 1
+				for tdn, td in enumerate(tr):
+					if tdn == nArticle: article = str(td.text).strip()
+					elif tdn == nName: name = str(td.text).strip()
+					elif tdn == nVendor: vendorSynonymName = str(td.text).strip()
+					elif tdn == nStock: stock = str(td.text).strip()
+					elif tdn == nTransit: transit = str(td.text).strip()
+					elif tdn == nTransitDate: transitDate = str(td.text).strip()
+					elif tdn == nPriceUSD: priceUSD = str(td.text).strip()
+					elif tdn == nPriceRUB: priceRUB = str(td.text).strip()
+					elif tdn == nDop: dop = str(td.text).strip()
 
 				# Обрабатываем синоним производителя
 				if vendorSynonymName != "":
@@ -329,8 +303,6 @@ class Update:
 							created=datetime.now(),
 							modified=datetime.now())
 						party.save()
-
-			head = False
 
 		# Обрабатываем цены
 
