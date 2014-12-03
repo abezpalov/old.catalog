@@ -27,53 +27,14 @@ class Update:
 		self.alias = 'treolan'
 		self.message = ''
 
-		try: # self.updater
-			self.updater = Updater.objects.get(alias=self.alias)
-		except Updater.DoesNotExist:
-			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
-			self.updater.save()
-
-		try: # self.distributor
-			self.distributor = Distributor.objects.get(alias=self.alias)
-		except Distributor.DoesNotExist:
-			self.distributor = Distributor(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now())
-			self.distributor.save()
-
-		try: # self.stock
-			self.stock = Stock.objects.get(alias=self.alias+'-stock')
-		except Stock.DoesNotExist:
-			self.stock = Stock(alias=self.alias+'-stock', name=self.name+': склад', delivery_time_min = 3, delivery_time_max = 10, created=datetime.now(), modified=datetime.now())
-			self.stock.save()
-
-		try: # self.transit
-			self.transit = Stock.objects.get(alias=self.alias+'-transit')
-		except Stock.DoesNotExist:
-			self.transit = Stock(alias=self.alias+'-transit', name=self.name+': транзит', delivery_time_min = 10, delivery_time_max = 40, created=datetime.now(), modified=datetime.now())
-			self.transit.save()
-
-		try: # self.price_type_dp
-			self.price_type_dp = PriceType.objects.get(alias='DP')
-		except PriceType.DoesNotExist:
-			self.price_type_dp = PriceType(alias='DP', name='Диллерская цена', created=datetime.now(), modified=datetime.now())
-			self.price_type_dp.save()
-
-		try: # self.currency_rub
-			self.currency_rub = Currency.objects.get(alias='RUB')
-		except Currency.DoesNotExist:
-			self.currency_rub = Currency(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1, created=datetime.now(), modified=datetime.now())
-			self.currency_rub.save()
-
-		try: # self.currency_usd
-			self.currency_usd = Currency.objects.get(alias='USD')
-		except Currency.DoesNotExist:
-			self.currency_usd = Currency(alias='USD', name='$', full_name='US Dollar', rate=38, quantity=1, created=datetime.now(), modified=datetime.now())
-			self.currency_usd.save()
-
-		try: # self.default_unit
-			self.default_unit = Unit.objects.get(alias='pcs')
-		except Unit.DoesNotExist:
-			self.default_unit = Unit(alias='pcs', name='шт.', created=datetime.now(), modified=datetime.now())
-			self.default_unit.save()
+		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
+		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
+		self.stock = Stock.objects.take(alias=self.alias+'-stock', name=self.name+': склад', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
+		self.transit =Stock.objects.take(alias=self.alias+'-transit', name=self.name+': транзит', delivery_time_min = 10, delivery_time_max = 40, distributor=self.distributor)
+		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
+		self.price_type_dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
+		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+		self.currency_usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
 
 		if self.updater.state: self.run()
 

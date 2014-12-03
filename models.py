@@ -13,6 +13,18 @@ class Connector(models.Model):
 	def __str__(self):
 		return self.name
 
+# TODO Distributor manager
+class DistributorManager(models.Manager):
+
+	def take(self, alias, name):
+		from datetime import datetime
+		try:
+			distributor = self.get(alias=alias)
+		except Distributor.DoesNotExist:
+			distributor = Distributor(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			distributor.save()
+		return distributor
+
 # Distributor
 class Distributor(models.Model):
 	name = models.CharField(max_length=100)
@@ -22,9 +34,22 @@ class Distributor(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = DistributorManager()
 
 	def __str__(self):
 		return self.name
+
+# TODO Updater manager
+class UpdaterManager(models.Manager):
+
+	def take(self, alias, name, distributor=None):
+		from datetime import datetime
+		try:
+			updater = self.get(alias=alias)
+		except Updater.DoesNotExist:
+			updater = Updater(alias=alias, name=name, distributor=distributor, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
+			updater.save()
+		return updater
 
 # Updater
 class Updater(models.Model):
@@ -37,9 +62,22 @@ class Updater(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 	updated = models.DateTimeField()
+	objects = UpdaterManager()
 
 	def __str__(self):
 		return self.name
+
+# TODO Stock manager
+class StockManager(models.Manager):
+
+	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20, distributor=None):
+		from datetime import datetime
+		try:
+			stock = self.get(alias=alias)
+		except Stock.DoesNotExist:
+			stock = Stock(alias=alias, name=name, delivery_time_min = 10, delivery_time_max = 20, distributor=distributor, created=datetime.now(), modified=datetime.now())
+			stock.save()
+		return stock
 
 # Stock
 class Stock(models.Model):
@@ -51,6 +89,7 @@ class Stock(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = StockManager()
 
 	def __str__(self):
 		return self.name
@@ -71,6 +110,18 @@ class Category(models.Model):
 	def __str__(self):
 		return self.name
 
+# TODO Vendor manager
+class VendorManager(models.Manager):
+
+	def take(self, alias, name):
+		from datetime import datetime
+		try:
+			vendor = self.get(alias=alias)
+		except Vendor.DoesNotExist:
+			vendor = Vendor(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			vendor.save()
+		return vendor
+
 # Vendor
 class Vendor(models.Model):
 	name = models.CharField(max_length=100)
@@ -79,9 +130,22 @@ class Vendor(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = VendorManager()
 
 	def __str__(self):
 		return self.name
+
+# TODO Unit manager
+class UnitManager(models.Manager):
+
+	def take(self, alias, name):
+		from datetime import datetime
+		try:
+			unit = self.get(alias=alias)
+		except Unit.DoesNotExist:
+			unit = Unit(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			unit.save()
+		return unit
 
 # Unit
 class Unit(models.Model):
@@ -90,6 +154,7 @@ class Unit(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = UnitManager()
 
 	def __str__(self):
 		return self.name
@@ -104,23 +169,50 @@ class Product(models.Model):
 	unit = models.ForeignKey(Unit)
 	description = models.TextField()
 	duble = models.ForeignKey('self', null=True, default=None)
+	edited = models.BooleanField(default=False)
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
 	def __str__(self):
 		return self.name
+
+# TODO Price Type manager
+class PriceTypeManager(models.Manager):
+
+	def take(self, alias, name):
+		from datetime import datetime
+		try:
+			price_type = self.get(alias=alias)
+		except PriceType.DoesNotExist:
+			price_type = PriceType(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			price_type.save()
+		return price_type
 
 # Price Type
 class PriceType(models.Model):
 	name = models.CharField(max_length=100)
 	alias = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
+	multiplier = models.DecimalField(max_digits=10, decimal_places=4, default=1.0)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = PriceTypeManager()
 
 	def __str__(self):
 		return self.name
+
+# TODO Currency manager
+class CurrencyManager(models.Manager):
+
+	def take(self, alias, name, full_name, rate=1, quantity=1):
+		from datetime import datetime
+		try:
+			currency = self.get(alias=alias)
+		except Currency.DoesNotExist:
+			currency = Currency(alias=alias, name=name, full_name=full_name, rate=rate, quantity=quantity, created=datetime.now(), modified=datetime.now())
+			currency.save()
+		return currency
 
 # Currency
 class Currency(models.Model):
@@ -132,6 +224,7 @@ class Currency(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = CurrencyManager()
 
 	def __str__(self):
 		return self.name

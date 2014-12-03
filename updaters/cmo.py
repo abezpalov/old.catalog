@@ -27,47 +27,13 @@ class Update:
 		self.alias = 'cmo'
 		self.message = ''
 
-		try: # self.updater
-			self.updater = Updater.objects.get(alias=self.alias)
-		except Updater.DoesNotExist:
-			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
-			self.updater.save()
-
-		try: # self.distributor
-			self.distributor = Distributor.objects.get(alias=self.alias)
-		except Distributor.DoesNotExist:
-			self.distributor = Distributor(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now())
-			self.distributor.save()
-
-		try: # self.factory
-			self.stock = Stock.objects.get(alias=self.alias+'-factory')
-		except Stock.DoesNotExist:
-			self.stock = Stock(alias=self.alias+'-factory', name=self.name+': завод', delivery_time_min = 10, delivery_time_max = 20, created=datetime.now(), modified=datetime.now())
-			self.stock.save()
-
-		try: # self.price_type_dp
-			self.price_type_dp = PriceType.objects.get(alias='RRP')
-		except PriceType.DoesNotExist:
-			self.price_type_dp = PriceType(alias='RRP', name='Рекомендованная розничная цена', created=datetime.now(), modified=datetime.now())
-			self.price_type_dp.save()
-
-		try: # self.currency_rub
-			self.currency_rub = Currency.objects.get(alias='RUB')
-		except Currency.DoesNotExist:
-			self.currency_rub = Currency(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1, created=datetime.now(), modified=datetime.now())
-			self.currency_rub.save()
-
-		try: # self.default_unit
-			self.default_unit = Unit.objects.get(alias='pcs')
-		except Unit.DoesNotExist:
-			self.default_unit = Unit(alias='pcs', name='шт.', created=datetime.now(), modified=datetime.now())
-			self.default_unit.save()
-
-		try:
-			self.vendor = Vendor.objects.get(alias='cmo')
-		except Vendor.DoesNotExist:
-			vendor = Vendor(name=self.name, alias=self.alias, created=datetime.now(), modified=datetime.now())
-			vendor.save()
+		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
+		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
+		self.factory = Stock.objects.take(alias=self.alias+'-factory', name=self.name+': завод', delivery_time_min = 10, delivery_time_max = 20, distributor=self.distributor)
+		self.vendor = Vendor.objects.take(alias=self.alias, name=self.name)
+		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
+		self.price_type_dp = PriceType.objects.take(alias='RRP', name='Рекомендованная розничная цена')
+		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 
 		if self.updater.state: self.run()
 

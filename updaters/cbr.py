@@ -15,17 +15,8 @@ class Update:
 		self.alias = 'cbr'
 		self.message = ''
 
-		try: # self.updater
-			self.updater = Updater.objects.get(alias=self.alias)
-		except Updater.DoesNotExist:
-			self.updater = Updater(alias=self.alias, name=self.name, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
-			self.updater.save()
-
-		try: # self.currency
-			self.currency = Currency.objects.get(alias='RUB')
-		except Currency.DoesNotExist:
-			self.currency = Currency(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1, created=datetime.now(), modified=datetime.now())
-			self.currency.save()
+		self.updater = Updater.objects.take(alias=self.alias, name=self.name)
+		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 
 		if self.updater.state: self.run()
 
