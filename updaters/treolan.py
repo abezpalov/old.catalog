@@ -17,8 +17,7 @@ from catalog.models import PriceType
 from catalog.models import Price
 
 
-class Update:
-
+class Runner:
 
 	def __init__(self):
 
@@ -35,9 +34,6 @@ class Update:
 		self.price_type_dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
 		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 		self.currency_usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
-
-		if self.updater.state: self.run()
-
 
 	def run(self):
 
@@ -82,16 +78,11 @@ class Update:
 				if not nArticle == 0 or not nName or not nVendor or not nStock or not nTransit or not nPriceUSD or not nPriceUSD or not nPriceRUB:
 					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
 					return False
+				else: self.message += "Структура данных без изменений.\n"
 
 			# Категория
 			elif len(tr) == 1:
-				# Обрабатываем синоним категории
-				categorySynonymName = tr[0][0].text.strip()
-				try:
-					categorySynonym = CategorySynonym.objects.get(name=categorySynonymName)
-				except CategorySynonym.DoesNotExist:
-					categorySynonym = CategorySynonym(name=categorySynonymName, updater=self.updater, distributor=self.distributor, created=datetime.now(), modified=datetime.now())
-					categorySynonym.save()
+				categorySynonym = CategorySynonym.objects.take(name=tr[0][0].text.strip(), updater=self.updater, distributor=self.distributor)
 
 			# Товар
 			elif len(tr) == 9:
@@ -99,20 +90,17 @@ class Update:
 					if tdn == nArticle: article = str(td.text).strip()
 					elif tdn == nName: name = str(td.text).strip()
 					elif tdn == nVendor: vendorSynonymName = str(td.text).strip()
-					elif tdn == nStock: stock = str(td.text).strip()
-					elif tdn == nTransit: transit = str(td.text).strip()
+					elif tdn == nStock: stock = self.fixQuantity(str(td.text).strip())
+					elif tdn == nTransit: transit = self.fixQuantity(str(td.text).strip()) - stock
 					elif tdn == nTransitDate: transitDate = str(td.text).strip()
-					elif tdn == nPriceUSD: priceUSD = str(td.text).strip()
-					elif tdn == nPriceRUB: priceRUB = str(td.text).strip()
+					elif tdn == nPriceUSD: priceUSD = self.fixPrice(str(td.text).strip())
+					elif tdn == nPriceRUB: priceRUB = self.fixPrice(str(td.text).strip())
 					elif tdn == nDop: dop = str(td.text).strip()
 
 				# Обрабатываем синоним производителя
-				if vendorSynonymName != "":
-					try:
-						vendorSynonym = VendorSynonym.objects.get(name=vendorSynonymName)
-					except VendorSynonym.DoesNotExist:
-						vendorSynonym = VendorSynonym(name=vendorSynonymName, updater=self.updater, created=datetime.now(), modified=datetime.now())
-						vendorSynonym.save()
+				if vendorSynonymName != '':
+					vendorSynonym = VendorSynonym.objects.take(name=vendorSynonymName, updater=self.updater, distributor=self.distributor)
+				else: continue
 
 				# Проверяем наличие товара в базе
 				if article and vendorSynonym.vendor and article != '':
@@ -129,145 +117,29 @@ class Update:
 
 				# TODO Обрабатываем партии
 
-				# Склад
-				if stock in ('', '0*'): stock = 0
-				elif stock == 'мало': stock = 5
-				elif stock == 'много': stock = 10
-				else: stock = int(stock)
-
-				# Транзит
-				if transit in ('', '0*'): transit = 0
-				elif transit == 'мало': transit = 5 - stock
-				elif transit == 'много': transit = 10 - stock
-				else: transit = int(transit) - stock
-
 				# Цена в долларах
 				self.message += 'priceUSD = ' + priceUSD + "\n"
-				priceUSD = priceUSD.replace(',', '.')
-				priceUSD = priceUSD.replace(' ', '')
 				if priceUSD != '':
-					float(priceUSD)
-					try:
-
-						# Склад
-						party = Party.objects.get(product=product, stock=self.stock)
-						party.price = priceUSD
-						party.price_type = self.price_type_dp
-						party.currency = self.currency_usd
-						party.quantity = stock
-						party.unit = self.default_unit
-						party.comment = ''
-						party.state = True
-						party.modified = datetime.now()
-						party.save()
-
-						# Транзит
-						party = Party.objects.get(product=product, stock=self.transit)
-						party.price = priceUSD
-						party.price_type = self.price_type_dp
-						party.currency = self.currency_usd
-						party.quantity = transit
-						party.unit = self.default_unit
-						party.comment = ''
-						party.state = True
-						party.modified = datetime.now()
-						party.save()
-
-					except Party.DoesNotExist:
-
-						# Склад
-						party = Party(
-							product=product,
-							stock=self.stock,
-							price = priceUSD,
-							price_type = self.price_type_dp,
-							currency = self.currency_usd,
-							quantity = stock,
-							unit = self.default_unit,
-							comment = '',
-							created=datetime.now(),
-							modified=datetime.now())
-						party.save()
-
-						# Транзит
-						party = Party(
-							product=product,
-							stock=self.transit,
-							price = priceUSD,
-							price_type = self.price_type_dp,
-							currency = self.currency_usd,
-							quantity = transit,
-							unit = self.default_unit,
-							comment = '',
-							created=datetime.now(),
-							modified=datetime.now())
-						party.save()
+					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.currency_usd, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.currency_usd, quantity = transit, unit = self.default_unit)
 
 				# Цена в рублях
 				self.message += 'priceRUB = ' + priceRUB + "\n"
-				priceRUB = priceRUB.replace(',', '.')
-				priceRUB = priceRUB.replace(' ', '')
 				if priceRUB != '':
-					float(priceRUB)
-					try:
+					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.currency_usd, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.currency_usd, quantity = transit, unit = self.default_unit)
 
-						# Склад
-						party = Party.objects.get(product=product, stock=self.stock)
-						party.price = priceRUB
-						party.price_type = self.price_type_dp
-						party.currency = self.currency_rub
-						party.quantity = stock
-						party.unit = self.default_unit
-						party.comment = ''
-						party.state = True
-						party.modified = datetime.now()
-						party.save()
-
-						# Транзит
-						party = Party.objects.get(product=product, stock=self.transit)
-						party.price = priceRUB
-						party.price_type = self.price_type_dp
-						party.currency = self.currency_rub
-						party.quantity = transit
-						party.unit = self.default_unit
-						party.comment = ''
-						party.state = True
-						party.modified = datetime.now()
-						party.save()
-
-					except Party.DoesNotExist:
-
-						# Склад
-						party = Party(
-							product=product,
-							stock=self.stock,
-							price = priceRUB,
-							price_type = self.price_type_dp,
-							currency = self.currency_rub,
-							quantity = stock,
-							unit = self.default_unit,
-							comment = '',
-							created=datetime.now(),
-							modified=datetime.now())
-						party.save()
-
-						# Транзит
-						party = Party(
-							product=product,
-							stock=self.transit,
-							price = priceRUB,
-							price_type = self.price_type_dp,
-							currency = self.currency_rub,
-							quantity = transit,
-							unit = self.default_unit,
-							comment = '',
-							created=datetime.now(),
-							modified=datetime.now())
-						party.save()
-
-		# Обрабатываем цены
-
-		# Отмечаемся и уходим
-		self.updater.updated = datetime.now()
-		self.updater.save()
 		return True
+
+	def fixPrice(self, price):
+		price = price.replace(',', '.')
+		price = price.replace(' ', '')
+		return price
+
+	def fixQuantity(self, quantity):
+		if quantity in ('', '0*'): quantity = 0
+		elif quantity == 'мало': quantity = 5
+		elif quantity == 'много': quantity = 10
+		elif quantity == 'Поставка\n 7 дней': quantity = -1
+		else: quantity = int(quantity)
+		return quantity

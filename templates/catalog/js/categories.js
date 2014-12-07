@@ -5,7 +5,7 @@ $(document).ready(function(){
 	$("#do-add-category").click(function() {
 
 		// Отправляем данные
-		$.post("/catalog/ajax/add/category/", {
+		$.post("/catalog/ajax/add-category/", {
 			newCategoryName: $("#new-category-name").val(),
 			newCategoryParent:  $("#new-category-parent").val(),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
@@ -22,8 +22,8 @@ $(document).ready(function(){
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
-					layout : 'attached',
-					effect : 'flip',
+					layout : 'growl',
+					effect : 'genie',
 					type : data.status,
 					ttl : 3000,
 					onClose : function() { return false; },
@@ -41,7 +41,7 @@ $(document).ready(function(){
 	$("body").delegate(".do-switch-category-state", "click", function(){
 
 		// Отправляем данные
-		$.post("/catalog/ajax/switch/category/state/", {
+		$.post("/catalog/ajax/switch-category-state/", {
 			id: $(this).data('id'),
 			state: $(this).prop("checked"),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
@@ -54,8 +54,8 @@ $(document).ready(function(){
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
-					layout : 'attached',
-					effect : 'flip',
+					layout : 'growl',
+					effect : 'genie',
 					type : data.status,
 					ttl : 3000,
 					onClose : function() { return false; },

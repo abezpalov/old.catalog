@@ -1,18 +1,12 @@
 $(document).ready(function(){
 
-	// Применить фильтр
-	$("body").delegate(".do-filter-table", "change", function(){
-		location.href = "/catalog/category-synonyms/" + $("#filter-updater").val() + "/" + $("#filter-distributor").val() + "/" + $("#filter-category").val() + "/";
-		return true;
-	});
-
-	// Привязать синоним
-	$("table").delegate(".do-link-category-synonym", "change", function(){
+	// Поменять статус загрузчика
+	$("body").delegate(".do-switch-updater-state", "click", function(){
 
 		// Отправляем данные
-		$.post("/catalog/ajax/link-category-synonym/", {
-			synonym: $(this).data('id'),
-			category: $(this).val(),
+		$.post("/catalog/ajax/switch-updater-state/", {
+			id: $(this).data('id'),
+			state: $(this).prop("checked"),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
 		},
 
@@ -33,7 +27,6 @@ $(document).ready(function(){
 				notification.show();
 			}
 		}, "json");
-
 		return true;
 	});
 

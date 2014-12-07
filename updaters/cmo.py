@@ -17,8 +17,7 @@ from catalog.models import PriceType
 from catalog.models import Price
 
 
-class Update:
-
+class Runner:
 
 	def __init__(self):
 
@@ -34,9 +33,6 @@ class Update:
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
 		self.price_type_dp = PriceType.objects.take(alias='RRP', name='Рекомендованная розничная цена')
 		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
-
-		if self.updater.state: self.run()
-
 
 	def run(self):
 

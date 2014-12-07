@@ -5,7 +5,7 @@ $(document).ready(function(){
 	$("#do-add-vendor").click(function() {
 
 		// Отправляем данные
-		$.post("/catalog/ajax/add/vendor/", {
+		$.post("/catalog/ajax/add-vendor/", {
 			new_vendor: $("#new-vendor").val(),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
 		},
@@ -18,8 +18,8 @@ $(document).ready(function(){
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
-					layout : 'attached',
-					effect : 'flip',
+					layout : 'growl',
+					effect : 'genie',
 					type : data.status,
 					ttl : 3000,
 					onClose : function() { return false; },
@@ -37,7 +37,7 @@ $(document).ready(function(){
 	$("body").delegate(".do-switch-vendor-state", "click", function(){
 
 		// Отправляем данные
-		$.post("/catalog/ajax/switch/vendor/state/", {
+		$.post("/catalog/ajax/switch-vendor-state/", {
 			id: $(this).data('id'),
 			state: $(this).prop("checked"),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
@@ -50,8 +50,8 @@ $(document).ready(function(){
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
-					layout : 'attached',
-					effect : 'flip',
+					layout : 'growl',
+					effect : 'genie',
 					type : data.status,
 					ttl : 3000,
 					onClose : function() { return false; },

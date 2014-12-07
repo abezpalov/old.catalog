@@ -10,7 +10,7 @@ $(document).ready(function(){
 	$("table").delegate(".do-link-vendor-synonym", "change", function(){
 
 		// Отправляем данные
-		$.post("/catalog/ajax/link/vendor/synonym/", {
+		$.post("/catalog/ajax/link-vendor-synonym/", {
 			synonym: $(this).data('id'),
 			vendor: $(this).val(),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
@@ -23,8 +23,8 @@ $(document).ready(function(){
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
-					layout : 'attached',
-					effect : 'flip',
+					layout : 'growl',
+					effect : 'genie',
 					type : data.status,
 					ttl : 3000,
 					onClose : function() { return false; },
@@ -41,7 +41,7 @@ $(document).ready(function(){
 	$("table").delegate(".do-link-vendor-same-synonym", "click", function(){
 
 		// Отправляем данные
-		$.post("/catalog/ajax/link/vendor/same/synonym/", {
+		$.post("/catalog/ajax/link-vendor-same-synonym/", {
 			synonym: $(this).data('id'),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
 		},
@@ -53,8 +53,8 @@ $(document).ready(function(){
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
-					layout : 'attached',
-					effect : 'flip',
+					layout : 'growl',
+					effect : 'genie',
 					type : data.status,
 					ttl : 3000,
 					onClose : function() { return false; },

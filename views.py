@@ -50,9 +50,15 @@ def updater(request, alias):
 
 # Выполнение загрузчика
 def update(request, alias, key=''):
-	Updater = __import__('catalog.updaters.' + alias, fromlist=['Update'])
-	update = Updater.Update()
-	context = {'update_name': update.name, 'update_message': update.message}
+	from datetime import datetime
+	Updater = __import__('catalog.updaters.' + alias, fromlist=['Runner'])
+	runner = Updater.Runner()
+	if runner.updater.state:
+		if runner.run():
+			runner.updater.updated = datetime.now()
+			runner.updater.save()
+
+	context = {'update_name': runner.name, 'update_message': runner.message}
 	return render(request, 'catalog/update.html', context)
 
 
@@ -390,6 +396,40 @@ def ajaxSwitchCategoryState(request):
 			result = {'status': 'success', 'message': 'Статус категории ' + category.name + ' изменен на ' + str(category.state) + '.'}
 		except Category.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Switch Category State
+def ajaxSwitchUpdaterState(request):
+
+	# Импортируем
+	from catalog.models import Updater
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('id') or not request.POST.get('state'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			updater = Updater.objects.get(id=request.POST.get('id'))
+			if request.POST.get('state') == 'true':
+				updater.state = True;
+			else:
+				updater.state = False;
+			updater.save();
+			result = {'status': 'success', 'message': 'Статус загрузчика ' + updater.name + ' изменен на ' + str(updater.state) + '.'}
+		except Updater.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

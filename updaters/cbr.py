@@ -5,8 +5,7 @@ from datetime import datetime
 import lxml.html
 
 
-class Update:
-
+class Runner:
 
 	def __init__(self):
 
@@ -17,9 +16,6 @@ class Update:
 
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name)
 		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
-
-		if self.updater.state: self.run()
-
 
 	def run(self):
 
@@ -56,7 +52,4 @@ class Update:
 				currency.save()
 			trn += 1
 
-		# Отмечаемся и уходим
-		self.updater.updated = datetime.now()
-		self.updater.save()
 		return True

@@ -229,10 +229,20 @@ class Currency(models.Model):
 	def __str__(self):
 		return self.name
 
+# TODO Party manager
+class PartyManager(models.Manager):
+
+	def make(self, product, stock, price, price_type, currency, quantity, unit):
+		from datetime import datetime
+		party = Party(product=product, stock=stock, price=price, price_type=price_type, currency=currency, quantity=quantity, unit=unit, created=datetime.now(), modified=datetime.now())
+		party.save()
+		return party
+
 # Party
-class Party(models.Model):
+class Party(models.Model):	
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
+	article = models.CharField(max_length=100, null=True, default=None) # Артикул поставщика
 	price = models.DecimalField(max_digits=12, decimal_places=2)
 	price_type = models.ForeignKey(PriceType)
 	currency = models.ForeignKey(Currency)
@@ -320,6 +330,18 @@ class Parameter(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
+# TODO Category Synonym manager
+class CategorySynonymManager(models.Manager):
+
+	def take(self, name, updater=None, distributor=None, category=None):
+		from datetime import datetime
+		try:
+			categorySynonym = self.get(name=name, updater=updater, distributor=distributor)
+		except CategorySynonym.DoesNotExist:
+			categorySynonym = CategorySynonym(name=name, updater=updater, distributor=distributor, category=category, created=datetime.now(), modified=datetime.now())
+			categorySynonym.save()
+		return categorySynonym
+
 # Category Synonym
 class CategorySynonym(models.Model):
 	name = models.CharField(max_length=1024)
@@ -328,9 +350,22 @@ class CategorySynonym(models.Model):
 	category = models.ForeignKey(Category, null=True, default=None)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = CategorySynonymManager()
 
 	def __str__(self):
 		return self.name
+
+# TODO Vendor Synonym manager
+class VendorSynonymManager(models.Manager):
+
+	def take(self, name, updater=None, distributor=None, vendor=None):
+		from datetime import datetime
+		try:
+			vendorSynonym = self.get(name=name, updater=updater, distributor=distributor)
+		except VendorSynonym.DoesNotExist:
+			vendorSynonym = VendorSynonym(name=name, updater=updater, distributor=distributor, vendor=vendor, created=datetime.now(), modified=datetime.now())
+			vendorSynonym.save()
+		return vendorSynonym
 
 # Vendor Synonym
 class VendorSynonym(models.Model):
@@ -340,6 +375,7 @@ class VendorSynonym(models.Model):
 	vendor = models.ForeignKey(Vendor, null=True, default=None)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = VendorSynonymManager()
 
 	def __str__(self):
 		return self.name

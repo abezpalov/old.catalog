@@ -7,8 +7,7 @@ import lxml.html
 import requests
 
 
-class Update:
-
+class Runner:
 
 	def __init__(self):
 
@@ -35,8 +34,6 @@ class Update:
 			self.currency_usd = Currency(alias='USD', name='$', full_name='US Dollar', rate=38, quantity=1, created=datetime.now(), modified=datetime.now())
 			self.currency_usd.save()
 
-		if self.updater.state: self.run()
-
 	def run(self):
 
-
+		return False
