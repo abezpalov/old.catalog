@@ -118,13 +118,11 @@ class Runner:
 				# TODO Обрабатываем партии
 
 				# Цена в долларах
-				self.message += 'priceUSD = ' + priceUSD + "\n"
 				if priceUSD != '':
 					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.currency_usd, quantity = stock, unit = self.default_unit)
 					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.currency_usd, quantity = transit, unit = self.default_unit)
 
 				# Цена в рублях
-				self.message += 'priceRUB = ' + priceRUB + "\n"
 				if priceRUB != '':
 					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.currency_usd, quantity = stock, unit = self.default_unit)
 					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.currency_usd, quantity = transit, unit = self.default_unit)

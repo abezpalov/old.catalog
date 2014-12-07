@@ -3,7 +3,7 @@ from django.db import models
 # Connector
 class Connector(models.Model):
 	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	alias = models.CharField(max_length=100, unique=True)
 	login = models.CharField(max_length=100)
 	password = models.CharField(max_length=100)
 	state = models.BooleanField(default=True)
@@ -28,7 +28,7 @@ class DistributorManager(models.Manager):
 # Distributor
 class Distributor(models.Model):
 	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	alias = models.CharField(max_length=100, unique=True)
 	description = models.TextField()
 	connector = models.ForeignKey(Connector, null=True, default=None)
 	state = models.BooleanField(default=True)
@@ -54,7 +54,7 @@ class UpdaterManager(models.Manager):
 # Updater
 class Updater(models.Model):
 	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	alias = models.CharField(max_length=100, unique=True)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	login = models.CharField(max_length=100)
 	password = models.CharField(max_length=100)
@@ -82,7 +82,7 @@ class StockManager(models.Manager):
 # Stock
 class Stock(models.Model):
 	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	alias = models.CharField(max_length=100, unique=True)
 	distributor = models.ForeignKey(Distributor, null=True, default=None)
 	delivery_time_min = models.IntegerField()
 	delivery_time_max = models.IntegerField()
@@ -124,8 +124,8 @@ class VendorManager(models.Manager):
 
 # Vendor
 class Vendor(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	name = models.CharField(max_length=100, unique=True)
+	alias = models.CharField(max_length=100, unique=True)
 	description = models.TextField()
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
@@ -149,8 +149,8 @@ class UnitManager(models.Manager):
 
 # Unit
 class Unit(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	name = models.CharField(max_length=100, unique=True)
+	alias = models.CharField(max_length=100, unique=True)
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
@@ -192,7 +192,7 @@ class PriceTypeManager(models.Manager):
 # Price Type
 class PriceType(models.Model):
 	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	alias = models.CharField(max_length=100, unique=True)
 	state = models.BooleanField(default=True)
 	multiplier = models.DecimalField(max_digits=10, decimal_places=4, default=1.0)
 	created = models.DateTimeField()
@@ -218,7 +218,7 @@ class CurrencyManager(models.Manager):
 class Currency(models.Model):
 	name = models.CharField(max_length=100)
 	full_name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+	alias = models.CharField(max_length=100, unique=True)
 	rate = models.DecimalField(max_digits=10, decimal_places=4)
 	quantity = models.IntegerField()
 	state = models.BooleanField(default=True)
@@ -239,7 +239,8 @@ class PartyManager(models.Manager):
 		return party
 
 # Party
-class Party(models.Model):	
+class Party(models.Model):
+	id = models.BigIntegerField(primary_key=True)
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
 	article = models.CharField(max_length=100, null=True, default=None) # Артикул поставщика
@@ -256,6 +257,7 @@ class Party(models.Model):
 
 # Party Hystory
 class PartyHystory(models.Model):
+	id = models.BigIntegerField(primary_key=True)
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
@@ -268,6 +270,7 @@ class PartyHystory(models.Model):
 
 # Price
 class Price(models.Model):
+	id = models.BigIntegerField(primary_key=True)
 	product = models.ForeignKey(Product)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
 	price_type = models.ForeignKey(PriceType)
@@ -279,6 +282,7 @@ class Price(models.Model):
 
 # Price Hystory
 class PriceHystory(models.Model):
+	id = models.BigIntegerField(primary_key=True)
 	product = models.ForeignKey(Product)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
 	price_type = models.ForeignKey(PriceType)
@@ -287,6 +291,7 @@ class PriceHystory(models.Model):
 
 # Quantity
 class Quantity(models.Model):
+	id = models.BigIntegerField(primary_key=True)
 	product = models.ForeignKey(Product)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
@@ -297,6 +302,7 @@ class Quantity(models.Model):
 
 # Quantity Hystory
 class QuantityHystory(models.Model):
+	id = models.BigIntegerField(primary_key=True)
 	product = models.ForeignKey(Product)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
