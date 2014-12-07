@@ -552,3 +552,36 @@ def ajaxLinkCategorySynonym(request):
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Save Updater
+def ajaxSaveUpdater(request):
+
+	# Импортируем
+	from catalog.models import Updater
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') :
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			updater = Updater.objects.get(id=request.POST.get('id'))
+			updater.name = request.POST.get('name')
+			updater.alias = request.POST.get('alias')
+			updater.login = request.POST.get('login')
+			updater.password = request.POST.get('password')
+			updater.save()
+			result = {'status': 'success', 'message': 'Изменения загрузчика ' + updater.name + ' сохранены.'}
+		except Updater.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')

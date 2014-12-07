@@ -1,1 +1,52 @@
-<h2>{{ updater.name }}</h2>
+{% extends "main.html" %}
+{% block content %}
+
+<!-- Описание -->
+<div class="row">
+	<div class="large-12 columns">
+		<h2>{{ updater.name }}</h2>
+	</div>
+</div>
+<div class="row">
+	<div class="large-12 columns">
+		<h2>{{ updater.description }}</h2>
+	</div>
+</div>
+
+<!-- Редактирование -->
+<div class="row collapse">
+	<form>
+		<fieldset>
+			<legend>Редактирование</legend>
+			<div class="small-12 columns">
+				<label>Наименование
+					<input id="updater-name" type="text" value="{{ updater.name }}" />
+				</label>
+			</div>
+			<div class="small-12 columns">
+				<label>Синоним
+					<input id="updater-alias" type="text" value="{{ updater.alias }}" />
+				</label>
+			</div>
+			<div class="small-12 columns">
+				<label>Логин
+					<input id="updater-login" type="text" value="{{ updater.login }}" />
+				</label>
+			</div>
+			<div class="small-12 columns">
+				<label>Пароль
+					<input id="updater-password" type="text" value="{{ updater.password }}" />
+				</label>
+			</div>
+			<div class="large-12 columns">
+				<button id="do-save-updater" class="button">Сохранить</button>
+			</div>
+		</fieldset>
+	</form>
+</div>
+{% endblock %}
+{% block js-content %}
+<script>
+{% include "catalog/js/updater.js" %}
+</script>
+{% endblock %}

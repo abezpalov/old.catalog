@@ -9,6 +9,7 @@
 				<th>Наименование</th>
 				<th>Дистрибьютор</th>
 				<th>Статус</th>
+				<th>Последнее обновление</th>
 			</tr>
 			{% for updater in updaters %}
 			<tr>
@@ -20,6 +21,7 @@
 						<label for="updater-state-{{ updater.id }}"></label>
 					</div>
 				</td>
+				<td>{{ updater.updated|date:"d.m.Y H.i" }}</td>
 			</tr>
 			{% endfor %}
 		</table>

@@ -47,7 +47,7 @@ class Runner:
 
 		# Авторизуемся
 		url = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
-		payload = {'UserName': 'GST_zhd', 'Password': 'uatokhjt', 'RememberMe': 'false'}
+		payload = {'UserName': self.updater.login, 'Password': self.updater.password, 'RememberMe': 'false'}
 		r = s.post(url, cookies=cookies, data=payload, allow_redirects=True, verify=False)
 		cookies = r.cookies
 
