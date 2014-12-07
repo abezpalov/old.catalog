@@ -252,6 +252,7 @@ class Party(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = PartyManager()
 
 # Party Hystory
 class PartyHystory(models.Model):
