@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 
 # Connector
@@ -240,7 +241,7 @@ class PartyManager(models.Manager):
 
 # Party
 class Party(models.Model):
-	id = models.BigIntegerField(primary_key=True)
+	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
 	article = models.CharField(max_length=100, null=True, default=None) # Артикул поставщика
@@ -257,7 +258,7 @@ class Party(models.Model):
 
 # Party Hystory
 class PartyHystory(models.Model):
-	id = models.BigIntegerField(primary_key=True)
+	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
@@ -270,7 +271,7 @@ class PartyHystory(models.Model):
 
 # Price
 class Price(models.Model):
-	id = models.BigIntegerField(primary_key=True)
+	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
 	price_type = models.ForeignKey(PriceType)
@@ -282,7 +283,7 @@ class Price(models.Model):
 
 # Price Hystory
 class PriceHystory(models.Model):
-	id = models.BigIntegerField(primary_key=True)
+	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
 	price = models.DecimalField(max_digits=12, decimal_places=2)
 	price_type = models.ForeignKey(PriceType)
@@ -291,7 +292,7 @@ class PriceHystory(models.Model):
 
 # Quantity
 class Quantity(models.Model):
-	id = models.BigIntegerField(primary_key=True)
+	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)
@@ -302,7 +303,7 @@ class Quantity(models.Model):
 
 # Quantity Hystory
 class QuantityHystory(models.Model):
-	id = models.BigIntegerField(primary_key=True)
+	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
 	quantity = models.IntegerField()
 	unit = models.ForeignKey(Unit)

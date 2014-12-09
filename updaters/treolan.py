@@ -106,16 +106,16 @@ class Runner:
 				if article and vendorSynonym.vendor and article != '':
 					try:
 						product = Product.objects.get(article=article, vendor=vendorSynonym.vendor)
+						if not product.category and categorySynonym.category:
+							product.category = categorySynonym.category
+							product.save()
 					except Product.DoesNotExist:
-
 						# Проверяем необходимые даннные для добавления товара в базу
-						if article and name and categorySynonym.category and vendorSynonym.vendor and article != '':
+						if article and name and vendorSynonym.vendor and article != '':
 							product = Product(name=name[:500], full_name=name, article=article, vendor=vendorSynonym.vendor, category=categorySynonym.category, unit=self.default_unit, description = '', created=datetime.now(), modified=datetime.now())
 							product.save()
 						else: continue
 				else: continue
-
-				# TODO Обрабатываем партии
 
 				# Цена в долларах
 				if priceUSD != '':
