@@ -25,10 +25,7 @@
 <tr>
 	<th>Наименование</th>
 	<th>Статус</th>
-	<th class="hide-for-small-only">Родитель</th>
-	<th class="hide-for-small-only">Уровень</th>
-	<th class="hide-for-small-only">Порядок</th>
-	<th class="hide-for-small-only">Путь</th>
+	<th class="hide-for-small-only">Управление</th>
 </tr>
 {% for category in categories %}
 <tr>
@@ -40,16 +37,22 @@
 		</div>
 	</td>
 	<td class="hide-for-small-only">
-		<select>
-			<option value="null">Корневая категория</option>
-			{% for parent in categories %}
-			<option value="{{ category.id }}"{% if category.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
-			{% endfor %}
-		</select>
+		<div class="row">
+			<div class="small-10 columns">
+				<select>
+					<option value="null">Корневая категория</option>
+					{% for parent in categories %}
+					<option value="{{ category.id }}"{% if category.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="small-2 columns">
+				<a href="#" class="button alert postfix do-trash-category" data-id="{{ category.id }}">
+					<i class="fa fa-trash"></i>
+				</a>
+			</div>
+		</div>
 	</td>
-	<td class="hide-for-small-only">{{ category.level }}</a></td>
-	<td class="hide-for-small-only">{{ category.order }}</a></td>
-	<td class="hide-for-small-only">{{ category.path }}</a></td>
 </tr>
 {% endfor %}
 </table>

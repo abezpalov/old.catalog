@@ -1,12 +1,11 @@
 $(document).ready(function(){
 
-	$("#do-save-updater").click(function() {
-		$.post("/catalog/ajax/save-updater/", {
-			id: '{{ updater.id }}',
-			name: $("#updater-name").val(),
-			alias: $("#updater-alias").val(),
-			login: $("#updater-login").val(),
-			password: $("#updater-password").val(),
+	$("#do-save-category").click(function() {
+		$.post("/catalog/ajax/save-category/", {
+			id: '{{ category.id }}',
+			name: $("#category-name").val(),
+			alias: $("#category-alias").val(),
+			login: $("#category-description").val(),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
 		},
 		function(data) {

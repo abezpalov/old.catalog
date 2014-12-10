@@ -581,7 +581,68 @@ def ajaxSaveUpdater(request):
 			updater.save()
 			result = {'status': 'success', 'message': 'Изменения загрузчика ' + updater.name + ' сохранены.'}
 		except Updater.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
+			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Save Category
+def ajaxSaveCategory(request):
+
+	# Импортируем
+	from catalog.models import Category
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') :
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			category = Category.objects.get(id=request.POST.get('id'))
+			category.name = request.POST.get('name')
+			category.alias = request.POST.get('alias')
+			if request.POST.get('description'): category.description = request.POST.get('description')
+			category.save()
+			result = {'status': 'success', 'message': 'Изменения категории ' + category.name + ' сохранены.'}
+		except Category.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Trash Category
+def ajaxTrashCategory(request):
+
+	# Импортируем
+	from catalog.models import Category
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			category = Category.objects.get(id=request.POST.get('id'))
+			category.delete()
+			result = {'status': 'success', 'message': 'Категория удалена.'}
+		except Category.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

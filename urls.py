@@ -62,4 +62,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/link-category-synonym/$', views.ajaxLinkCategorySynonym, name='ajaxLinkCategorySynonym'),
 
 	url(r'^ajax/save-updater/$', views.ajaxSaveUpdater, name='ajaxSaveUpdater'),
+	url(r'^ajax/save-category/$', views.ajaxSaveCategory, name='ajaxSaveCategory'),
+
+	url(r'^ajax/trash-category/$', views.ajaxTrashCategory, name='ajaxTrashCategory'),
 )

@@ -1,1 +1,47 @@
-<h2>{{ category.name }}</h2>
+{% extends "main.html" %}
+{% block content %}
+
+<!-- Описание -->
+<div class="row">
+	<div class="large-12 columns">
+		<h2>{{ category.name }}</h2>
+	</div>
+</div>
+<div class="row">
+	<div class="large-12 columns">
+		<h2>{{ category.description }}</h2>
+	</div>
+</div>
+
+<!-- Редактирование -->
+<div class="row collapse">
+	<form>
+		<fieldset>
+			<legend>Редактирование</legend>
+			<div class="small-12 columns">
+				<label>Наименование
+					<input id="category-name" type="text" value="{{ category.name }}" />
+				</label>
+			</div>
+			<div class="small-12 columns">
+				<label>Синоним
+					<input id="category-alias" type="text" value="{{ category.alias }}" />
+				</label>
+			</div>
+			<div class="small-12 columns">
+				<label>Описание
+					<textarea id="category-description">{{ category.description }}</textarea>
+				</label>
+			</div>
+			<div class="large-12 columns">
+				<button id="do-save-category" class="button">Сохранить</button>
+			</div>
+		</fieldset>
+	</form>
+</div>
+{% endblock %}
+{% block js-content %}
+<script>
+{% include "catalog/js/category.js" %}
+</script>
+{% endblock %}
