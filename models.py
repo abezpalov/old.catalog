@@ -239,6 +239,10 @@ class PartyManager(models.Manager):
 		party.save()
 		return party
 
+	def clear(self, stock):
+		Party.objects.filter(stock=stock).delete()
+		return True
+
 # Party
 class Party(models.Model):
 	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)

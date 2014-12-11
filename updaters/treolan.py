@@ -1,5 +1,3 @@
-import lxml.html
-import requests
 from datetime import date
 from datetime import datetime
 from catalog.models import Updater
@@ -26,6 +24,7 @@ class Runner:
 		self.alias = 'treolan'
 		self.message = ''
 
+		# Получаем необходимые объекты
 		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
 		self.stock = Stock.objects.take(alias=self.alias+'-stock', name=self.name+': склад', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
@@ -35,25 +34,33 @@ class Runner:
 		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 		self.currency_usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
 
+		# Удаляем неактуальные партии
+		Party.objects.clear(stock=self.stock)
+		Party.objects.clear(stock=self.transit)
+
+		# Используемые ссылки
+		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
+		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?&comodity=true&withMarketingProgramsOnly=false&availableAtStockOnly=false&rusDescription=true&condition=0&catalogProductsOnly=true&order=0&getExcel=true&searchBylink=false&take=50&skip=0'
+
 	def run(self):
+
+		import lxml.html
+		import requests
 
 		# Создаем сессию
 		s = requests.Session()
 
 		# Получаем куки
-		url = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2f'
-		r = s.get(url)
+		r = s.get(self.url_login)
 		cookies = r.cookies
 
 		# Авторизуемся
-		url = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
 		payload = {'UserName': self.updater.login, 'Password': self.updater.password, 'RememberMe': 'false'}
-		r = s.post(url, cookies=cookies, data=payload, allow_redirects=True, verify=False)
+		r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False)
 		cookies = r.cookies
 
 		# Загружаем общий прайс
-		url = 'https://b2b.treolan.ru/Catalog/SearchToExcel?&comodity=true&withMarketingProgramsOnly=false&availableAtStockOnly=false&rusDescription=true&condition=0&catalogProductsOnly=true&order=0&getExcel=true&searchBylink=false&take=50&skip=0'
-		r = s.get(url, cookies=cookies, allow_redirects=False, verify=False)
+		r = s.get(self.url_price, cookies=cookies, allow_redirects=False, verify=False)
 		tree = lxml.html.fromstring(r.text)
 
 		# Парсим

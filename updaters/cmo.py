@@ -45,7 +45,6 @@ class Runner:
 
 		# Парсим
 		table = tree.xpath("//table")[0]
-		head = True
 
 		# TODO
 		for trn, tr in enumerate(table):
