@@ -63,6 +63,7 @@ urlpatterns = patterns('',
 
 	url(r'^ajax/save-updater/$', views.ajaxSaveUpdater, name='ajaxSaveUpdater'),
 	url(r'^ajax/save-category/$', views.ajaxSaveCategory, name='ajaxSaveCategory'),
+	url(r'^ajax/save-vendor/$', views.ajaxSaveVendor, name='ajaxSaveVendor'),
 
 	url(r'^ajax/trash-category/$', views.ajaxTrashCategory, name='ajaxTrashCategory'),
 )

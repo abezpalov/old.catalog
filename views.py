@@ -619,6 +619,38 @@ def ajaxSaveCategory(request):
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
+# Save Vendor
+def ajaxSaveVendor(request):
+
+	# Импортируем
+	from catalog.models import Vendor
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') :
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			vendor = Vendor.objects.get(id=request.POST.get('id'))
+			vendor.name = request.POST.get('name')
+			vendor.alias = request.POST.get('alias')
+			if request.POST.get('description'): vendor.description = request.POST.get('description')
+			vendor.save()
+			result = {'status': 'success', 'message': 'Изменения производителя ' + vendor.name + ' сохранены.'}
+		except Vendor.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
 # Trash Category
 def ajaxTrashCategory(request):
 

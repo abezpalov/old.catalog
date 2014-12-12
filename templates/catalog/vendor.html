@@ -1,1 +1,48 @@
-<h2>{{ vendor.name }}</h2>
+{% extends "main.html" %}
+{% block content %}
+
+<!-- Описание -->
+<div class="row">
+	<div class="large-12 columns">
+		<h2>{{ vendor.name }}</h2>
+	</div>
+</div>
+<div class="row">
+	<div class="large-12 columns">
+		<h2>{{ vendor.description }}</h2>
+	</div>
+</div>
+
+<!-- Редактирование -->
+<div class="row collapse">
+	<form>
+		<fieldset>
+			<legend>Редактирование</legend>
+			<div class="small-12 columns">
+				<label>Наименование
+					<input id="vendor-name" type="text" value="{{ vendor.name }}" />
+				</label>
+			</div>
+			<div class="small-12 columns">
+				<label>Синоним
+					<input id="vendor-alias" type="text" value="{{ vendor.alias }}" />
+				</label>
+			</div>
+			<div class="small-12 columns">
+				<label>Описание
+					<textarea id="vendor-description">{{ vendor.description }}</textarea>
+				</label>
+			</div>
+			<div class="large-12 columns">
+				<button id="do-save-vendor" class="button">Сохранить</button>
+				<a href="/catalog/vendors/" class="button secondary">К списку</a>
+			</div>
+		</fieldset>
+	</form>
+</div>
+{% endblock %}
+{% block js-content %}
+<script>
+{% include "catalog/js/vendor.js" %}
+</script>
+{% endblock %}
