@@ -49,6 +49,13 @@ urlpatterns = patterns('',
 	# ex: /catalog/category-synonym/58/
 	url(r'^category-synonym/(?P<synonym_id>[0-9]+)/$', views.categorysynonym, name='categorysynonym'),
 
+	# Price Types
+	# ex: /catalog/price-types/
+	url(r'^price-types/$', views.priceTypes, name='priceTypes'),
+	# ex: /catalog/price-type/ddp/
+	url(r'^price-type/(?P<alias>[a-zA-Z0-9_-]+)/$', views.priceType, name='priceType'),
+
+
 	# AJAX
 	url(r'^ajax/add-vendor/$', views.ajaxAddVendor, name='ajaxAddVendor'),
 	url(r'^ajax/add-category/$', views.ajaxAddCategory, name='ajaxAddCategory'),

@@ -31,7 +31,8 @@ class Runner:
 		self.vendor = Vendor.objects.take(alias=self.alias, name=self.name)
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
 		self.price_type_rrp = PriceType.objects.take(alias='RRP', name='Рекомендованная розничная цена')
-		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+		self.usd = Currency.objects.take(alias='USD', name='$', full_name='Доллар США', rate=60, quantity=1)
 
 		# Удаляем неактуальные партии
 		Party.objects.clear(stock=self.factory)
@@ -110,7 +111,7 @@ class Runner:
 			'size': 'Размер',
 			'format': 'Формат',
 			'name': 'Описание',
-			'price_rub': 'Цена, руб',
+			'price': 'Цена, $',
 			'dop': 'Примечание',
 			'group_name': '',
 			'category_name': ''}
@@ -132,23 +133,23 @@ class Runner:
 					elif str(cel).strip() == word['size']: num['size'] = cel_num
 					elif str(cel).strip() == word['format']: num['format'] = cel_num
 					elif str(cel).strip() == word['name']: num['name'] = cel_num
-					elif str(cel).strip() == word['price_rub']: num['price_rub'] = cel_num
+					elif str(cel).strip() == word['price']: num['price'] = cel_num
 					elif str(cel).strip() == word['dop']: num['dop'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
-				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['format'] or not num['name'] or not num['price_rub'] or not num['dop']:
+				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['format'] or not num['name'] or not num['price'] or not num['dop']:
 					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
 					return False
 				else: self.message += "Структура данных без изменений.\n"
 
 			# Категория
-			elif row[num['name']] and not row[num['article']] and not row[num['price_rub']]:
+			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				if word['group'] in row[num['name']]: word['group_name'] = row[num['name']]
 				else: word['category_name'] = row[num['name']]
 				categorySynonym = CategorySynonym.objects.take(name=word['group_name'] + ' ' + word['category_name'], updater=self.updater, distributor=self.distributor)
 
 			# Товар
-			elif row[num['name']] and row[num['article']] and row[num['price_rub']]:
+			elif row[num['name']] and row[num['article']] and row[num['price']]:
 
 				# Получаем объект товара
 				try:
@@ -172,8 +173,8 @@ class Runner:
 					product.save()
 
 				# Добавляем партии
-				price = self.fixPrice(row[num['price_rub']])
-				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.currency_rub, quantity = -1, unit = self.default_unit)
+				price = self.fixPrice(row[num['price']])
+				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
 
 	def parseCables(self, xls_data):
 
@@ -188,7 +189,7 @@ class Runner:
 			'model': 'Модель',
 			'name': 'Описание',
 			'size': 'Метры',
-			'price_rub': 'Цена, руб.',
+			'price': 'Цена,     $',
 			'dop': 'Примечание',
 			'category_name': ''}
 
@@ -208,22 +209,22 @@ class Runner:
 					elif str(cel).strip() == word['model']: num['model'] = cel_num
 					elif str(cel).strip() == word['name']: num['name'] = cel_num
 					elif str(cel).strip() == word['size']: num['size'] = cel_num
-					elif str(cel).strip() == word['price_rub']: num['price_rub'] = cel_num
+					elif str(cel).strip() == word['price']: num['price'] = cel_num
 					elif str(cel).strip() == word['dop']: num['dop'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
-				if not num['article'] or not num['model'] or not num['name'] or not num['size'] or not num['price_rub'] or not num['dop']:
+				if not num['article'] or not num['model'] or not num['name'] or not num['size'] or not num['price'] or not num['dop']:
 					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
 					return False
 				else: self.message += "Структура данных без изменений.\n"
 
 			# Категория
-			elif row[num['name']] and not row[num['article']] and not row[num['price_rub']]:
+			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				word['category_name'] = row[num['name']]
 				categorySynonym = CategorySynonym.objects.take(word['category_name'], updater=self.updater, distributor=self.distributor)
 
 			# Товар
-			elif row[num['name']] and row[num['article']] and row[num['price_rub']]:
+			elif row[num['name']] and row[num['article']] and row[num['price']]:
 
 				# Получаем объект товара
 				try:
@@ -242,8 +243,8 @@ class Runner:
 					product.save()
 
 				# Добавляем партии
-				price = self.fixPrice(row[num['price_rub']])
-				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.currency_rub, quantity = -1, unit = self.default_unit)
+				price = self.fixPrice(row[num['price']])
+				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
 
 	def fixPrice(self, price):
 		if price in ('CALL', '?'): price = -1

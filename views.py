@@ -236,6 +236,29 @@ def categorysynonym(request, synonym_id):
 	context = {'synonym': synonym}
 	return render(request, 'catalog/categorysynonym.html', context)
 
+# Список типов цен
+def priceTypes(request):
+
+	# Импортируем
+	from catalog.models import PriceType
+
+	# Получаем список
+	price_types = PriceType.objects.all().order_by('name')
+	context = {'price_types': price_types}
+	return render(request, 'catalog/pricetypes.html', context)
+
+
+# Тип цены
+def priceType(request, alias):
+
+	# Импортируем
+	from catalog.models import PriceType
+
+	# Получаем список
+	price_type = Vendor.objects.get(alias=alias)
+	context = {'price_type': price_type}
+	return render(request, 'catalog/pricetype.html', context)
+
 
 ##  AJAX  ##
 
@@ -497,11 +520,11 @@ def ajaxLinkVendorSameSynonym(request):
 		try:
 			synonym = VendorSynonym.objects.get(id=request.POST.get('synonym'))
 			try:
-				vendor = Vendor.objects.get(name=synonym.name)
-			except Vendor.DoesNotExist:
 				name = synonym.name
 				alias = name.lower()
 				alias = alias.replace(' ', '-')
+				vendor = Vendor.objects.get(alias=alias)
+			except Vendor.DoesNotExist:
 				vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())
 				vendor.save()
 			synonym.vendor = vendor
