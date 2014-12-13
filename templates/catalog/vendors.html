@@ -1,10 +1,11 @@
 {% extends "main.html" %}
+{% block title %}Anodos: Производители{% endblock %}
 {% block content %}
 
 <!-- Форма добавления нового производителя -->
 <div class="row collapse">
 	<div class="small-10 columns">
-		<input id="new-item" type="text" placeholder="Имя нового производителя">
+		<input id="new-item-name" type="text" placeholder="Имя нового производителя">
 	</div>
 	<div class="small-2 columns">
 		<button data-do="add-item" class="postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></button>

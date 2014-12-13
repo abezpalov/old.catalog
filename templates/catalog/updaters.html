@@ -18,7 +18,7 @@
 				<td><a href="/catalog/distributor/{{ item.distributor.alias }}/">{{ item.distributor.name }}</a></td>
 				<td>
 					<div class="switch small">
-						<input id="updater-state-{{ item.id }}" data-id="{{ item.id }}" class="do-switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
+						<input id="updater-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
 						<label for="updater-state-{{ item.id }}"></label>
 					</div>
 				</td>

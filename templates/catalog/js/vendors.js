@@ -1,14 +1,13 @@
 $(document).ready(function(){
 
-
 	$("body").delegate("button[data-do*='add-item']", "click", function(){
 		$.post("/catalog/ajax/add-vendor/", {
-			name: $("#new-item").val(),
+			name: $("#new-item-name").val(),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
 		},
 
 		function(data) {
-			if ('success' == data.status) {
+			if (null != data.status) {
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
@@ -25,7 +24,6 @@ $(document).ready(function(){
 		}, "json");
 		return false;
 	});
-
 
 	$("body").delegate("input[data-do*='switch-item-state']", "click", function(){
 		$.post("/catalog/ajax/switch-vendor-state/", {
@@ -63,7 +61,6 @@ $(document).ready(function(){
 		$('#EditItemModal').foundation('reveal', 'open');
 		return false;
 	});
-
 
 	$("body").delegate("button[data-do*='edit-item-save']", "click", function(){
 		$.post("/catalog/ajax/save-vendor/", {

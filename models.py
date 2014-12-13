@@ -14,7 +14,7 @@ class Connector(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Distributor manager
+# Distributor manager
 class DistributorManager(models.Manager):
 
 	def take(self, alias, name):
@@ -40,7 +40,7 @@ class Distributor(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Updater manager
+# Updater manager
 class UpdaterManager(models.Manager):
 
 	def take(self, alias, name, distributor=None):
@@ -68,7 +68,7 @@ class Updater(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Stock manager
+# Stock manager
 class StockManager(models.Manager):
 
 	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20, distributor=None):
@@ -111,7 +111,7 @@ class Category(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Vendor manager
+# Vendor manager
 class VendorManager(models.Manager):
 
 	def take(self, alias, name):
@@ -136,7 +136,7 @@ class Vendor(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Unit manager
+# Unit manager
 class UnitManager(models.Manager):
 
 	def take(self, alias, name):
@@ -178,7 +178,7 @@ class Product(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Price Type manager
+# Price Type manager
 class PriceTypeManager(models.Manager):
 
 	def take(self, alias, name):
@@ -203,7 +203,7 @@ class PriceType(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Currency manager
+# Currency manager
 class CurrencyManager(models.Manager):
 
 	def take(self, alias, name, full_name, rate=1, quantity=1):
@@ -230,7 +230,7 @@ class Currency(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Party manager
+# Party manager
 class PartyManager(models.Manager):
 
 	def make(self, product, stock, price, price_type, currency, quantity, unit):
@@ -342,7 +342,7 @@ class Parameter(models.Model):
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
 
-# TODO Category Synonym manager
+# Category Synonym manager
 class CategorySynonymManager(models.Manager):
 
 	def take(self, name, updater=None, distributor=None, category=None):
@@ -367,7 +367,7 @@ class CategorySynonym(models.Model):
 	def __str__(self):
 		return self.name
 
-# TODO Vendor Synonym manager
+# Vendor Synonym manager
 class VendorSynonymManager(models.Manager):
 
 	def take(self, name, updater=None, distributor=None, vendor=None):

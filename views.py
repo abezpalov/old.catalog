@@ -315,21 +315,21 @@ def ajaxAddCategory(request):
 	#	return HttpResponse(status=403)
 
 	# Проверяем на пустые значения
-	if (request.POST.get('new_category_name').strip() == '') or (request.POST.get('new_category_parent').strip() == ''):
-		result = {'status': 'warning', 'message': 'Пожалуй, такого имени быть не может.'}
+	if (request.POST.get('name').strip() == '') or (request.POST.get('parent').strip() == ''):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 
-		name = request.POST.get('new_category_name').strip()
+		name = request.POST.get('name').strip()
 
 		alias = name.lower()
 		alias = alias.replace(' ', '-')
 
-		if (request.POST.get('new_category_parent').strip() == 'null'):
+		if (request.POST.get('parent').strip() == 'null'):
 			parent = None
 			level = 0
 		else:
 			try:
-				parent = Category.objects.get(id=request.POST.get('new_category_parent').strip())
+				parent = Category.objects.get(id=request.POST.get('parent').strip())
 				level = parent.level + 1
 			except Category.DoesNotExist: # Указанная родительская категория не существует
 				return HttpResponse(status=406)
@@ -371,7 +371,7 @@ def ajaxSwitchVendorState(request):
 	# TODO Проверяем права доступа
 	#	return HttpResponse(status=403)
 
-	# TODO Проверяем корректность вводных данных
+	# Проверяем корректность вводных данных
 	if not request.POST.get('id') or not request.POST.get('state'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:

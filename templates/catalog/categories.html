@@ -1,62 +1,82 @@
 {% extends "main.html" %}
+{% block title %}Anodos: Категории{% endblock %}
 {% block content %}
 
 <!-- Форма добавления новой категории -->
 <div class="row collapse">
 	<div class="small-5 columns">
-		<input id="new-category-name" type="text" placeholder="Имя новой категории">
+		<input id="new-item-name" type="text" placeholder="Имя новой категории">
 	</div>
 	<div class="small-5 columns">
-		<select id="new-category-parent" >
+		<select id="new-item-parent">
 			<option value="null" selected>Корневая категория</option>
-			{% for category in categories %}
-			<option value="{{ category.id }}">{{ category.name }}</option>
+			{% for parent in categories %}
+			<option value="{{ parent.id }}">{{ parent.name }}</option>
 			{% endfor %}
 		</select>
 	</div>
 	<div class="small-2 columns">
-		<a href="#" id="do-add-category" class="button postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></a>
+		<button data-do="add-item" class="postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></button>
 	</div>
 </div>
 
 <!-- Таблица со списком категорий -->
 <div class="row collapse">
-<table>
-<tr>
-	<th>Наименование</th>
-	<th>Статус</th>
-	<th class="hide-for-small-only">Управление</th>
-</tr>
-{% for category in categories %}
-<tr>
-	<td><a href="/catalog/category/{{ category.id }}/">{{ category.name }}</a></td>
-	<td>
-		<div class="switch small">
-			<input id="category-state-{{ category.id }}" data-id="{{ category.id }}" class="do-switch-category-state" type="checkbox"{% if category.state %} checked{% endif %}>
-			<label for="category-state-{{ category.id }}"></label>
-		</div>
-	</td>
-	<td class="hide-for-small-only">
-		<div class="row">
-			<div class="small-10 columns">
-				<select>
-					<option value="null">Корневая категория</option>
-					{% for parent in categories %}
-					<option value="{{ category.id }}"{% if category.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
-					{% endfor %}
-				</select>
-			</div>
-			<div class="small-2 columns">
-				<a href="#" class="button alert postfix do-trash-category" data-id="{{ category.id }}">
-					<i class="fa fa-trash"></i>
-				</a>
-			</div>
-		</div>
-	</td>
-</tr>
-{% endfor %}
-</table>
+	<div class="small-12 columns">
+		<table>
+			<tr>
+				<th>Наименование</th>
+				<th>Статус</th>
+				<th class="hide-for-small-only">Управление</th>
+			</tr>
+			{% for item in categories %}
+			<tr>
+				<td><a id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}">{{ item.name }}</a></td>
+				<td>
+					<div class="switch small">
+						<input id="item-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
+						<label for="item-state-{{ item.id }}"></label>
+					</div>
+				</td>
+				<td class="hide-for-small-only">
+					<div class="row">
+						<div class="small-10 columns">
+							<select>
+								<option value="null">Корневая категория</option>
+								{% for parent in categories %}
+								<option value="{{ item.id }}"{% if item.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+						<div class="small-2 columns">
+							<button class="button alert postfix" data-do="trash-item" data-id="{{ item.id }}">
+								<i class="fa fa-trash"></i>
+							</button>
+						</div>
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
 </div>
+
+<!-- Модальное окно редактирования элемента -->
+<div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<fieldset>
+		<legend>Редактировать категорию</legend>
+		<input id="edit-item-id" type="hidden">
+		<label>Наименование
+			<input id="edit-item-name" type="text">
+		</label>
+		<label>Псевдоним
+			<input id="edit-item-alias" type="text">
+		</label>
+	</fieldset>
+	<button data-do="edit-item-save">Сохранить</button>
+	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+</div>
+
 {% endblock %}
 {% block js-content %}
 <script>
