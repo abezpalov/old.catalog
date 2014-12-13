@@ -315,21 +315,21 @@ def ajaxAddCategory(request):
 	#	return HttpResponse(status=403)
 
 	# Проверяем на пустые значения
-	if (request.POST.get('newCategoryName').strip() == '') or (request.POST.get('newCategoryParent').strip() == ''):
+	if (request.POST.get('new_category_name').strip() == '') or (request.POST.get('new_category_parent').strip() == ''):
 		result = {'status': 'warning', 'message': 'Пожалуй, такого имени быть не может.'}
 	else:
 
-		name = request.POST.get('newCategoryName').strip()
+		name = request.POST.get('new_category_name').strip()
 
 		alias = name.lower()
 		alias = alias.replace(' ', '-')
 
-		if (request.POST.get('newCategoryParent').strip() == 'null'):
+		if (request.POST.get('new_category_parent').strip() == 'null'):
 			parent = None
 			level = 0
 		else:
 			try:
-				parent = Category.objects.get(id=request.POST.get('newCategoryParent').strip())
+				parent = Category.objects.get(id=request.POST.get('new_category_parent').strip())
 				level = parent.level + 1
 			except Category.DoesNotExist: # Указанная родительская категория не существует
 				return HttpResponse(status=406)
@@ -424,7 +424,7 @@ def ajaxSwitchCategoryState(request):
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
-# Switch Category State
+# Switch Updater State
 def ajaxSwitchUpdaterState(request):
 
 	# Импортируем
@@ -453,6 +453,40 @@ def ajaxSwitchUpdaterState(request):
 			result = {'status': 'success', 'message': 'Статус загрузчика ' + updater.name + ' изменен на ' + str(updater.state) + '.'}
 		except Updater.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Switch Price Type State
+def ajaxSwitchPriceTypeState(request):
+
+	# Импортируем
+	from catalog.models import PriceType
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('id') or not request.POST.get('state'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			price_type = PriceType.objects.get(id=request.POST.get('id'))
+			if request.POST.get('state') == 'true':
+				price_type.state = True;
+			else:
+				price_type.state = False;
+			price_type.save();
+			result = {'status': 'success', 'message': 'Статус типа цены ' + price_type.name + ' изменен на ' + str(price_type.state) + '.'}
+		except PriceType.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Тип цены с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
@@ -669,6 +703,38 @@ def ajaxSaveVendor(request):
 			result = {'status': 'success', 'message': 'Изменения производителя ' + vendor.name + ' сохранены.'}
 		except Vendor.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Save Vendor
+def ajaxSavePriceType(request):
+
+	# Импортируем
+	from catalog.models import PriceType
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') :
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			item = PriceType.objects.get(id=request.POST.get('id'))
+			item.name = request.POST.get('name')
+			item.alias = request.POST.get('alias')
+			item.multiplier = request.POST.get('multiplier')
+			item.save()
+			result = {'status': 'success', 'message': 'Изменения типа цены ' + item.name + ' сохранены.'}
+		except PriceType.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Тип цены с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
