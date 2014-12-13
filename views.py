@@ -69,8 +69,8 @@ def vendors(request):
 	from catalog.models import Vendor
 
 	# Получаем список
-	vendors = Vendor.objects.all().order_by('name')
-	context = {'vendors': vendors}
+	items = Vendor.objects.all().order_by('name')
+	context = {'items': items}
 	return render(request, 'catalog/vendors.html', context)
 
 
@@ -279,15 +279,15 @@ def ajaxAddVendor(request):
 	#	return HttpResponse(status=403)
 
 	# Проверяем на пустую строку
-	if (request.POST.get('new_vendor').strip() == ''):
+	if (request.POST.get('name').strip() == ''):
 		result = {'status': 'warning', 'message': 'Пожалуй, такого имени быть не может.'}
 	else:
 		# Добавляем производителя
 		try:
-			vendor = Vendor.objects.get(name=request.POST.get('new_vendor').strip())
-			result = {'status': 'warning', 'message': 'Производитель ' + request.POST.get('new_vendor').strip() + ' уже существует.'}
+			vendor = Vendor.objects.get(name=request.POST.get('name').strip())
+			result = {'status': 'warning', 'message': 'Производитель ' + request.POST.get('name').strip() + ' уже существует.'}
 		except Vendor.DoesNotExist:
-			name = request.POST.get('new_vendor').strip()
+			name = request.POST.get('name').strip()
 			alias = name.lower()
 			alias = alias.replace(' ', '-')
 			vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())

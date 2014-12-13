@@ -4,10 +4,10 @@
 <!-- Форма добавления нового производителя -->
 <div class="row collapse">
 	<div class="small-10 columns">
-		<input id="new-vendor" type="text" placeholder="Имя нового производителя">
+		<input id="new-item" type="text" placeholder="Имя нового производителя">
 	</div>
 	<div class="small-2 columns">
-		<a href="#" id="do-add-vendor" class="button postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></a>
+		<button data-do="add-item" class="postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></button>
 	</div>
 </div>
 
@@ -15,17 +15,17 @@
 <div class="row collapse">
 	<div class="small-12 columns">
 		<table>
-			<tr id="vendors-h">
+			<tr>
 				<th>Наименование</th>
 				<th>Статус</th>
 			</tr>
-			{% for vendor in vendors %}
+			{% for item in items %}
 			<tr>
-				<td><a href="/catalog/vendor/{{ vendor.alias }}/">{{ vendor.name }}</a></td>
+				<td><a id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}">{{ item.name }}</a></td>
 				<td>
 					<div class="switch small">
-						<input id="vendor-state-{{ vendor.id }}" data-id="{{ vendor.id }}" class="do-switch-vendor-state" type="checkbox"{% if vendor.state %} checked{% endif %}>
-						<label for="vendor-state-{{ vendor.id }}"></label>
+						<input id="item-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
+						<label for="item-state-{{ item.id }}"></label>
 					</div>
 				</td>
 			</tr>
@@ -33,6 +33,23 @@
 		</table>
 	</div>
 </div>
+
+<!-- Модальное окно редактирования элемента -->
+<div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<fieldset>
+		<legend>Редактировать производителя</legend>
+		<input id="edit-item-id" type="hidden">
+		<label>Наименование
+			<input id="edit-item-name" type="text">
+		</label>
+		<label>Псевдоним
+			<input id="edit-item-alias" type="text">
+		</label>
+	</fieldset>
+	<button data-do="edit-item-save">Сохранить</button>
+	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+</div>
+
 {% endblock %}
 {% block js-content %}
 <script>
