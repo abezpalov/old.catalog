@@ -69,6 +69,7 @@ $(document).ready(function(){
 		$('#price-type-'+$('#edit-item-id').val()).data('alias', $('#edit-item-alias').val());
 		$('#price-type-'+$('#edit-item-id').val()).text($('#edit-item-name').val());
 		$('#price-type-'+$('#edit-item-id').val()).data('multiplier', $('#edit-item-multiplier').val());
+		$('#price-type-multiplier-'+$('#edit-item-id').val()).text($('#edit-item-multiplier').val());
 
 		$('#EditItemModal').foundation('reveal', 'close');
 
