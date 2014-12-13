@@ -1,6 +1,5 @@
 $(document).ready(function(){
 
-
 	$("body").delegate("input[data-do*='switch-item-state']", "click", function(){
 		$.post("/catalog/ajax/switch-price-type-state/", {
 			id: $(this).data('id'),
@@ -9,7 +8,6 @@ $(document).ready(function(){
 		},
 		function(data) {
 			if (null != data.status) {
-				// Вывести сообщение
 				var notification = new NotificationFx({
 					wrapper : document.body,
 					message : '<p>' + data.message + '</p>',
@@ -26,7 +24,6 @@ $(document).ready(function(){
 		return true;
 	});
 
-
 	$("body").delegate("a[data-do*='edit-item']", "click", function(){
 
 		// Заполняем значение полей модального окна
@@ -40,7 +37,6 @@ $(document).ready(function(){
 
 		return false;
 	});
-
 
 	$("body").delegate("button[data-do*='edit-item-save']", "click", function(){
 		$.post("/catalog/ajax/save-price-type/", {
@@ -65,17 +61,13 @@ $(document).ready(function(){
 				notification.show();
 			}
 		}, "json");
-
 		$('#price-type-'+$('#edit-item-id').val()).data('alias', $('#edit-item-alias').val());
 		$('#price-type-'+$('#edit-item-id').val()).text($('#edit-item-name').val());
 		$('#price-type-'+$('#edit-item-id').val()).data('multiplier', $('#edit-item-multiplier').val());
 		$('#price-type-multiplier-'+$('#edit-item-id').val()).text($('#edit-item-multiplier').val());
-
 		$('#EditItemModal').foundation('reveal', 'close');
-
 		return false;
 	});
-
 
 	$("body").delegate("button[data-do*='edit-item-cancel']", "click", function(){
 		$('#EditItemModal').foundation('reveal', 'close');

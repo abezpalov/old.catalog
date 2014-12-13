@@ -1,4 +1,5 @@
 {% extends "main.html" %}
+{% block title %}Anodos: Загрузчики{% endblock %}
 {% block content %}
 
 <!-- Таблица со списком загрузчиков -->
@@ -11,22 +12,45 @@
 				<th>Статус</th>
 				<th>Последнее обновление</th>
 			</tr>
-			{% for updater in updaters %}
+			{% for item in updaters %}
 			<tr>
-				<td><a href="/catalog/updater/{{ updater.alias }}/">{{ updater.name }}</a></td>
-				<td><a href="/catalog/distributor/{{ updater.distributor.alias }}/">{{ updater.distributor.name }}</a></td>
+				<td><a id="updater-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}" data-login="{{ item.login }}" data-password="{{ item.password }}">{{ item.name }}</a></td>
+				<td><a href="/catalog/distributor/{{ item.distributor.alias }}/">{{ item.distributor.name }}</a></td>
 				<td>
 					<div class="switch small">
-						<input id="updater-state-{{ updater.id }}" data-id="{{ updater.id }}" class="do-switch-updater-state" type="checkbox"{% if updater.state %} checked{% endif %}>
-						<label for="updater-state-{{ updater.id }}"></label>
+						<input id="updater-state-{{ item.id }}" data-id="{{ item.id }}" class="do-switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
+						<label for="updater-state-{{ item.id }}"></label>
 					</div>
 				</td>
-				<td>{{ updater.updated|date:"d.m.Y H.i" }}</td>
+				<td>{{ item.updated|date:"d.m.Y H.i" }}</td>
 			</tr>
 			{% endfor %}
 		</table>
 	</div>
 </div>
+
+<!-- Модальное окно редактирования элемента -->
+<div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<fieldset>
+		<legend>Редактировать тип цены и наценку</legend>
+		<input id="edit-item-id" type="hidden">
+		<label>Наименование
+			<input id="edit-item-name" type="text">
+		</label>
+		<label>Псевдоним
+			<input id="edit-item-alias" type="text">
+		</label>
+		<label>Логин
+			<input id="edit-item-login" type="text">
+		</label>
+		<label>Пароль
+			<input id="edit-item-password" type="text">
+		</label>
+	</fieldset>
+	<button data-do="edit-item-save">Сохранить</button>
+	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+</div>
+
 {% endblock %}
 {% block js-content %}
 <script>
