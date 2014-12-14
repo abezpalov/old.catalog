@@ -9,16 +9,19 @@ def index(request):
 
 
 # Список продуктов
-def products(request):
+def products(request, category='none', vendor='all', parameters=None):
 
 	# Импортируем
 	from catalog.models import Product
 
 	# Получаем список
-	products = Product.objects.all()
-
-	for product in products:
-		product.name = product.name.replace(",", ",&shy;")
+	if category == 'none':
+		products = None
+	elif category == 'all':
+		products = Product.objects.all()
+	else:
+		products = Product.objects.filter(category=category)
+		
 
 	context = {'products': products}
 	return render(request, 'catalog/products.html', context)

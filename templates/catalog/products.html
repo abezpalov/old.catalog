@@ -1,9 +1,26 @@
 {% extends "main.html" %}
 {% block content %}
 <!-- Фильтр вывода -->
+<div class="row collapse">
+	<fieldset>
+		<legend>Фильтр отображения</legend>
+
+
+
+
+	</fieldset>
+</div>
+
+
+
+
+
 
 <!-- Таблица со списком синонимов -->
 <div class="row collapse">
+	{% if category == None %}
+	<p>Введите параметры выборки.</p>
+	{% else %}
 	<table>
 		<tr>
 			<th>Артикул</th>
@@ -15,13 +32,14 @@
 		{% for product in products %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.article }}</td>
-			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{% autoescape off %}{{ product.name }}{% endautoescape %}</a></td>
+			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{{ product.name }}</a></td>
 			<td><a href="/catalog/vendor/{{ product.vendor.id }}/">{{ product.vendor.name }}</a></td>
-			<td></td>
+			<td>{{ product.price.price }} {{ product.price.currency.name }}</td>
 			<td></td>
 		</tr>
 		{% endfor %}
 	</table>
+	{% endif %}
 </div>
 {% endblock %}
 {% block js-content %}
