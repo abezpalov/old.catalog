@@ -31,8 +31,8 @@ class Runner:
 		self.transit =Stock.objects.take(alias=self.alias+'-transit', name=self.name+': транзит', delivery_time_min = 10, delivery_time_max = 40, distributor=self.distributor)
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
 		self.price_type_dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
-		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
-		self.currency_usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
+		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+		self.usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
 
 		# Удаляем неактуальные партии
 		Party.objects.clear(stock=self.stock)
@@ -109,7 +109,7 @@ class Runner:
 					vendorSynonym = VendorSynonym.objects.take(name=vendorSynonymName, updater=self.updater, distributor=self.distributor)
 				else: continue
 
-				# Проверяем наличие товара в базе
+				# Если нет товара, добавляем его
 				if article and vendorSynonym.vendor and article != '':
 					try:
 						product = Product.objects.get(article=article, vendor=vendorSynonym.vendor)
@@ -119,20 +119,28 @@ class Runner:
 					except Product.DoesNotExist:
 						# Проверяем необходимые даннные для добавления товара в базу
 						if article and name and vendorSynonym.vendor and article != '':
-							product = Product(name=name[:500], full_name=name, article=article, vendor=vendorSynonym.vendor, category=categorySynonym.category, unit=self.default_unit, description = '', created=datetime.now(), modified=datetime.now())
+							product = Product()
+							product.setName(name)
+							product.setArticle(article)
+							product.vendor = vendorSynonym.vendor
+							product.category = categorySynonym.category
+							product.unit = self.default_unit
+							product.created = datetime.now()
+							product.modified = datetime.now()
 							product.save()
+							self.message += "Добавлен продукт: " + product.name[:100] + ".\n"
 						else: continue
 				else: continue
 
 				# Цена в долларах
 				if priceUSD != '':
-					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.currency_usd, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.currency_usd, quantity = transit, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.usd, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.usd, quantity = transit, unit = self.default_unit)
 
 				# Цена в рублях
 				if priceRUB != '':
-					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.currency_usd, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.currency_usd, quantity = transit, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.rub, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.rub, quantity = transit, unit = self.default_unit)
 
 		return True
 

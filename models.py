@@ -160,6 +160,17 @@ class Unit(models.Model):
 	def __str__(self):
 		return self.name
 
+# Product manager
+class ProductManager(models.Manager):
+
+	def fixNames(self):
+		from datetime import datetime
+		products = self.all()
+		for product in products:
+			product.name = product.name.replace("\u00AD", '')
+			product.save()
+		return True
+
 # Product
 class Product(models.Model):
 	name = models.CharField(max_length=500)
@@ -174,9 +185,35 @@ class Product(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = ProductManager()
 
 	def __str__(self):
 		return self.name
+
+	def setName(self, name):
+
+		# Чистим
+		name = str(name).strip()
+		name = name.replace("\u00AD", "")
+		name = name.replace("™", "")
+		name = name.replace("®", "")
+
+		# Переопределяем
+		self.name = name[:500]
+		self.full_name = name
+		return True
+
+	def setArticle(self, article):
+
+		# Чистим
+		article = str(article).strip()
+		article = article.replace("\u00AD", "")
+		article = article.replace("™", "")
+		article = article.replace("®", "")
+
+		# Переопределяем
+		self.article = article[:100]
+		return True
 
 # Price Type manager
 class PriceTypeManager(models.Manager):

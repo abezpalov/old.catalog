@@ -1,6 +1,5 @@
 {% extends "main.html" %}
 {% block content %}
-
 <!-- Фильтр вывода -->
 
 <!-- Таблица со списком синонимов -->
@@ -16,7 +15,7 @@
 		{% for product in products %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.article }}</td>
-			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{{ product.name }}</a></td>
+			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{% autoescape off %}{{ product.name }}{% endautoescape %}</a></td>
 			<td><a href="/catalog/vendor/{{ product.vendor.id }}/">{{ product.vendor.name }}</a></td>
 			<td></td>
 			<td></td>
