@@ -90,8 +90,7 @@ def update(request, alias, key=''):
 		if runner.run():
 			runner.updater.updated = datetime.now()
 			runner.updater.save()
-
-	Price.objects.recalculate()
+			Price.objects.recalculate()
 
 	context = {'update_name': runner.name, 'update_message': runner.message}
 	return render(request, 'catalog/update.html', context)

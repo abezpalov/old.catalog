@@ -1,8 +1,9 @@
-from catalog.models import Updater
-from catalog.models import Currency
+import lxml.html
+import requests
 from datetime import date
 from datetime import datetime
-import lxml.html
+from catalog.models import Updater
+from catalog.models import Currency
 
 
 class Runner:
@@ -17,11 +18,20 @@ class Runner:
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name)
 		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 
+		self.url = 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req='+date.today().strftime("%d.%m.%Y")
+
 	def run(self):
 
+		# Создаем сессию
+		s = requests.Session()
+
 		# Загружаем данные
-		self.message = url = 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req='+date.today().strftime("%d.%m.%Y")
-		tree = lxml.html.parse(url)
+		try:
+			r = s.get(self.url, timeout=100.0)
+			tree = lxml.html.fromstring(r.text)
+		except requests.exceptions.Timeout:
+			self.message = 'Превышение интервала ожидания загрузки.'
+			return False
 
 		table = tree.xpath("//table[@class='CBRTBL']/tr")
 		trn = 0
