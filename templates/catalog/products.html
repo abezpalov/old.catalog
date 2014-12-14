@@ -2,45 +2,68 @@
 {% block content %}
 <!-- Фильтр вывода -->
 <div class="row collapse">
-	<fieldset>
-		<legend>Фильтр отображения</legend>
-
-
-
-
-	</fieldset>
+		<ul class="button-group even-3">
+			<li><button id="filter-items-category" data-do="open-filter-items-category" class="secondary"><i class="fa fa-folder-open-o"></i> Категория</button></li>
+			<li><button id="filter-items-vendor" data-do="open-filter-items-vendor" class="secondary"><i class="fa fa-building"></i> Производитель</button></li>
+			<li><button id="filter-items-search" data-do="open-filter-items-search" class="secondary"><i class="fa fa-search"></i> Искомое слово</button></li>
+		</ul>
 </div>
-
-
-
-
-
 
 <!-- Таблица со списком синонимов -->
 <div class="row collapse">
-	{% if category == None %}
+	{% if products == None %}
 	<p>Введите параметры выборки.</p>
 	{% else %}
 	<table>
 		<tr>
-			<th>Артикул</th>
-			<th>Наименование</th>
-			<th>Производитель</th>
-			<th>Цена</th>
-			<th>Количество</th>
+			<th class="text-center">Артикул</th>
+			<th class="text-center">Наименование</th>
+			<th class="text-center">Производитель</th>
+			<th class="text-center">Цена</th>
+			<th class="text-center">Количество</th>
 		</tr>
 		{% for product in products %}
+		{% ifchanged product.category %}
+			<td colspan="5"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td>
+		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{{ product.name }}</a></td>
-			<td><a href="/catalog/vendor/{{ product.vendor.id }}/">{{ product.vendor.name }}</a></td>
-			<td>{{ product.price.price }} {{ product.price.currency.name }}</td>
-			<td></td>
+			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.id }}/">{{ product.vendor.name }}</a></td>
+			<td style="white-space: nowrap;" class="text-right">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</td>
+			<td style="white-space: nowrap;"></td>
 		</tr>
 		{% endfor %}
 	</table>
 	{% endif %}
 </div>
+
+<!-- Модальное окно фильтра -->
+<div id="FilterItemsModal" class="reveal-modal large" data-reveal>
+
+	<dl class="tabs" data-tab>
+		<dd id="CategoryPanelDD" class="active"><a href="#CategoryPanel"><i class="fa fa-folder-open-o"></i> Категория</a></dd>
+		<dd id="VendorPanelDD"><a href="#VendorPanel"><i class="fa fa-building"></i> Производитель</a></dd>
+		<dd id="SearchPanelDD"><a href="#SearchPanel"><i class="fa fa-search"></i> Искомое слово</a></dd>
+	</dl>
+	<div class="tabs-content">
+		<div class="content active" id="CategoryPanel">
+			<p>Категория</p>
+			{% autoescape off %}{{ categories_ul }}{% endautoescape %}
+		</div>
+		<div class="content" id="VendorPanel">
+			<p>Производитель</p>
+		</div>
+		<div class="content" id="SearchPanel">
+			<p>Искомое слово</p>
+		</div>
+	</div>
+
+	<button>Применить</button>
+	<button data-do="filter-item-cancel" class="secondary">Отмена</button>
+</div>
+
+
 {% endblock %}
 {% block js-content %}
 <script>

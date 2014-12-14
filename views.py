@@ -9,21 +9,50 @@ def index(request):
 
 
 # Список продуктов
-def products(request, category='none', vendor='all', parameters=None):
+def products(request, category='none', vendor='all', search=''):
 
 	# Импортируем
+	from lxml import etree
+	from django.db.models import Q
 	from catalog.models import Product
+	from catalog.models import Category
 
-	# Получаем список
+	# Получаем дерево категорий
+	categories = []
+	categories = getCategoryTree(categories)
+
+	root = etree.Element("div")
+	getCategoryHTMLTree(root)
+	categories_ul = etree.tostring(root)
+
+	# Проводим общую нумерацию
+	for order, category in enumerate(categories):
+		category.order = order
+
+	# Получаем список с фильтром по категориям
 	if category == 'none':
 		products = None
 	elif category == 'all':
 		products = Product.objects.all()
 	else:
 		products = Product.objects.filter(category=category)
-		
 
-	context = {'products': products}
+	if vendor != 'all':
+		products = Product.objects.filter(vendor=vendor)
+
+	if search:
+		products = Product.objects.filter(Q(article__contains=search) | Q(name__contains=search))
+
+	for product in products:
+		if product.price:
+			product.price_out = '{:,}'.format(product.price.price)
+			product.price_out = product.price_out.replace(',', '&nbsp;')
+			product.price_out = product.price_out.replace('.', ',')
+			product.price_out = product.price_out + '&nbsp;' + product.price.currency.name
+		else:
+			product.price_out = '<i class="fa fa-phone"></i>'
+
+	context = {'products': products, 'categories': categories, 'categories_ul': categories_ul,  'category': category,  'vendor': vendor,  'search': search}
 	return render(request, 'catalog/products.html', context)
 
 
@@ -127,6 +156,47 @@ def getCategoryTree(tree, parent=None):
 
 	# Возвращаем результат
 	return tree
+
+
+# Дерево категорий (используется рекурсия)
+def getCategoryHTMLTree(root, parent=None):
+
+	# Импортируем
+	from lxml import etree
+	from catalog.models import Category
+
+	# Получаем список дочерних категорий
+	categories = Category.objects.filter(parent=parent).order_by('order')
+
+	# Проходим по списку категорий с рекурсивным погружением
+	if len(categories):
+		ul = etree.SubElement(root, "ul")
+		ul.attrib['class'] = 'no-bullet'
+		for category in categories:
+			li = etree.SubElement(ul, "li")
+
+			# Если есть дочерние
+			childs = Category.objects.filter(parent=category).order_by('order')
+			if len(childs):
+				li.attrib['class'] = 'closed'
+				i = etree.SubElement(li, "i")
+				i.attrib['data-do'] = 'switch-li-status'
+				i.attrib['data-state'] = 'closed'
+				i.text = ''
+				i.attrib['class'] = 'fa fa-plus-square-o'
+			else:
+				i = etree.SubElement(li, "i")
+				i.text = ''
+				i.attrib['class'] = 'fa fa-circle-thin'
+			a = etree.SubElement(li, "a")
+			a.attrib['data-do'] = 'filter-select-category'
+			a.attrib['data-id'] = str(category.id)
+			a.attrib['class'] = 'tm-li-category-name'
+			a.text = category.name
+			getCategoryHTMLTree(li, category)
+
+	# Возвращаем результат
+	return root
 
 
 # Категория
