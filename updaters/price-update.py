@@ -27,41 +27,5 @@ class Runner:
 
 		self.message = 'Тест запуска'
 
-		# Получаем перечень всех продуктов
-		products = Product.objects.all()
-
-		for product in products:
-			self.message += product.name + '\n'
-
-			parties = Party.objects.filter(product=product)
-
-			# Получаем цену
-			try:
-				price = Price.objects.get(product=product)
-			except Price.DoesNotExist:
-				price = Price()
-				price.product = product
-				price.created = datetime.now()
-			finally:
-				price.price = 0
-
-			# Вычисляем новую цену
-			if 0 == len(parties):
-				price.price = 0
-			else:
-				s = 0 # Сумма цен
-				n = 0 # Количество значащих цен
-				for party in parties:
-					p = party.price * party.currency.rate / party.currency.quantity * party.price_type.multiplier
-					s += p
-					if p != 0: n += 1
-				if 0 == n :
-					price.price = 0
-				else:
-					price.price = s / n
-
-				price.price_type = self.rp
-				price.currency = self.rub
-				price.modified = datetime.now()
-				price.save()
+		Price.objects.recalculate()
 

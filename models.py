@@ -160,61 +160,6 @@ class Unit(models.Model):
 	def __str__(self):
 		return self.name
 
-# Product manager
-class ProductManager(models.Manager):
-
-	def fixNames(self):
-		from datetime import datetime
-		products = self.all()
-		for product in products:
-			product.name = product.name.replace("\u00AD", '')
-			product.save()
-		return True
-
-# Product
-class Product(models.Model):
-	name = models.CharField(max_length=500)
-	full_name = models.TextField()
-	article = models.CharField(max_length=100)
-	vendor = models.ForeignKey(Vendor)
-	category = models.ForeignKey(Category, null=True, default=None)
-	unit = models.ForeignKey(Unit)
-	description = models.TextField()
-	duble = models.ForeignKey('self', null=True, default=None)
-	edited = models.BooleanField(default=False)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = ProductManager()
-
-	def __str__(self):
-		return self.name
-
-	def setName(self, name):
-
-		# Чистим
-		name = str(name).strip()
-		name = name.replace("\u00AD", "")
-		name = name.replace("™", "")
-		name = name.replace("®", "")
-
-		# Переопределяем
-		self.name = name[:500]
-		self.full_name = name
-		return True
-
-	def setArticle(self, article):
-
-		# Чистим
-		article = str(article).strip()
-		article = article.replace("\u00AD", "")
-		article = article.replace("™", "")
-		article = article.replace("®", "")
-
-		# Переопределяем
-		self.article = article[:100]
-		return True
-
 # Price Type manager
 class PriceTypeManager(models.Manager):
 
@@ -267,6 +212,139 @@ class Currency(models.Model):
 	def __str__(self):
 		return self.name
 
+# Price manager
+class PriceManager(models.Manager):
+
+	def recalculate(self):
+
+		from datetime import datetime
+		from catalog.models import Currency
+		from catalog.models import Product
+		from catalog.models import Party
+		from catalog.models import PriceType
+
+		rp = PriceType.objects.take(alias='RP', name='Розничная цена')
+		rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+
+
+		# Получаем перечень всех продуктов
+		products = Product.objects.all()
+
+		for product in products:
+
+			parties = Party.objects.filter(product=product)
+
+			# Получаем цену
+			if product.price:
+				price = product.price
+			else:
+				price = Price()
+				price.created = datetime.now()
+				product.price = price
+
+			# Вычисляем новую цену
+			price.price = 0
+			if 0 == len(parties):
+				price.price = 0
+			else:
+				s = 0 # Сумма цен
+				n = 0 # Количество значащих цен
+				for party in parties:
+					p = party.price * party.currency.rate / party.currency.quantity * party.price_type.multiplier
+					s += p
+					if p != 0: n += 1
+				if 0 == n :
+					price.price = 0
+				else:
+					price.price = s / n
+
+			price.price_type = rp
+			price.currency = rub
+			price.modified = datetime.now()
+			price.save()
+
+			if product.price == None:
+				product.save()
+
+		return True
+
+# Price
+class Price(models.Model):
+	price = models.DecimalField(max_digits=12, decimal_places=2)
+	price_type = models.ForeignKey(PriceType)
+	currency = models.ForeignKey(Currency)
+	fixed = models.BooleanField(default=False)
+	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
+	objects = PriceManager()
+
+# Quantity
+class Quantity(models.Model):
+	quantity = models.IntegerField()
+	unit = models.ForeignKey(Unit)
+	fixed = models.BooleanField(default=False)
+	state = models.BooleanField(default=True)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
+
+# Product manager
+class ProductManager(models.Manager):
+
+	def fixNames(self):
+		from datetime import datetime
+		products = self.all()
+		for product in products:
+			product.name = product.name.replace("\u00AD", '')
+			product.save()
+		return True
+
+# Product
+class Product(models.Model):
+	name = models.CharField(max_length=500)
+	full_name = models.TextField()
+	article = models.CharField(max_length=100)
+	vendor = models.ForeignKey(Vendor)
+	category = models.ForeignKey(Category, null=True, default=None)
+	unit = models.ForeignKey(Unit)
+	description = models.TextField()
+	duble = models.ForeignKey('self', null=True, default=None)
+	edited = models.BooleanField(default=False)
+	state = models.BooleanField(default=True)
+	price = models.ForeignKey(Price, null=True, default=None)
+	quantity = models.ForeignKey(Quantity, null=True, default=None)
+	created = models.DateTimeField()
+	modified = models.DateTimeField()
+	objects = ProductManager()
+
+	def __str__(self):
+		return self.name
+
+	def setName(self, name):
+
+		# Чистим
+		name = str(name).strip()
+		name = name.replace("\u00AD", "")
+		name = name.replace("™", "")
+		name = name.replace("®", "")
+
+		# Переопределяем
+		self.name = name[:500]
+		self.full_name = name
+		return True
+
+	def setArticle(self, article):
+
+		# Чистим
+		article = str(article).strip()
+		article = article.replace("\u00AD", "")
+		article = article.replace("™", "")
+		article = article.replace("®", "")
+
+		# Переопределяем
+		self.article = article[:100]
+		return True
+
 # Party manager
 class PartyManager(models.Manager):
 
@@ -310,18 +388,6 @@ class PartyHystory(models.Model):
 	comment = models.TextField()
 	date = models.DateField()
 
-# Price
-class Price(models.Model):
-	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
-	product = models.ForeignKey(Product)
-	price = models.DecimalField(max_digits=12, decimal_places=2)
-	price_type = models.ForeignKey(PriceType)
-	currency = models.ForeignKey(Currency)
-	fixed = models.BooleanField(default=False)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-
 # Price Hystory
 class PriceHystory(models.Model):
 	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
@@ -330,17 +396,6 @@ class PriceHystory(models.Model):
 	price_type = models.ForeignKey(PriceType)
 	currency = models.ForeignKey(Currency)
 	date = models.DateField()
-
-# Quantity
-class Quantity(models.Model):
-	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
-	product = models.ForeignKey(Product)
-	quantity = models.IntegerField()
-	unit = models.ForeignKey(Unit)
-	fixed = models.BooleanField(default=False)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
 
 # Quantity Hystory
 class QuantityHystory(models.Model):

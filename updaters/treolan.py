@@ -64,7 +64,12 @@ class Runner:
 		tree = lxml.html.fromstring(r.text)
 
 		# Парсим
-		table = tree.xpath("//table")[0]
+		try:
+			table = tree.xpath("//table")[0]
+		except IndexError:
+			self.message += "Не получилось загрузить прайс-лист.\n"
+			return False
+
 		head = True
 		for trn, tr in enumerate(table):
 

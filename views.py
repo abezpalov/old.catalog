@@ -36,7 +36,7 @@ def updaters(request):
 	return render(request, 'catalog/updaters.html', context)
 
 
-# Загрузчик TODO
+# Загрузчик
 def updater(request, alias):
 
 	# Импортируем
@@ -51,12 +51,15 @@ def updater(request, alias):
 # Выполнение загрузчика
 def update(request, alias, key=''):
 	from datetime import datetime
+	from catalog.models import Price
 	Updater = __import__('catalog.updaters.' + alias, fromlist=['Runner'])
 	runner = Updater.Runner()
 	if runner.updater.state:
 		if runner.run():
 			runner.updater.updated = datetime.now()
 			runner.updater.save()
+
+	Price.objects.recalculate()
 
 	context = {'update_name': runner.name, 'update_message': runner.message}
 	return render(request, 'catalog/update.html', context)
