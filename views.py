@@ -63,7 +63,7 @@ def updaters(request):
 	from catalog.models import Updater
 
 	# Получаем список
-	updaters = Updater.objects.all()
+	updaters = Updater.objects.all().order_by('name')
 	context = {'updaters': updaters}
 	return render(request, 'catalog/updaters.html', context)
 

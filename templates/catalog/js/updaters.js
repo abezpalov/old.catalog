@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-	$("body").delegate(".do-switch-item-state", "click", function(){
+	$("body").delegate("input[data-do*='switch-item-state']", "click", function(){
 		$.post("/catalog/ajax/switch-updater-state/", {
 			id: $(this).data('id'),
 			state: $(this).prop("checked"),

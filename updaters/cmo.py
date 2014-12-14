@@ -38,7 +38,7 @@ class Runner:
 		Party.objects.clear(stock=self.factory)
 
 		# Используемые ссылки
-		self.url_price = 'http://www.cmo.ru/catalog/price/'
+		self.url = 'http://www.cmo.ru/catalog/price/'
 
 
 	def run(self):
@@ -46,9 +46,13 @@ class Runner:
 		# Создаем сессию
 		s = requests.Session()
 
-		# Загружаем общий прайс
-		r = s.get(self.url_price)
-		tree = lxml.html.fromstring(r.text)
+		# Загружаем данные
+		try:
+			r = s.get(self.url, timeout=100.0)
+			tree = lxml.html.fromstring(r.text)
+		except requests.exceptions.Timeout:
+			self.message = 'Превышение интервала ожидания загрузки.'
+			return False
 
 		# Парсим
 		try:
@@ -123,6 +127,7 @@ class Runner:
 
 
 
+		return True
 
 
 

@@ -84,6 +84,8 @@ class Runner:
 				# Парсим прайс-лист
 				self.parseCables(xls_data)
 
+		return True
+
 	def getXLS(self, request):
 
 		from io import BytesIO
@@ -176,6 +178,9 @@ class Runner:
 				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
 
+		return True
+
+
 	def parseCables(self, xls_data):
 
 		import xlrd
@@ -245,6 +250,8 @@ class Runner:
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
+
+		return True
 
 	def fixPrice(self, price):
 		if price in ('CALL', '?'): price = -1
