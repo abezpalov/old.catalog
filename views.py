@@ -37,7 +37,7 @@ def products(request, category='none', vendor='all', search=''):
 	else:
 		products = Product.objects.filter(category=category)
 
-	if vendor != 'all':
+	if vendor != 'all' and category != 'none':
 		products = Product.objects.filter(vendor=vendor)
 
 	if search:
