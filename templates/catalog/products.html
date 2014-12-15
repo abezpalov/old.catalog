@@ -3,17 +3,14 @@
 <!-- Фильтр вывода -->
 <div class="row collapse">
 		<ul class="button-group even-3">
-			<li><button id="filter-items-category" data-do="open-filter-items-category" class="secondary"><i class="fa fa-folder-open-o"></i> Категория</button></li>
-			<li><button id="filter-items-vendor" data-do="open-filter-items-vendor" class="secondary"><i class="fa fa-building"></i> Производитель</button></li>
-			<li><button id="filter-items-search" data-do="open-filter-items-search" class="secondary"><i class="fa fa-search"></i> Искомое слово</button></li>
+			<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == 'none' %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
+			<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == 'none' %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
+			<li><button id="filter-items-search" data-do="open-filter-items-search"{% if search == '' %} class="secondary"{% endif %}><i class="fa fa-search"></i> Искомое слово</button></li>
 		</ul>
 </div>
 
 <!-- Таблица со списком синонимов -->
 <div class="row collapse">
-	{% if products == None %}
-	<p>Введите параметры выборки.</p>
-	{% else %}
 	<table>
 		<tr>
 			<th class="text-center">Артикул</th>
@@ -29,13 +26,12 @@
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{{ product.name }}</a></td>
-			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.id }}/">{{ product.vendor.name }}</a></td>
+			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
 			<td style="white-space: nowrap;" class="text-right">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</td>
 			<td style="white-space: nowrap;"></td>
 		</tr>
 		{% endfor %}
 	</table>
-	{% endif %}
 </div>
 
 <!-- Модальное окно фильтра -->
@@ -48,19 +44,38 @@
 	</dl>
 	<div class="tabs-content">
 		<div class="content active" id="CategoryPanel">
-			<p>Категория</p>
+			<p><span>Категория: </span><span id="filter-items-selected-category" data-id="{{ category }}">не выбрана</span>.</p>
+			<ul class="inline-list">
+				<li>
+					<div class="switch tiny">
+						<input id="filter-items-selected-childs" type="checkbox"{% if childs == 'y' %} checked{% endif %}>
+						<label for="filter-items-selected-childs"></label>
+					</div>
+				</li>
+				<li>
+					<p>Включить дочерние категории.</p>
+				</li>
+			</ul>
 			{% autoescape off %}{{ categories_ul }}{% endautoescape %}
 		</div>
 		<div class="content" id="VendorPanel">
-			<p>Производитель</p>
+			<p><span>Производитель: </span><span id="filter-items-selected-vendor" data-alias="{{ vendor }}">не выбран (отображать всех)</span>.</p>
+			<ul class="inline-list"><li><a data-do="filter-items-select-vendor" data-alias="all">Все производители</a></li></ul>
+			<ul class="inline-list">
+				{% for vendor in vendors %}
+					<li><a data-do="filter-items-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a></li>
+				{% endfor %}
+			</ul>
 		</div>
 		<div class="content" id="SearchPanel">
-			<p>Искомое слово</p>
+			<label>Поисковый запрос
+				<input id="filter-items-search-input" type="text" placeholder="Артикул, наименование или их часть..." value="{{ search }}">
+			</label>
 		</div>
 	</div>
 
-	<button>Применить</button>
-	<button data-do="filter-item-cancel" class="secondary">Отмена</button>
+	<button data-do="filter-items-run">Применить</button>
+	<button data-do="filter-items-cancel" class="secondary">Отмена</button>
 </div>
 
 
