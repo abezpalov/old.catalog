@@ -1,4 +1,19 @@
 {% extends "main.html" %}
+
+{% block search %}
+<li class="divider"></li>
+<li class="has-form">
+	<div class="row collapse">
+		<div class="large-8 small-9 columns">
+			<input type="text" placeholder="Поиск по складу...">
+		</div>
+		<div class="large-4 small-3 columns">
+			<a href="#" class="secondary button expand"><i class="fa fa-search"></i></a>
+		</div>
+	</div>
+</li>
+{% endblock %}
+
 {% block content %}
 <!-- Фильтр вывода -->
 <div class="row collapse">
