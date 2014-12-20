@@ -212,10 +212,10 @@ class Runner:
 				for cel_num, cel in enumerate(row):
 					if str(cel).strip() == word['article']: num['article'] = cel_num
 					elif str(cel).strip() == word['model']: num['model'] = cel_num
-					elif str(cel).strip() == word['name']: num['name'] = cel_num
-					elif str(cel).strip() == word['size']: num['size'] = cel_num
+					elif str(cel).strip() == word['name']:  num['name'] = cel_num
+					elif str(cel).strip() == word['size']:  num['size'] = cel_num
 					elif str(cel).strip() == word['price']: num['price'] = cel_num
-					elif str(cel).strip() == word['dop']: num['dop'] = cel_num
+					elif str(cel).strip() == word['dop']:   num['dop'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] or not num['model'] or not num['name'] or not num['size'] or not num['price'] or not num['dop']:

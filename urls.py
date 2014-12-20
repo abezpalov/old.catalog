@@ -11,11 +11,12 @@ urlpatterns = patterns('',
 	# Product
 	# ex: /catalog/products/
 	url(r'^products/$', views.products, name='products'),
-	url(r'^products/(?P<category>[a-zA-Z0-9]+)/$', views.products, name='products'),
-	url(r'^products/(?P<category>[a-zA-Z0-9]+)/(?P<childs>[a-z]+)/$', views.products, name='products'),
-	url(r'^products/(?P<category>[a-zA-Z0-9]+)/(?P<childs>[a-z]+)/(?P<vendor>[a-zA-Z0-9_-]+)/$', views.products, name='products'),
-	url(r'^products/(?P<category>[a-zA-Z0-9]+)/(?P<childs>[a-z]+)/(?P<vendor>[a-zA-Z0-9_-]+)/$', views.products, name='products'),
-	url(r'^products/(?P<category>[a-zA-Z0-9]+)/(?P<childs>[a-z]+)/(?P<vendor>[a-zA-Z0-9_-]+)/(?P<search>[a-zA-Zа-яА-Я0-9 _-]+)/$', views.products, name='products'),
+	# ex: /catalog/products/fujitsu/
+	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/$', views.products, name='products'),
+	# ex: /catalog/products/fujitsu/23/
+	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/(?P<category>[a-zA-Z0-9]+)/$', views.products, name='products'),
+	# ex: /catalog/products/fujitsu/23/y/
+	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/(?P<category>[a-zA-Z0-9]+)/(?P<childs>[a-z]+)/$', views.products, name='products'),
 
 	# Updater
 	# ex: /catalog/updaters/

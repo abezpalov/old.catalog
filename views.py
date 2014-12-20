@@ -32,7 +32,7 @@ def products(request, category='none', childs='y', vendor='none', search=''):
 	if vendor != 'none' and vendor != 'all':
 		v = Vendor.objects.get(alias=vendor)
 
-	# Выборка продуктов с непустым поисковым запросом
+	# TODO Выборка продуктов с непустым поисковым запросом
 	if search and vendor != 'none' and vendor != 'all' and category != 'none' and category != 'all':
 		products = Product.objects.filter(Q(article__contains=search) | Q(name__contains=search)).filter(vendor=v).filter(category=category)
 	elif search and vendor != 'none' and vendor != 'all':
