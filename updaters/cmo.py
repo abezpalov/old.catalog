@@ -1,5 +1,3 @@
-import lxml.html
-import requests
 from datetime import date
 from datetime import datetime
 from catalog.models import Updater
@@ -31,8 +29,8 @@ class Runner:
 		self.factory = Stock.objects.take(alias=self.alias+'-factory', name=self.name+': завод', delivery_time_min = 10, delivery_time_max = 20, distributor=self.distributor)
 		self.vendor = Vendor.objects.take(alias=self.alias, name=self.name)
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-		self.price_type_dp = PriceType.objects.take(alias='RRP', name='Рекомендованная розничная цена')
-		self.currency_rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+		self.rp = PriceType.objects.take(alias='RP', name='Розничная цена')
+		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 
 		# Удаляем неактуальные партии
 		Party.objects.clear(stock=self.factory)
@@ -40,8 +38,20 @@ class Runner:
 		# Используемые ссылки
 		self.url = 'http://www.cmo.ru/catalog/price/'
 
-
 	def run(self):
+
+		import lxml.html
+		import requests
+
+		# Номера строк и столбцов
+		num = {'header': 0}
+
+		# Распознаваемые слова
+		word = {
+			'article': 'Артикул',
+			'code': 'Код (ID)',
+			'name': 'Наименование продукции',
+			'price': '"Цена, RUB"'}
 
 		# Создаем сессию
 		s = requests.Session()
@@ -65,70 +75,54 @@ class Runner:
 		for trn, tr in enumerate(table):
 
 			# Заголовок таблицы
-			if trn == 0:
+			if trn == num['header']:
 				for tdn, td in enumerate(tr):
-					if td.text == 'Артикул': nArticle = tdn
-					elif td.text == 'Код (ID)': nCode = tdn
-					elif td.text == 'Наименование продукции': nName = tdn
-					elif td.text == '"Цена, RUB"': nPrice = tdn
+					if   td.text == word['article']: num['article'] = tdn
+					elif td.text == word['code']:    num['code'] = tdn
+					elif td.text == word['name']:    num['name'] = tdn
+					elif td.text == word['price']:   num['price'] = tdn
 
 				# Проверяем, все ли столбцы распознались
-				if not nArticle == 0 or not nCode or not nName or not nPrice:
+				if not num['article'] == 0 or not num['code'] or not num['name'] or not num['price']:
 					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
 					return False
 				else: self.message += "Структура данных без изменений.\n"
 
 			# Категория
 			elif len(tr) == 1:
-				categorySynonym = CategorySynonym.objects.take(name=tr[0][0][0].text.strip(), updater=self.updater, distributor=self.distributor)
-
+				category_synonym = CategorySynonym.objects.take(name=tr[0][0][0].text.strip(), updater=self.updater, distributor=self.distributor)
 
 			# Товар
 			elif len(tr) == 4:
 				for tdn, td in enumerate(tr):
-					if tdn == nArticle: article = str(td.text).strip()
-					elif tdn == nCode: code = str(td.text).strip()
-					elif tdn == nName:
-						name = td[0].text
-						link = td[0].get('href')
-					elif tdn == nPrice:
-						price = str(td.text).strip()
-						if price in ('Цена не найдена'): price = None
-						else:
-							price = price.replace('RUB', '')
-							price = price.replace(' ', '')
-							self.message += str(float(price)) + "\n"
+					if tdn == num['article']: article = str(td.text).strip()
+					elif tdn == num['code']: code = str(td.text).strip()
+					elif tdn == num['name']:
+						name = str(td[0].text).strip()
+						link = str(td[0].get('href')).strip()
+					elif tdn == num['price']: price = self.fixPrice(td.text)
 
-				# Если нет товара, добавляем его
-				if article and article != '':
-					try:
-						product = Product.objects.get(article=article, vendor=self.vendor)
-						if not product.category and categorySynonym.category:
-							product.category = categorySynonym.category
-							product.save()
-					except Product.DoesNotExist:
-						if article and name and article != '':
-							product = Product()
-							product.setName(name)
-							product.setArticle(article)
-							product.vendor = self.vendor
-							product.category = categorySynonym.category
-							product.unit = self.default_unit
-							product.created = datetime.now()
-							product.modified = datetime.now()
-							product.save()
-							self.message += "Добавлен продукт: " + product.name[:100] + ".\n"
-						else: continue
+				# Если артикул не указан - используем код товара
+				if not article and code: article = code
+
+				# Получаем объект товара
+				if article and name:
+					product = Product.objects.take(article=article, vendor=self.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
 				else: continue
 
-
-
-
-
-
+				# Добавляем партии
+				party = Party.objects.make(product=product, stock=self.factory, price=price, price_type = self.rp, currency = self.rub, quantity = -1, unit = self.default_unit)
+				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.name + ' ' + party.price_type.alias + '\n'
 
 		return True
 
 
+	def fixPrice(self, price):
 
-
+		price = str(price).strip()
+		if price in ('Цена не найдена'): price = None
+		else:
+			price = price.replace('RUB', '')
+			price = price.replace(' ', '')
+			price = float(price)
+		return price

@@ -254,6 +254,6 @@ class Runner:
 		return True
 
 	def fixPrice(self, price):
-		if price in ('CALL', '?'): price = -1
+		if price in ('CALL', '?'): price = None
 		else: price = float(price)
 		return price

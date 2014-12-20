@@ -261,6 +261,7 @@ class PriceManager(models.Manager):
 
 			parties = Party.objects.filter(product=product)
 
+			# TODO Rework
 			# Получаем цену
 			if product.price:
 				price = product.price
@@ -277,9 +278,10 @@ class PriceManager(models.Manager):
 				s = 0 # Сумма цен
 				n = 0 # Количество значащих цен
 				for party in parties:
-					p = party.price * party.currency.rate / party.currency.quantity * party.price_type.multiplier
-					s += p
-					if p != 0: n += 1
+					if party.price:
+						p = party.price * party.currency.rate / party.currency.quantity * party.price_type.multiplier
+						s += p
+						n += 1
 				if 0 == n :
 					price.price = 0
 				else:
@@ -324,6 +326,33 @@ class Quantity(models.Model):
 # Product manager
 class ProductManager(models.Manager):
 
+	def take(self, article, vendor, name, category = None, unit = None):
+
+		from datetime import datetime
+
+		name = str(name).strip()
+		name = name.replace("\u00AD", "")
+		name = name.replace("™", "")
+		name = name.replace("®", "")
+
+		article = str(article).strip()
+		article = article.replace("\u00AD", "")
+		article = article.replace("™", "")
+		article = article.replace("®", "")
+		article = article[:100]
+
+		try:
+			product = self.get(article=article, vendor=vendor)
+			if not product.category and category:
+				product.category = category_synonym.category
+				product.modified = datetime.now()
+				product.save()
+		except Product.DoesNotExist:
+			product = Product(name=name[:500], full_name = name, article=article, vendor=vendor, category=category, unit=unit, created = datetime.now(), modified = datetime.now())
+			product.save()
+
+		return product
+
 	def fixNames(self):
 		from datetime import datetime
 		products = self.all()
@@ -339,7 +368,7 @@ class Product(models.Model):
 	article = models.CharField(max_length=100)
 	vendor = models.ForeignKey(Vendor)
 	category = models.ForeignKey(Category, null=True, default=None)
-	unit = models.ForeignKey(Unit)
+	unit = models.ForeignKey(Unit, null=True, default=None)
 	description = models.TextField()
 	duble = models.ForeignKey('self', null=True, default=None)
 	edited = models.BooleanField(default=False)
@@ -352,31 +381,6 @@ class Product(models.Model):
 
 	def __str__(self):
 		return self.name
-
-	def setName(self, name):
-
-		# Чистим
-		name = str(name).strip()
-		name = name.replace("\u00AD", "")
-		name = name.replace("™", "")
-		name = name.replace("®", "")
-
-		# Переопределяем
-		self.name = name[:500]
-		self.full_name = name
-		return True
-
-	def setArticle(self, article):
-
-		# Чистим
-		article = str(article).strip()
-		article = article.replace("\u00AD", "")
-		article = article.replace("™", "")
-		article = article.replace("®", "")
-
-		# Переопределяем
-		self.article = article[:100]
-		return True
 
 	class Meta:
 		ordering = ['name']
