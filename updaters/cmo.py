@@ -112,7 +112,7 @@ class Runner:
 
 				# Добавляем партии
 				party = Party.objects.make(product=product, stock=self.factory, price=price, price_type = self.rp, currency = self.rub, quantity = -1, unit = self.default_unit)
-				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.name + ' ' + party.price_type.alias + '\n'
+				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 		return True
 

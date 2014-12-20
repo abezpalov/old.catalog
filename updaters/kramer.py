@@ -67,22 +67,21 @@ class Runner:
 
 		# Ещем ссылки
 		urls = tree.xpath('//a/@href')
+		ok = False
 		for url in urls:
 			if self.devices_url in url:
-
-				# Получаем прайс-лист из архива
 				xls_data = self.getXLS(request = s.get(url, cookies=cookies, allow_redirects=True))
-
-				# Парсим прайс-лист
 				self.parseDevices(xls_data)
-
+				ok = True
 			elif self.cables_url in url:
-
-				# Получаем прайс-лист из архива
 				xls_data = self.getXLS(request = s.get(url, cookies=cookies, allow_redirects=True))
-
-				# Парсим прайс-лист
 				self.parseCables(xls_data)
+				ok = True
+
+		if not ok:
+			self.message += "Не получилось загрузить прайс-листы.\n"
+			self.message += "Проверьте параметры доступа.\n"
+			return False
 
 		return True
 
@@ -130,13 +129,13 @@ class Runner:
 			# Заголовок таблицы
 			elif row_num == num['header']:
 				for cel_num, cel in enumerate(row):
-					if str(cel).strip() == word['article']: num['article'] = cel_num
-					elif str(cel).strip() == word['model']: num['model'] = cel_num
-					elif str(cel).strip() == word['size']: num['size'] = cel_num
+					if str(cel).strip() == word['article']:  num['article'] = cel_num
+					elif str(cel).strip() == word['model']:  num['model'] = cel_num
+					elif str(cel).strip() == word['size']:   num['size'] = cel_num
 					elif str(cel).strip() == word['format']: num['format'] = cel_num
-					elif str(cel).strip() == word['name']: num['name'] = cel_num
-					elif str(cel).strip() == word['price']: num['price'] = cel_num
-					elif str(cel).strip() == word['dop']: num['dop'] = cel_num
+					elif str(cel).strip() == word['name']:   num['name'] = cel_num
+					elif str(cel).strip() == word['price']:  num['price'] = cel_num
+					elif str(cel).strip() == word['dop']:    num['dop'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['format'] or not num['name'] or not num['price'] or not num['dop']:
@@ -148,38 +147,38 @@ class Runner:
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				if word['group'] in row[num['name']]: word['group_name'] = row[num['name']]
 				else: word['category_name'] = row[num['name']]
-				categorySynonym = CategorySynonym.objects.take(name=word['group_name'] + ' ' + word['category_name'], updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(name=word['group_name'] + ' ' + word['category_name'], updater=self.updater, distributor=self.distributor)
 
 			# Товар
 			elif row[num['name']] and row[num['article']] and row[num['price']]:
 
+				# Определяем имя
+				name = self.vendor.name + ' ' + str(row[num['model']]) + ' ' + str(row[num['name']])
+				if row[num['size']] or row[num['format']]:
+					name += ' ('
+					if row[num['size']]: name += 'размер: ' + str(row[num['size']])
+					if row[num['size']] and row[num['format']]: name += ', '
+					if row[num['format']]: name += 'формат: ' + str(row[num['format']])
+					name += ')'
+
+				# Определяем артикул
+				article=row[num['article']]
+
 				# Получаем объект товара
-				try:
-					product = Product.objects.get(article=row[num['article']], vendor=self.vendor)
-					if not product.category and categorySynonym.category:
-						product.category = categorySynonym.category
-						product.save()
-				except Product.DoesNotExist:
+				product = Product.objects.take(article=article, vendor=self.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
 
-					# Формируем имя
-					name = self.vendor.name + ' ' + str(row[num['model']]) + ' ' + str(row[num['name']])
-					if row[num['size']] or row[num['format']]:
-						name += ' ('
-						if row[num['size']]: name += 'размер: ' + str(row[num['size']])
-						if row[num['size']] and row[num['format']]: name += ', '
-						if row[num['format']]: name += 'формат: ' + str(row[num['format']])
-						name += ')'
-
-					# Добавляем товар в базу
-					product = Product(name=name[:500], full_name=name, article=row[num['article']], vendor=self.vendor, category=categorySynonym.category, unit=self.default_unit, description = '', created=datetime.now(), modified=datetime.now())
+				# Указываем категорию
+				if not product.category and category_synonym.category:
+					product.category = category_synonym.category
 					product.save()
 
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
+				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
+		self.message += 'Обработка прайс-листа оборудования завершена.\n'
 		return True
-
 
 	def parseCables(self, xls_data):
 
@@ -226,31 +225,32 @@ class Runner:
 			# Категория
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				word['category_name'] = row[num['name']]
-				categorySynonym = CategorySynonym.objects.take(word['category_name'], updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(word['category_name'], updater=self.updater, distributor=self.distributor)
 
 			# Товар
 			elif row[num['name']] and row[num['article']] and row[num['price']]:
 
+				# Определяем имя
+				name = self.vendor.name + ' ' + str(row[num['model']]) + ' ' + str(row[num['name']])
+				if row[num['size']]: name += ' (длина: ' + str(row[num['size']]).replace('.', ',') + ' м.)'
+
+				# Определяем артикул
+				article=row[num['article']]
+
 				# Получаем объект товара
-				try:
-					product = Product.objects.get(article=row[num['article']], vendor=self.vendor)
-					if not product.category and categorySynonym.category:
-						product.category = categorySynonym.category
-						product.save()
-				except Product.DoesNotExist:
+				product = Product.objects.take(article=article, vendor=self.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
 
-					# Формируем имя
-					name = self.vendor.name + ' ' + str(row[num['model']]) + ' ' + str(row[num['name']])
-					if row[num['size']]: name += ' (длина: ' + str(row[num['size']]).replace('.', ',') + ' м.)'
-
-					# Добавляем товар в базу
-					product = Product(name=name[:500], full_name=name, article=row[num['article']], vendor=self.vendor, category=categorySynonym.category, unit=self.default_unit, description = '', created=datetime.now(), modified=datetime.now())
+				# Указываем категорию
+				if not product.category and category_synonym.category:
+					product.category = category_synonym.category
 					product.save()
 
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
+				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
+		self.message += 'Обработка прайс-листа материалов завершена.\n'
 		return True
 
 	def fixPrice(self, price):
