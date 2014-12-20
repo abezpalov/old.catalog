@@ -47,6 +47,21 @@ class Runner:
 		import lxml.html
 		import requests
 
+		# Номера строк и столбцов
+		num = {'header': 0}
+
+		# Распознаваемые слова
+		word = {
+			'article': 'Артикул',
+			'name': 'Наименование',
+			'vendor': 'Производитель',
+			'stock': 'Св.',
+			'transit': 'Св.+Тр.',
+			'transit_date': 'Б. Тр.',
+			'price_usd': 'Цена*',
+			'price_rub': 'Цена руб.**',
+			'dop': 'Доп.'}
+
 		# Создаем сессию
 		s = requests.Session()
 
@@ -68,93 +83,81 @@ class Runner:
 			table = tree.xpath("//table")[0]
 		except IndexError:
 			self.message += "Не получилось загрузить прайс-лист.\n"
+			self.message += "Проверьте параметры доступа.\n"
 			return False
 
-		head = True
 		for trn, tr in enumerate(table):
 
 			# Заголовок таблицы
 			if trn == 0:
 				for tdn, td in enumerate(tr):
-					if td[0].text == 'Артикул': nArticle = tdn
-					elif td[0].text == 'Наименование': nName = tdn
-					elif td[0].text == 'Производитель': nVendor = tdn
-					elif td[0].text == 'Св.': nStock = tdn
-					elif td[0].text == 'Св.+Тр.': nTransit = tdn
-					elif td[0].text == 'Б. Тр.': nTransitDate = tdn
-					elif td[0].text == 'Цена*': nPriceUSD = tdn
-					elif td[0].text == 'Цена руб.**': nPriceRUB = tdn
-					elif td[0].text == 'Доп.': nDop = tdn
+					if   td[0].text == word['article']:      num['article'] = tdn
+					elif td[0].text == word['name']:         num['name'] = tdn
+					elif td[0].text == word['vendor']:       num['vendor'] = tdn
+					elif td[0].text == word['stock']:        num['stock'] = tdn
+					elif td[0].text == word['transit']:      num['transit'] = tdn
+					elif td[0].text == word['transit_date']: num['transit_date'] = tdn
+					elif td[0].text == word['price_usd']:    num['price_usd'] = tdn
+					elif td[0].text == word['price_rub']:    num['price_rub'] = tdn
+					elif td[0].text == word['dop']:          num['dop'] = tdn
 
 				# Проверяем, все ли столбцы распознались
-				if not nArticle == 0 or not nName or not nVendor or not nStock or not nTransit or not nPriceUSD or not nPriceUSD or not nPriceRUB:
+				if not num['article'] == 0 or not num['name'] or not num['vendor'] or not num['stock'] or not num['transit'] or not num['price_usd'] or not num['price_rub']:
 					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
 					return False
 				else: self.message += "Структура данных без изменений.\n"
 
 			# Категория
 			elif len(tr) == 1:
-				categorySynonym = CategorySynonym.objects.take(name=tr[0][0].text.strip(), updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(name=tr[0][0].text.strip(), updater=self.updater, distributor=self.distributor)
 
 			# Товар
 			elif len(tr) == 9:
 				for tdn, td in enumerate(tr):
-					if tdn == nArticle: article = str(td.text).strip()
-					elif tdn == nName: name = str(td.text).strip()
-					elif tdn == nVendor: vendorSynonymName = str(td.text).strip()
-					elif tdn == nStock: stock = self.fixQuantity(str(td.text).strip())
-					elif tdn == nTransit: transit = self.fixQuantity(str(td.text).strip()) - stock
-					elif tdn == nTransitDate: transitDate = str(td.text).strip()
-					elif tdn == nPriceUSD: priceUSD = self.fixPrice(str(td.text).strip())
-					elif tdn == nPriceRUB: priceRUB = self.fixPrice(str(td.text).strip())
-					elif tdn == nDop: dop = str(td.text).strip()
+					if   tdn == num['article']: article = str(td.text).strip()
+					elif tdn == num['name']: name = str(td.text).strip()
+					elif tdn == num['vendor']: vendor_synonym_name = str(td.text).strip()
+					elif tdn == num['stock']: stock = self.fixQuantity(td.text)
+					elif tdn == num['transit']: transit = self.fixQuantity(td.text) - stock
+					elif tdn == num['transit_date']: transit_date = td.text
+					elif tdn == num['price_usd']: price_usd = self.fixPrice(td.text)
+					elif tdn == num['price_rub']: price_rub = self.fixPrice(td.text)
+					elif tdn == num['dop']: dop = td.text
 
 				# Обрабатываем синоним производителя
-				if vendorSynonymName != '':
-					vendorSynonym = VendorSynonym.objects.take(name=vendorSynonymName, updater=self.updater, distributor=self.distributor)
+				if vendor_synonym_name:
+					vendor_synonym = VendorSynonym.objects.take(name=vendor_synonym_name, updater=self.updater, distributor=self.distributor)
 				else: continue
 
-				# Если нет товара, добавляем его
-				if article and vendorSynonym.vendor and article != '':
-					try:
-						product = Product.objects.get(article=article, vendor=vendorSynonym.vendor)
-						if not product.category and categorySynonym.category:
-							product.category = categorySynonym.category
-							product.save()
-					except Product.DoesNotExist:
-						# Проверяем необходимые даннные для добавления товара в базу
-						if article and name and vendorSynonym.vendor and article != '':
-							product = Product()
-							product.setName(name)
-							product.setArticle(article)
-							product.vendor = vendorSynonym.vendor
-							product.category = categorySynonym.category
-							product.unit = self.default_unit
-							product.created = datetime.now()
-							product.modified = datetime.now()
-							product.save()
-							self.message += "Добавлен продукт: " + product.name[:100] + ".\n"
-						else: continue
+				# Получаем объект товара
+				if article and name and vendor_synonym.vendor :
+					product = Product.objects.take(article=article, vendor=vendor_synonym.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
 				else: continue
 
 				# Цена в долларах
-				if priceUSD != '':
-					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.usd, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.stock, price = priceUSD, price_type = self.price_type_dp, currency = self.usd, quantity = transit, unit = self.default_unit)
+				if price_usd:
+					party = Party.objects.make(product=product, stock=self.stock, price = price_usd, price_type = self.price_type_dp, currency = self.usd, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.transit, price = price_usd, price_type = self.price_type_dp, currency = self.usd, quantity = transit, unit = self.default_unit)
+					self.message += product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 				# Цена в рублях
-				if priceRUB != '':
-					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.rub, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.stock, price = priceRUB, price_type = self.price_type_dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+				if price_rub:
+					party = Party.objects.make(product=product, stock=self.stock, price = price_rub, price_type = self.price_type_dp, currency = self.rub, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.transit, price = price_rub, price_type = self.price_type_dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+					self.message += product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 		return True
 
 	def fixPrice(self, price):
+		price = str(price).strip()
 		price = price.replace(',', '.')
 		price = price.replace(' ', '')
+		if price: price = float(price)
+		else: price = None
 		return price
 
 	def fixQuantity(self, quantity):
+		quantity = str(quantity).strip()
 		if quantity in ('', '0*'): quantity = 0
 		elif quantity == 'мало': quantity = 5
 		elif quantity == 'много': quantity = 10

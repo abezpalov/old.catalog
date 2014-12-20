@@ -95,7 +95,7 @@ class Runner:
 			# Товар
 			elif len(tr) == 4:
 				for tdn, td in enumerate(tr):
-					if tdn == num['article']: article = str(td.text).strip()
+					if   tdn == num['article']: article = str(td.text).strip()
 					elif tdn == num['code']: code = str(td.text).strip()
 					elif tdn == num['name']:
 						name = str(td[0].text).strip()
@@ -112,7 +112,7 @@ class Runner:
 
 				# Добавляем партии
 				party = Party.objects.make(product=product, stock=self.factory, price=price, price_type = self.rp, currency = self.rub, quantity = -1, unit = self.default_unit)
-				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
+				self.message += product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 		return True
 

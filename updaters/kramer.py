@@ -129,7 +129,7 @@ class Runner:
 			# Заголовок таблицы
 			elif row_num == num['header']:
 				for cel_num, cel in enumerate(row):
-					if str(cel).strip() == word['article']:  num['article'] = cel_num
+					if   str(cel).strip() == word['article']:  num['article'] = cel_num
 					elif str(cel).strip() == word['model']:  num['model'] = cel_num
 					elif str(cel).strip() == word['size']:   num['size'] = cel_num
 					elif str(cel).strip() == word['format']: num['format'] = cel_num
@@ -175,7 +175,7 @@ class Runner:
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
-				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
+				self.message += product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 		self.message += 'Обработка прайс-листа оборудования завершена.\n'
 		return True
@@ -209,7 +209,7 @@ class Runner:
 			# Заголовок таблицы
 			elif row_num == num['header']:
 				for cel_num, cel in enumerate(row):
-					if str(cel).strip() == word['article']: num['article'] = cel_num
+					if   str(cel).strip() == word['article']: num['article'] = cel_num
 					elif str(cel).strip() == word['model']: num['model'] = cel_num
 					elif str(cel).strip() == word['name']:  num['name'] = cel_num
 					elif str(cel).strip() == word['size']:  num['size'] = cel_num
@@ -248,7 +248,7 @@ class Runner:
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
-				self.message += 'Цена ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
+				self.message += product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 		self.message += 'Обработка прайс-листа материалов завершена.\n'
 		return True
