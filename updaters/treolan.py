@@ -66,17 +66,29 @@ class Runner:
 		s = requests.Session()
 
 		# Получаем куки
-		r = s.get(self.url_login)
-		cookies = r.cookies
+		try:
+			r = s.get(self.url_login, timeout=100.0)
+			cookies = r.cookies
+		except requests.exceptions.Timeout:
+			self.message = 'Превышение интервала ожидания загрузки Cookies.'
+			return False
 
 		# Авторизуемся
-		payload = {'UserName': self.updater.login, 'Password': self.updater.password, 'RememberMe': 'false'}
-		r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False)
-		cookies = r.cookies
+		try:
+			payload = {'UserName': self.updater.login, 'Password': self.updater.password, 'RememberMe': 'false'}
+			r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
+			cookies = r.cookies
+		except requests.exceptions.Timeout:
+			self.message = 'Превышение интервала ожидания подтверждения авторизации.'
+			return False
 
 		# Загружаем общий прайс
-		r = s.get(self.url_price, cookies=cookies, allow_redirects=False, verify=False)
-		tree = lxml.html.fromstring(r.text)
+		try:
+			r = s.get(self.url_price, cookies=cookies, allow_redirects=False, verify=False, timeout=100.0)
+			tree = lxml.html.fromstring(r.text)
+		except requests.exceptions.Timeout:
+			self.message = 'Превышение интервала ожидания загрузки прайс-листа.'
+			return False
 
 		# Парсим
 		try:
@@ -89,7 +101,7 @@ class Runner:
 		for trn, tr in enumerate(table):
 
 			# Заголовок таблицы
-			if trn == 0:
+			if trn == num['header']:
 				for tdn, td in enumerate(tr):
 					if   td[0].text == word['article']:      num['article'] = tdn
 					elif td[0].text == word['name']:         num['name'] = tdn
@@ -146,6 +158,7 @@ class Runner:
 					party = Party.objects.make(product=product, stock=self.transit, price = price_rub, price_type = self.price_type_dp, currency = self.rub, quantity = transit, unit = self.default_unit)
 					self.message += product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
+		self.message += 'Обработка прайс-листа завершена.\n'
 		return True
 
 	def fixPrice(self, price):
