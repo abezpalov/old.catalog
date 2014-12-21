@@ -4,11 +4,11 @@
 <li class="divider"></li>
 <li class="has-form">
 	<div class="row collapse">
-		<div class="large-8 small-9 columns">
-			<input type="text" placeholder="Поиск по складу...">
+		<div class="large-10 small-9 columns">
+			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="{{ search }}">
 		</div>
-		<div class="large-4 small-3 columns">
-			<a href="#" class="secondary button expand"><i class="fa fa-search"></i></a>
+		<div class="large-2 small-3 columns">
+			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
 		</div>
 	</div>
 </li>
@@ -18,8 +18,8 @@
 <!-- Фильтр вывода -->
 <div class="row collapse">
 		<ul class="button-group even-3">
-			<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == 'none' %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
-			<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == 'none' %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
+			<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
+			<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
 			<li><button id="filter-items-search" data-do="open-filter-items-search"{% if search == '' %} class="secondary"{% endif %}><i class="fa fa-search"></i> Искомое слово</button></li>
 		</ul>
 </div>
@@ -36,7 +36,7 @@
 		</tr>
 		{% for product in products %}
 		{% ifchanged product.category %}
-			<td colspan="5"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td>
+		<tr><td colspan="5"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.article }}</td>
@@ -59,11 +59,11 @@
 	</dl>
 	<div class="tabs-content">
 		<div class="content active" id="CategoryPanel">
-			<p><span>Категория: </span><span id="filter-items-selected-category" data-id="{{ category }}">не выбрана</span>.</p>
+			<p><span>Категория: </span><span id="filter-items-selected-category" data-id="{% if category != None %}{{ category.id }}{% endif %}">{% if category != None %}{{ category.name }}{% else %}Все категории{% endif %}</span>.</p>
 			<ul class="inline-list">
 				<li>
 					<div class="switch tiny">
-						<input id="filter-items-selected-childs" type="checkbox"{% if childs == 'y' %} checked{% endif %}>
+						<input id="filter-items-selected-childs" type="checkbox"{% if childs != 'n' %} checked{% endif %}>
 						<label for="filter-items-selected-childs"></label>
 					</div>
 				</li>
@@ -74,13 +74,15 @@
 			{% autoescape off %}{{ categories_ul }}{% endautoescape %}
 		</div>
 		<div class="content" id="VendorPanel">
-			<p><span>Производитель: </span><span id="filter-items-selected-vendor" data-alias="{{ vendor }}">не выбран (отображать всех)</span>.</p>
-			<ul class="inline-list"><li><a data-do="filter-items-select-vendor" data-alias="all">Все производители</a></li></ul>
-			<ul class="inline-list">
+			<p><span>Производитель: </span><span id="filter-items-selected-vendor" data-alias="{% if vendor != None %}{{ vendor.alias }}{% endif %}">{% if vendor != None %}{{ vendor.name }}{% else %}Все производители{% endif %}</span>.</p>
+			<ul class="inline-list"><li><a data-do="filter-items-select-vendor" data-alias="">Все производители</a></li></ul>
+			<div class="row">
 				{% for vendor in vendors %}
-					<li><a data-do="filter-items-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a></li>
+				<div class="large-3 medium-6 small-12 columns">
+				<a data-do="filter-items-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
+				</div>
 				{% endfor %}
-			</ul>
+			</div>
 		</div>
 		<div class="content" id="SearchPanel">
 			<label>Поисковый запрос

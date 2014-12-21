@@ -9,7 +9,7 @@ def index(request):
 
 
 # Список продуктов
-def products(request, category='none', childs='y', vendor='none', search=''):
+def products(request, search='', vendor=None, category=None, childs=None):
 
 	# Импортируем
 	from lxml import etree
@@ -18,35 +18,54 @@ def products(request, category='none', childs='y', vendor='none', search=''):
 	from catalog.models import Category
 	from catalog.models import Vendor
 
-	# Получаем дерево категорий
+	# Инициализируем переменные
 	categories = []
+	product_categories = []
+	products = []
+
+	# Получаем список всех имеющихся категорий
 	categories = getCategoryTree(categories)
 
 	root = etree.Element("div")
 	getCategoryHTMLTree(root, None, True)
 	categories_ul = etree.tostring(root)
 
-	# Получаем перечень производителей
-	vendors = Vendor.objects.filter(state=True).order_by('name')
+	# Получаем список всех имеющихся производителей
+	vendors = Vendor.objects.filter(state=True)
 
-	if vendor != 'none' and vendor != 'all':
-		v = Vendor.objects.get(alias=vendor)
+	# Получаем список категорий, из которых выводить товар
+	if category and childs == 'y': # Указанная категория и все потомки
+		category = Category.objects.get(id=category)
+		product_categories = getCategoryTree(product_categories, category)
+	elif category and childs == 'n': # Только указанная категория
+		category = Category.objects.get(id=category)
+		product_categories.append(category)
+	else: # Все категории
+		category = None
+		product_categories = categories
+		product_categories.append(None)
 
-	# TODO Выборка продуктов с непустым поисковым запросом
-	if search and vendor != 'none' and vendor != 'all' and category != 'none' and category != 'all':
-		products = Product.objects.filter(Q(article__contains=search) | Q(name__contains=search)).filter(vendor=v).filter(category=category)
-	elif search and vendor != 'none' and vendor != 'all':
-		products = Product.objects.filter(Q(article__contains=search) | Q(name__contains=search)).filter(vendor=v)
-	elif search and category != 'none' and category != 'all':
-		products = Product.objects.filter(Q(article__contains=search) | Q(name__contains=search)).filter(category=category)
-	elif not search and vendor != 'none' and vendor != 'all' and category != 'none' and category != 'all':
-		products = Product.objects.filter(vendor=v).filter(category=category)
-	elif not search and vendor != 'none' and vendor != 'all':
-		products = Product.objects.filter(vendor=v)
-	elif not search and category != 'none' and category != 'all':
-		products = Product.objects.filter(category=category)
+	# Получаем объект производителя, чей товар необходимо показать
+	if vendor:
+		vendor = Vendor.objects.get(alias=vendor)
+
+	# Получаем список продуктов, которые необходимо показать
+	# Если есть параметры запроса
+	if search or category or vendor:
+		for product_category in product_categories:
+			if search != '' and vendor:
+				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(vendor=vendor).filter(category=product_category)
+			elif search != '':
+				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(category=product_category)
+			elif vendor:
+				new_products = Product.objects.filter(vendor=vendor).filter(category=product_category)
+			else:
+				new_products = Product.objects.filter(category=product_category)
+			products.extend(new_products)
 	else:
-		products = []
+		# TODO Что показывать когда нечего показывать?
+		think = True
+
 
 	# Локализуем представление цен
 	for product in products:
@@ -183,7 +202,7 @@ def getCategoryHTMLTree(root, parent=None, first=None):
 			i.attrib['class'] = 'fa fa-circle-thin'
 			a = etree.SubElement(li, "a")
 			a.attrib['data-do'] = 'filter-items-select-category'
-			a.attrib['data-id'] = 'all'
+			a.attrib['data-id'] = ''
 			a.attrib['class'] = 'tm-li-category-name'
 			a.text = 'Все категории'
 

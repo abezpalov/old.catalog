@@ -6,17 +6,27 @@ urlpatterns = patterns('',
 
 	# Главная
 	# ex: /catalog/
-	url(r'^$', views.index, name='index'),
+	url(r'^$', views.products, name='products'),
 
 	# Product
-	# ex: /catalog/products/
-	url(r'^products/$', views.products, name='products'),
-	# ex: /catalog/products/fujitsu/
+	# TODO ex: /catalog/products/c/456-y/fujitsu/search/vfy-rx300/
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/(?P<vendor>[a-zA-Z0-9_-]+)/search/(?P<search>[^\f\n\r\t\v]+)/$', views.products, name='products'),
+	# TODO ex: /catalog/products/c/456-y/search/vfy-rx300/
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/search/(?P<search>[^\f\n\r\t\v]+)/$', views.products, name='products'),
+	# TODO ex: /catalog/products/fujitsu/search/vfy-rx300/
+	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/search/(?P<search>[^\f\n\r\t\v]+)/$', views.products, name='products'),
+	# TODO ex: /catalog/products/search/vfy-rx300/
+	url(r'^products/search/(?P<search>[^\f\n\r\t\v]{2,})/$', views.products, name='products'),
+	# TODO ex: /catalog/products/c/456-y/fujitsu/
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/(?P<vendor>[a-zA-Z0-9_-]+)/$', views.products, name='products'),
+	# TODO ex: /catalog/products/c/456-y/
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/$', views.products, name='products'),
+	# TODO ex: /catalog/products/fujitsu/
 	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/$', views.products, name='products'),
-	# ex: /catalog/products/fujitsu/23/
-	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/(?P<category>[a-zA-Z0-9]+)/$', views.products, name='products'),
-	# ex: /catalog/products/fujitsu/23/y/
-	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/(?P<category>[a-zA-Z0-9]+)/(?P<childs>[a-z]+)/$', views.products, name='products'),
+	# TODO ex: /catalog/products/
+	url(r'^products/$', views.products, name='products'),
+	# TODO ex: /catalog/product/125/
+	url(r'^product/(?P<id>[0-9]+)/$', views.products, name='products'),
 
 	# Updater
 	# ex: /catalog/updaters/

@@ -54,48 +54,71 @@ $(document).ready(function(){
 	$("body").delegate("a[data-do*='filter-items-select-category']", "click", function(){
 		$('#filter-items-selected-category').data('id', $(this).data('id'));
 		$('#filter-items-selected-category').text($(this).text());
-		$('#filter-items-category').removeClass('secondary');
+		if ($(this).data('id') == ''){
+			$('#filter-items-category').addClass('secondary');
+		} else {
+			$('#filter-items-category').removeClass('secondary');
+		}
 		return false;
 	});
 
 	$("body").delegate("a[data-do*='filter-items-select-vendor']", "click", function(){
 		$('#filter-items-selected-vendor').data('alias', $(this).data('alias'));
 		$('#filter-items-selected-vendor').text($(this).text());
-		$('#filter-items-vendor').removeClass('secondary');
-		if ('none' == $('#filter-items-selected-category').data('id')) {
-			$('#filter-items-selected-category').data('id', 'all');
-			$('#filter-items-selected-category').text('все категории');
-			$('#filter-items-category').removeClass('secondary');
+		if ($(this).data('alias') == ''){
+			$('#filter-items-vendor').addClass('secondary');
+		} else {
+			$('#filter-items-vendor').removeClass('secondary');
 		}
 		return false;
+	});
+
+	$("body").delegate("#filter-items-search-input", "change", function(){
+		if ($('#filter-items-search-input').val() == ''){
+			$('#filter-items-search').addClass('secondary');
+		} else {
+			$('#filter-items-search').removeClass('secondary');
+		}
 	});
 
 	$("body").delegate("button[data-do*='filter-items-run']", "click", function(){
 
 		// Инициализируем переменные
-		s = $('#filter-items-search-input').val();
-		v = $('#filter-items-selected-vendor').data('alias');
-		c = $('#filter-items-selected-category').data('id');
+		ct = $('#filter-items-selected-category').data('id');
+		ch = $('#filter-items-selected-childs').prop('checked');
+		vn = $('#filter-items-selected-vendor').data('alias');
+		sr = $('#filter-items-search-input').val();
 
 		// Формируем URL
 		url = '/catalog/products/'
-		if (s != '' && v != 'all' && v != 'none' && c != 'all' && c != 'none'){
-			location.href = url + c + '/y/' + v + '/' + s + '/';
-		} else if (s != '' && v != 'all' && v != 'none'){
-			location.href = url + 'all/y/' + v + '/' + s + '/';
-		} else if (s != '' && c != 'all' && c != 'none'){
-			location.href = url + c + '/y/' + 'all/' + s + '/';
-		} else if (v != 'all' && v != 'none' && c != 'all' && c != 'none'){
-			location.href = url + c + '/y/' + v + '/';
-		} else if (v != 'all' && v != 'none'){
-			location.href = url + 'all/y/' + v + '/';
-		} else if (c != 'all' && c != 'none'){
-			location.href = url + c + '/y/';
+
+		// Категория
+		if (ct != ''){
+			url = url + 'c/' + ct;
+			if (ch == true) {
+				url = url + '-y/';
+			} else {
+				url = url + '-n/';
+			}
+		}
+
+		// Производитель
+		if (vn != ''){
+			url = url + vn + '/';
+		}
+
+		// Строка поиска
+		if (sr != ''){
+			url = url + 'search/' + sr + '/';
+		}
+
+		// Переходим по ссылке
+		if (ct == '' || vn == '' || sr == '') {
+			$('#FilterItemsModal').foundation('reveal', 'close');
+			location.href = url;
 		} else {
 			alert ('Определите хотя бы одно условие выборки.');
 		}
-		$('#FilterItemsModal').foundation('reveal', 'close');
-		return false;
 	});
 
 	$("body").delegate("button[data-do*='filter-items-cancel']", "click", function(){
@@ -103,4 +126,18 @@ $(document).ready(function(){
 		return false;
 	});
 
+	$('#top-search-input').keypress(function (e) {
+		var key = e.which;
+		if(key == 13) {
+			$('#top-search-button').click();
+			return false;
+		}
+	});
+
+	$("body").delegate("#top-search-button", "click", function(){
+		if ($('#top-search-input').val() != ''){
+			location.href = '/catalog/products/search/' + $('#top-search-input').val() + '/';
+		}
+		return false;
+	});
 });
