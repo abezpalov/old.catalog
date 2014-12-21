@@ -142,7 +142,7 @@ class Runner:
 				else: continue
 
 				# Получаем объект товара
-				if article and name and vendor_synonym.vendor :
+				if article and name and vendor_synonym.vendor:
 					product = Product.objects.take(article=article, vendor=vendor_synonym.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
 				else: continue
 
