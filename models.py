@@ -358,6 +358,7 @@ class ProductManager(models.Manager):
 		products = self.all()
 		for product in products:
 			product.name = product.name.replace("\u00AD", '')
+			product.modified = datetime.now()
 			product.save()
 		return True
 

@@ -36,6 +36,7 @@ def products(request, search='', vendor=None, category=None, childs=None):
 	# Получаем список категорий, из которых выводить товар
 	if category and childs == 'y': # Указанная категория и все потомки
 		category = Category.objects.get(id=category)
+		product_categories.append(category)
 		product_categories = getCategoryTree(product_categories, category)
 	elif category and childs == 'n': # Только указанная категория
 		category = Category.objects.get(id=category)
