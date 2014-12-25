@@ -1,6 +1,7 @@
 {% extends "main.html" %}
 {% block title %}Anodos: Производители{% endblock %}
 {% block content %}
+{% if perms.catalog.change_product %}
 
 <!-- Форма добавления нового производителя -->
 <div class="row collapse">
@@ -50,10 +51,18 @@
 	<button data-do="edit-item-save">Сохранить</button>
 	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
 </div>
-
+{% else %}
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+{% endif %}
 {% endblock %}
 {% block js-content %}
+{% if perms.catalog.change_product %}
 <script>
 {% include "catalog/js/vendors.js" %}
 </script>
+{% endif %}
 {% endblock %}

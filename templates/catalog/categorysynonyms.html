@@ -1,5 +1,7 @@
 {% extends "main.html" %}
+{% block title %}Anodos: Синонимы категорий{% endblock %}
 {% block content %}
+{% if perms.catalog.change_product %}
 
 <!-- Форма фильтра вывода -->
 <div class="row collapse">
@@ -65,9 +67,18 @@
 		{% endfor %}
 	</table>
 </div>
+{% else %}
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+{% endif %}
 {% endblock %}
 {% block js-content %}
+{% if perms.catalog.change_product %}
 <script>
 {% include "catalog/js/categorysynonyms.js" %}
 </script>
+{% endif %}
 {% endblock %}

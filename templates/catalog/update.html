@@ -1,2 +1,6 @@
-<h2>Выполнение загрузчика: {{ update_name }}</h2>
-{{ update_message|escape|linebreaks }}
+{% extends "main.html" %}
+{% block title %}Anodos: Выполнение загрузчика {{ update_name }}{% endblock %}
+{% block content %}
+<h2>Выполнение загрузчика {{ update_name }}</h2>
+<p>{{ update_message|escape|linebreaks }}</p>
+{% endblock %}

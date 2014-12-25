@@ -344,7 +344,7 @@ class ProductManager(models.Manager):
 		try:
 			product = self.get(article=article, vendor=vendor)
 			if not product.category and category:
-				product.category = category_synonym.category
+				product.category = category
 				product.modified = datetime.now()
 				product.save()
 		except Product.DoesNotExist:

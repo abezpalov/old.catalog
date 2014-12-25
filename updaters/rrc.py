@@ -66,7 +66,7 @@ class Runner:
 		# Авторизуемся
 		try:
 			payload = {'AUTH_FORM': 'Y', 'TYPE': 'AUTH', 'backurl': '/catalog/', 'USER_LOGIN': self.updater.login, 'USER_PASSWORD': self.updater.password, 'Login': '1'}
-			r = s.post(self.url, cookies=cookies, data=payload, allow_redirects=True, timeout=100.0)
+			r = s.post(self.url, cookies=cookies, data=payload, allow_redirects=True, timeout=30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			self.message = 'Превышение интервала ожидания подтверждения авторизации.'
@@ -74,7 +74,7 @@ class Runner:
 
 		# Загружаем начальную страницу каталога
 		try:
-			r = s.get(self.url, cookies=cookies, allow_redirects=True, timeout=100.0)
+			r = s.get(self.url, cookies=cookies, allow_redirects=True, timeout=30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			self.message = 'Превышение интервала ожидания загрузки каталога.'
@@ -95,7 +95,7 @@ class Runner:
 
 				# Переходим по ссылке
 				try:
-					time.sleep(0.2)
+					time.sleep(0.05)
 					r = s.get(self.url_prefix + urls[i], cookies = cookies, timeout=30.0)
 				except requests.exceptions.Timeout:
 					self.message = 'Превышение интервала ожидания загрузки .'
