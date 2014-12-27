@@ -26,7 +26,9 @@ urlpatterns = patterns('',
 	# TODO ex: /catalog/products/
 	url(r'^products/$', views.products, name='products'),
 	# TODO ex: /catalog/product/125/
-	url(r'^product/(?P<id>[0-9]+)/$', views.products, name='products'),
+	url(r'^product/(?P<id>[0-9]+)/$', views.product, name='product'),
+	# TODO ex: /catalog/product/fujitsu/vfy-rx300/
+	url(r'^product/(?P<vendor>[a-zA-Z0-9_-]+)/(?P<article>[^\f\n\r\t\v]+)/$', views.product, name='product'),
 
 	# Updater
 	# ex: /catalog/updaters/

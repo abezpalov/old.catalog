@@ -41,7 +41,7 @@
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.article }}</td>
-			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/">{{ product.name }}</a></td>
+			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.vendor.alias }}/{{ product.article }}/">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
 			<td style="white-space: nowrap;" class="text-right">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</td>
 			<td style="white-space: nowrap;"></td>

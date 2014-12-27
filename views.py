@@ -82,6 +82,23 @@ def products(request, search='', vendor=None, category=None, childs=None):
 	return render(request, 'catalog/products.html', context)
 
 
+# Продукт
+def product(request, id=None, vendor=None, article=None):
+
+	# Импортируем
+	from catalog.models import Vendor, Product
+
+	# Получаем объект продукта
+	if id:
+		product = Product.objects.get(id=id)
+	elif vendor and article:
+		vendor = Vendor.objects.get(alias=vendor)
+		product = Product.objects.get(vendor=vendor, article=article)
+
+	context = {'product': product}
+	return render(request, 'catalog/product.html', context)
+
+
 # Список загрузчиков
 def updaters(request):
 
@@ -100,7 +117,7 @@ def updater(request, alias):
 	# Импортируем
 	from catalog.models import Updater
 
-	# Получаем список
+	# Получаем объект
 	updater = Updater.objects.get(alias=alias)
 	context = {'updater': updater}
 	return render(request, 'catalog/updater.html', context)
