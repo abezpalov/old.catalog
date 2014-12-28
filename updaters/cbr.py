@@ -57,18 +57,19 @@ class Runner:
 
 			# Валюта
 			else:
-				for tdn, td in enumerate(tr):
-					if   tdn == num['alias']:    alias = td.text.strip()
-					elif tdn == num['quantity']: quantity = td.text.strip()
-					elif tdn == num['name']:     name = td.text.strip()
-					elif tdn == num['rate']:     rate = td.text.strip()
 
+				# Определяем значения переменных
+				alias    = tr[num['alias']].text.strip()
+				quantity = tr[num['quantity']].text.strip()
+				name     = tr[num['name']].text.strip()
+				rate     = tr[num['rate']].text.strip()
+
+				# Записываем информацию в базу
 				currency = Currency.objects.take(alias=alias, name=name, full_name=name, rate=rate, quantity=quantity)
 				currency.rate = rate
 				currency.quantity = quantity
 				currency.modified = datetime.now()
 				currency.save()
 				self.message += currency.alias + ' = ' + str(currency.rate) + ' / ' + currency.quantity + '\n'
-			trn += 1
 
 		return True
