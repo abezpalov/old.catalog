@@ -99,7 +99,7 @@ class Runner:
 				code    = str(tr[num['code']].text).strip()
 				name    = str(tr[num['name']][0].text).strip()
 				link    = str(tr[num['name']][0].get('href')).strip()
-				price   = self.fixPrice(tr[['price']].text)
+				price   = self.fixPrice(tr[num['price']].text)
 
 				# Если артикул не указан - используем код товара
 				if not article and code: article = code
