@@ -94,13 +94,12 @@ class Runner:
 
 			# Товар
 			elif len(tr) == 4:
-				for tdn, td in enumerate(tr):
-					if   tdn == num['article']: article = str(td.text).strip()
-					elif tdn == num['code']: code = str(td.text).strip()
-					elif tdn == num['name']:
-						name = str(td[0].text).strip()
-						link = str(td[0].get('href')).strip()
-					elif tdn == num['price']: price = self.fixPrice(td.text)
+
+				article = str(tr[num['article']].text).strip()
+				code    = str(tr[num['code']].text).strip()
+				name    = str(tr[num['name']][0].text).strip()
+				link    = str(tr[num['name']][0].get('href')).strip()
+				price   = self.fixPrice(tr[['price']].text)
 
 				# Если артикул не указан - используем код товара
 				if not article and code: article = code
