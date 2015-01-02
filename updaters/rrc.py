@@ -48,6 +48,7 @@ class Runner:
 		self.url_prefix = 'http://rrc.ru'
 		self.url_filter = '/catalog/'
 
+		# Шаблон, соответсвующий ссылке на категорию с продуктами
 		self.p = re.compile('^\/catalog\/[0-9]{4}_[0-9]_[0-9]{4}\/(\?PAGEN_[0-9]+=[0-9]+)?$')
 
 	def run(self):
@@ -95,8 +96,8 @@ class Runner:
 
 				# Переходим по ссылке
 				try:
-					time.sleep(0.05)
 					r = s.get(self.url_prefix + urls[i], cookies = cookies, timeout=30.0)
+					cookies = r.cookies
 				except requests.exceptions.Timeout:
 					self.message = 'Превышение интервала ожидания загрузки .'
 					continue
@@ -130,11 +131,22 @@ class Runner:
 		# Заголовок таблицы
 		ths = tree.xpath('//table[@class="catalog-item-list"]/thead/tr/th')
 		for thn, th in enumerate(ths):
-			if   th.text == word['article']: num['article'] = thn
-			elif th.text == word['vendor']: num['vendor'] = thn
-			elif th.text == word['name']: num['name'] = thn
-			elif th.text == word['quantity']: num['quantity'] = thn
-			elif th.text == word['price']: num['price'] = thn
+			if   th.text == word['article']:
+				num['article'] = thn
+				self.message += str(thn) + "\n" 
+			elif th.text == word['vendor']:
+				num['vendor'] = thn
+				self.message += str(thn) + "\n" 
+			elif th.text == word['name']:
+				num['name'] = thn
+				self.message += str(thn) + "\n" 
+			elif th.text == word['quantity']:
+				num['quantity'] = thn
+				self.message += str(thn) + "\n" 
+			elif th.text == word['price']:
+				num['price'] = thn
+				self.message += str(thn) + "\n" 
+			self.message += str(th.text) + "\n" 
 
 		# Проверяем, все ли столбцы распознались
 		if len(num) < num['headers']:
@@ -144,10 +156,13 @@ class Runner:
 
 		# Товар
 		tbs = tree.xpath('//table[@class="catalog-item-list"]/tbody[@class="b-products-item__table x-products-item"]')
-		for tb in tbs:
-			for tdn, td in enumerate(tb[0]):
-				if   tdn == num['article']: article = str(td.text).strip()
-				elif tdn == num['vendor']:
+		for tr in tbs:
+
+
+			for tdn, td in enumerate(tr[0]):
+				if tdn == num['article']:
+					article = str(td.text).strip()
+				if tdn == num['vendor']:
 					try: vendor_synonym_name = str(td[0].text).strip()
 					except IndexError: vendor_synonym_name = str(td.text).strip()
 				elif tdn == num['name']: name = str(td[0].text).strip()
@@ -170,7 +185,8 @@ class Runner:
 					except IndexError:
 						price = None
 						currency = None
-					self.message += article + ' ' + vendor_synonym_name + ' ' + str(price) + '\n'
+
+#			self.message += article + ' ' + vendor_synonym_name + ' ' + str(price) + '\n'
 
 			# Обрабатываем синоним производителя
 			if vendor_synonym_name:
@@ -186,7 +202,7 @@ class Runner:
 			if quantity:
 				party = Party.objects.make(product=product, stock=self.stock, price = price, price_type = self.dp, currency = currency, quantity = quantity, unit = self.default_unit)
 			else:
-				party = Party.objects.make(product=product, stock=self.on_order, price = price, price_type = self.dp, currency = currency, quantity = -1, unit = self.default_unit)
+				party = Party.objects.make(product=product, stock=self.on_order, price = price, price_type = self.dp, currency = currency, quantity = 0, unit = self.default_unit)
 
 		return True
 
