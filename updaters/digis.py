@@ -41,5 +41,5 @@ class Runner:
 		Party.objects.clear(stock=self.transit)
 
 		# Используемые ссылки
-		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
-		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?&comodity=true&withMarketingProgramsOnly=false&availableAtStockOnly=false&rusDescription=true&condition=0&catalogProductsOnly=true&order=0&getExcel=true&searchBylink=false&take=50&skip=0'
+		self.url_login = ''
+		self.url_price = ''
