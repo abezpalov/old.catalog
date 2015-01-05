@@ -87,9 +87,9 @@ class Runner:
 		# Получаем архив с прайс-листом
 		for url in self.url_price:
 			xml_data = self.getXML(request = s.get(url, cookies=cookies))
-			self.parsePrice(xml_data)
+			if not self.parsePrice(xml_data): return False
 
-		return False
+		return True
 
 	def getXML(self, request):
 

@@ -23,7 +23,7 @@
 						<label for="updater-state-{{ item.id }}"></label>
 					</div>
 				</td>
-				<td>{{ item.updated|date:"d.m.Y H.i" }}</td>
+				<td>{{ item.updated|date:"d.m.Y H.i" }}&nbsp;<a href="/catalog/updater/{{ item.alias }}/run/" class="tiny button"><i class="fa fa-cogs"></i></a></td>
 			</tr>
 			{% endfor %}
 		</table>
