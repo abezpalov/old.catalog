@@ -49,32 +49,37 @@
 			<th class="hide-for-small-only">Загрузчик</th>
 			<th class="hide-for-small-only">Поставщик</th>
 			<th>Производитель</th>
+			<th>Управление</th>
 		</tr>
-		{% for synonym in synonyms %}
-		<tr data-id="{{ synonym.id }}">
-			<td><a href="/catalog/vendor-synonym/{{ synonym.id }}/">{{ synonym.name }}</a></td>
-			<td class="hide-for-small-only">{{ synonym.updater }}</td>
-			<td class="hide-for-small-only">{{ synonym.distributor }}</td>
-			<td>
-				<div class="row">
-					<div class="small-10 columns">
-						<select data-id="{{ synonym.id }}" class="do-link-vendor-synonym">
-							<option value="null" {% if synonym.vendor == None %} selected{% endif %}> - Не определён - </option>
-							{% for vendor in vendors %}
-							<option value="{{ vendor.id }}"{% if synonym.vendor.id == vendor.id %} selected{% endif %}>{{ vendor.name }}</option>
-							{% endfor %}
-						</select>
-					</div>
-					<div class="small-2 columns">
-						<a href="#" class="button postfix do-link-vendor-same-synonym" data-id="{{ synonym.id }}">
-							<i class="fa fa-link"></i>
-						</a>
-					</div>
-				</div>
-			</td>
+		{% for item in items %}
+		<tr>
+			<td><a href="/catalog/vendor-synonym/{{ item.id }}/" id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-vendor="{{ item.vendor.id }}">{{ item.name }}</a></td>
+			<td class="hide-for-small-only">{{ item.updater }}</td>
+			<td class="hide-for-small-only">{{ item.distributor }}</td>
+			<td class="hide-for-small-only">{{ item.vendor.name }}</td>
+			<td><button class="tiny" data-do="link-vendor-same-synonym" data-id="{{ item.id }}"><i class="fa fa-link"></i></button></td>
 		</tr>
 		{% endfor %}
 	</table>
+</div>
+
+<!-- Модальное окно редактирования элемента -->
+<div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<fieldset>
+		<legend>Редактировать синоним производителя</legend>
+		<input id="edit-item-id" type="hidden">
+		<label>Наименование
+			<input id="edit-item-name" type="text">
+		</label>
+		<select id="edit-item-vendor">
+			<option value="null" selected> - Не определён - </option>
+			{% for vendor in vendors %}
+			<option value="{{ vendor.id }}">{{ vendor.name }}</option>
+			{% endfor %}
+		</select>
+	</fieldset>
+	<button data-do="edit-item-save">Сохранить</button>
+	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
 </div>
 {% else %}
 <div class="row collapse">

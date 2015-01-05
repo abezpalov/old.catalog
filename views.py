@@ -291,7 +291,7 @@ def vendorsynonyms(request, updater_selected='all', distributor_selected='all', 
 		'updater_selected': updater_selected,
 		'distributor_selected': distributor_selected,
 		'vendor_selected': vendor_selected,
-		'synonyms': synonyms,
+		'items': synonyms,
 		'updaters': updaters,
 		'distributors': distributors,
 		'vendors': vendors,
@@ -729,7 +729,7 @@ def ajaxLinkCategorySynonym(request):
 	else:
 		try:
 			synonym = CategorySynonym.objects.get(id=request.POST.get('synonym'))
-			if request.POST.get('category') == 'null':
+			if request.POST.get('category') == 'null' or request.POST.get('category') == '':
 				category = None
 				synonym.category = None
 				synonym.save()
