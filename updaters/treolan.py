@@ -144,24 +144,17 @@ class Runner:
 				# Получаем объект товара
 				if article and name and vendor_synonym.vendor:
 					product = Product.objects.take(article=article, vendor=vendor_synonym.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
-
-					if category_synonym.name:
-						self.message += category_synonym.name + '\n'
-					if category_synonym.category:
-						self.message += str(category_synonym.category.id) + '\n'
 				else: continue
 
 				# Цена в долларах
 				if price_usd:
 					party = Party.objects.make(product=product, stock=self.stock, price = price_usd, price_type = self.price_type_dp, currency = self.usd, quantity = stock, unit = self.default_unit)
 					party = Party.objects.make(product=product, stock=self.transit, price = price_usd, price_type = self.price_type_dp, currency = self.usd, quantity = transit, unit = self.default_unit)
-					self.message += product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 				# Цена в рублях
 				elif price_rub:
 					party = Party.objects.make(product=product, stock=self.stock, price = price_rub, price_type = self.price_type_dp, currency = self.rub, quantity = stock, unit = self.default_unit)
 					party = Party.objects.make(product=product, stock=self.transit, price = price_rub, price_type = self.price_type_dp, currency = self.rub, quantity = transit, unit = self.default_unit)
-					self.message += product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
 
 				# Цена не определена
 				else:
@@ -184,6 +177,6 @@ class Runner:
 		if quantity in ('', '0*'): quantity = 0
 		elif quantity == 'мало': quantity = 5
 		elif quantity == 'много': quantity = 10
-		elif quantity == 'Поставка\n 7 дней': quantity = -1
+		elif quantity == 'Поставка\n 7 дней': quantity = 0
 		else: quantity = int(quantity)
 		return quantity
