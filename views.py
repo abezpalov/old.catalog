@@ -694,6 +694,8 @@ def ajaxLinkVendorSameSynonym(request):
 				name = synonym.name
 				alias = name.lower()
 				alias = alias.replace(' ', '-')
+				alias = alias.replace('&', 'and')
+				alias = alias.replace('\'', '')
 				vendor = Vendor.objects.get(alias=alias)
 			except Vendor.DoesNotExist:
 				vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())
