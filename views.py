@@ -395,9 +395,10 @@ def priceType(request, alias):
 def ajaxAddVendor(request):
 
 	# Импортируем
-	from catalog.models import Vendor
-	from datetime import datetime
 	import json
+	import unidecode
+	from datetime import datetime
+	from catalog.models import Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
@@ -416,8 +417,10 @@ def ajaxAddVendor(request):
 			result = {'status': 'warning', 'message': 'Производитель ' + request.POST.get('name').strip() + ' уже существует.'}
 		except Vendor.DoesNotExist:
 			name = request.POST.get('name').strip()
-			alias = name.lower()
+			alias = unidecode.unidecode(name.lower())
 			alias = alias.replace(' ', '-')
+			alias = alias.replace('&', 'and')
+			alias = alias.replace('\'', '')
 			vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())
 			vendor.save()
 			result = {'status': 'success', 'message': 'Производитель ' + name + ' добавлен.', 'vendorId': vendor.id, 'vendorName': vendor.name, 'vendorAlias': vendor.alias}
@@ -673,9 +676,10 @@ def ajaxLinkVendorSynonym(request):
 def ajaxLinkVendorSameSynonym(request):
 
 	# Импортируем
-	from catalog.models import VendorSynonym, Vendor
-	from datetime import datetime
 	import json
+	import unidecode.unidecode
+	from datetime import datetime
+	from catalog.models import VendorSynonym, Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
@@ -692,7 +696,7 @@ def ajaxLinkVendorSameSynonym(request):
 			synonym = VendorSynonym.objects.get(id=request.POST.get('synonym'))
 			try:
 				name = synonym.name
-				alias = name.lower()
+				alias = unidecode.unidecode(name.lower())
 				alias = alias.replace(' ', '-')
 				alias = alias.replace('&', 'and')
 				alias = alias.replace('\'', '')
