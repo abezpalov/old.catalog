@@ -823,9 +823,10 @@ def ajaxSaveCategory(request):
 def ajaxSaveVendor(request):
 
 	# Импортируем
-	from catalog.models import Vendor
-	from datetime import datetime
 	import json
+	import unidecode
+	from datetime import datetime
+	from catalog.models import Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
@@ -841,6 +842,10 @@ def ajaxSaveVendor(request):
 			vendor = Vendor.objects.get(id=request.POST.get('id'))
 			vendor.name = request.POST.get('name')
 			vendor.alias = request.POST.get('alias')
+			vendor.alias = unidecode.unidecode(vendor.alias.lower())
+			vendor.alias = vendor.alias.replace(' ', '-')
+			vendor.alias = vendor.alias.replace('&', 'and')
+			vendor.alias = vendor.alias.replace('\'', '')
 			if request.POST.get('description'): vendor.description = request.POST.get('description')
 			vendor.save()
 			result = {'status': 'success', 'message': 'Изменения производителя ' + vendor.name + ' сохранены.'}
