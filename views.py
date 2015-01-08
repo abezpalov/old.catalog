@@ -70,13 +70,14 @@ def products(request, search='', vendor=None, category=None, childs=None):
 
 	# Локализуем представление цен
 	for product in products:
-		if product.price:
-			product.price_out = '{:,}'.format(product.price.price)
-			product.price_out = product.price_out.replace(',', '&nbsp;')
-			product.price_out = product.price_out.replace('.', ',')
-			product.price_out = product.price_out + '&nbsp;' + product.price.currency.name
-		else:
-			product.price_out = '<i class="fa fa-phone"></i>'
+		try:
+			if product.price.price:
+				product.price_out = '{:,}'.format(product.price.price)
+				product.price_out = product.price_out.replace(',', '&nbsp;')
+				product.price_out = product.price_out.replace('.', ',')
+				product.price_out = product.price_out + '&nbsp;' + product.price.currency.name
+			else: product.price_out = '<i class="fa fa-phone"></i>'
+		except: product.price_out = '<i class="fa fa-phone"></i>'
 
 	context = {'products': products, 'categories': categories, 'categories_ul': categories_ul, 'vendors': vendors, 'category': category, 'childs': childs, 'vendor': vendor,  'search': search}
 	return render(request, 'catalog/products.html', context)

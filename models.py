@@ -268,7 +268,6 @@ class PriceManager(models.Manager):
 			else:
 				price = Price()
 				price.created = datetime.now()
-				product.price = price
 
 			# Вычисляем новую цену
 			price.price = 0
@@ -291,9 +290,8 @@ class PriceManager(models.Manager):
 			price.currency = rub
 			price.modified = datetime.now()
 			price.save()
-
-			if product.price == None:
-				product.save()
+			product.price = price
+			product.save()
 
 		return True
 
