@@ -39,7 +39,6 @@ class Runner:
 
 		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 		self.usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
-		self.eur = Currency.objects.take(alias='EUR', name='EUR', full_name='Euro', rate=80, quantity=1)
 
 		# Удаляем неактуальные партии
 		Party.objects.clear(stock=self.stock_samara)
@@ -202,13 +201,23 @@ class Runner:
 										product = Product.objects.take(article=product_article, vendor=vendor_synonym.vendor, name=product_name, category = category_synonym.category, unit = self.default_unit)
 									else: continue
 
+									if price_usd:
+										price = price_usd
+										currency = self.usd
+									elif price_rub:
+										price = price_rub
+										currency = self.rub
+									else:
+										price = None
+										currency = None
+
 									# Записываем партии
-									if stock_chehov: party = Party.objects.make(product=product, stock=self.stock_chehov, price = price_usd, price_type = self.dp, currency = self.usd, quantity = stock_chehov, unit = self.default_unit)
-									if stock_bykovo: party = Party.objects.make(product=product, stock=self.stock_bykovo, price = price_usd, price_type = self.dp, currency = self.usd, quantity = stock_bykovo, unit = self.default_unit)
-									if stock_samara: party = Party.objects.make(product=product, stock=self.stock_samara, price = price_usd, price_type = self.dp, currency = self.usd, quantity = stock_samara, unit = self.default_unit)
-									if stock_moscow: party = Party.objects.make(product=product, stock=self.stock_moscow, price = price_usd, price_type = self.dp, currency = self.usd, quantity = stock_moscow, unit = self.default_unit)
-									if transit_b: party = Party.objects.make(product=product, stock=self.transit_b, price = price_usd, price_type = self.dp, currency = self.usd, quantity = transit_b, unit = self.default_unit)
-									if transit_d: party = Party.objects.make(product=product, stock=self.transit_d, price = price_usd, price_type = self.dp, currency = self.usd, quantity = transit_d, unit = self.default_unit)
+									if stock_chehov: party = Party.objects.make(product=product, stock=self.stock_chehov, price = price, price_type = self.dp, currency = currency, quantity = stock_chehov, unit = self.default_unit)
+									if stock_bykovo: party = Party.objects.make(product=product, stock=self.stock_bykovo, price = price, price_type = self.dp, currency = currency, quantity = stock_bykovo, unit = self.default_unit)
+									if stock_samara: party = Party.objects.make(product=product, stock=self.stock_samara, price = price, price_type = self.dp, currency = currency, quantity = stock_samara, unit = self.default_unit)
+									if stock_moscow: party = Party.objects.make(product=product, stock=self.stock_moscow, price = price, price_type = self.dp, currency = currency, quantity = stock_moscow, unit = self.default_unit)
+									if transit_b: party = Party.objects.make(product=product, stock=self.transit_b, price = price, price_type = self.dp, currency = currency, quantity = transit_b, unit = self.default_unit)
+									if transit_d: party = Party.objects.make(product=product, stock=self.transit_d, price = price, price_type = self.dp, currency = currency, quantity = transit_d, unit = self.default_unit)
 
 		return True
 
