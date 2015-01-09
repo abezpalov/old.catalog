@@ -259,9 +259,9 @@ class PriceManager(models.Manager):
 
 		for product in products:
 
+			# Получаем партии продукта
 			parties = Party.objects.filter(product=product)
 
-			# TODO Rework
 			# Получаем цену
 			if product.price:
 				price = product.price
@@ -269,29 +269,28 @@ class PriceManager(models.Manager):
 				price = Price()
 				price.created = datetime.now()
 
-			# Вычисляем новую цену
-			price.price = 0
-			if 0 == len(parties):
-				price.price = 0
-			else:
-				s = 0 # Сумма цен
-				n = 0 # Количество значащих цен
-				for party in parties:
-					if party.price:
-						p = party.price * party.currency.rate / party.currency.quantity * party.price_type.multiplier
-						s += p
-						n += 1
-				if 0 == n :
-					price.price = 0
-				else:
-					price.price = s / n
+			# Вычисляем розничные цены на основании входных цен
+			prices = []
+			for party in parties:
+				if party.price and party.currency and party.price_type:
+					prices.append(party.price * party.currency.rate / party.currency.quantity * party.price_type.multiplier)
 
-			price.price_type = rp
-			price.currency = rub
+			# Записываем лучшую в базу
+			if len(prices):
+				price.price = min(prices)
+				price.price_type = rp
+				price.currency = rub
+			else:
+				price.price = None
+				price.price_type = None
+				price.currency = None
 			price.modified = datetime.now()
 			price.save()
-			product.price = price
-			product.save()
+
+			# Если цена не привязана к продукту, привязываем
+			if product.price is None:
+				product.price = price
+				product.save()
 
 		return True
 

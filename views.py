@@ -678,7 +678,7 @@ def ajaxLinkVendorSameSynonym(request):
 
 	# Импортируем
 	import json
-	import unidecode.unidecode
+	import unidecode
 	from datetime import datetime
 	from catalog.models import VendorSynonym, Vendor
 

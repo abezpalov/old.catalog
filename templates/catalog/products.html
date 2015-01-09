@@ -18,17 +18,18 @@
 {% block content %}
 <!-- Фильтр вывода -->
 <div class="row collapse">
-		<ul class="button-group even-3">
-			<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
-			<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
-			<li><button id="filter-items-search" data-do="open-filter-items-search"{% if search == '' %} class="secondary"{% endif %}><i class="fa fa-search"></i> Искомое слово</button></li>
-		</ul>
+	<ul class="button-group even-3">
+		<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
+		<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
+		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if search == '' %} class="secondary"{% endif %}><i class="fa fa-search"></i> Искомое слово</button></li>
+	</ul>
 </div>
 
 <!-- Таблица со списком синонимов -->
 <div class="row collapse">
 	<table>
 		<tr>
+			<th class="text-center">#</th>
 			<th class="text-center">Артикул</th>
 			<th class="text-center">Наименование</th>
 			<th class="text-center">Производитель</th>
@@ -40,6 +41,7 @@
 		<tr><td colspan="5"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
+			<td>{{ forloop.counter }}</td>
 			<td>{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.vendor.alias }}/{{ product.article }}/">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
