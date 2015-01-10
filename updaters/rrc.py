@@ -56,7 +56,7 @@ class Runner:
 
 		# Получаем куки
 		try:
-			r = s.get(self.url, timeout=100.0)
+			r = s.get(self.url, timeout=30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки Cookies.")
@@ -99,15 +99,17 @@ class Runner:
 
 				# Получаем все ссылки. Ссылки, которых нет - добавляем в список.
 				tree = lxml.html.fromstring(r.text)
-				new_urls = tree.xpath('//a/@href')
-				for url in new_urls:
+				del r
+				for url in tree.xpath('//a/@href'):
 					if not url in urls: urls.append(url)
 
-				#TODO Парсим таблицу с товарами
+				# Парсим таблицу с товарами
 				self.parseProducts(tree)
+				del tree
 
 			i += 1
 
+		print("Обработка прайс-листа завершена.")
 		return True
 
 	def parseProducts(self, tree):
