@@ -10,7 +10,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'Перерасчет розничных цен'
 		self.alias = 'price-recalculate'
-		self.message = ''
 
 		# Получаем необходимые объекты
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name)
@@ -18,5 +17,6 @@ class Runner:
 	def run(self):
 
 		Price.objects.recalculate()
+		print("Обновление завершено")
 
 		return True

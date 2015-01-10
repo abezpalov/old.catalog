@@ -1,7 +1,7 @@
 import re
+import time
 import lxml.html
 import requests
-import time
 from datetime import date
 from datetime import datetime
 from catalog.models import Updater
@@ -91,7 +91,8 @@ class Runner:
 				# Переходим по ссылке
 				try:
 					r = s.get(self.url_prefix + urls[i], cookies = cookies, timeout=30.0)
-					print("Загружена страница: " + self.url_prefix + urls[i])
+					print("\nЗагружена страница: " + self.url_prefix + urls[i])
+					time.sleep(1)
 				except requests.exceptions.Timeout:
 					print("Превышение интервала ожидания загрузки.")
 					continue
@@ -141,6 +142,15 @@ class Runner:
 		tbs = tree.xpath('//table[@class="catalog-item-list"]/tbody[@class="b-products-item__table x-products-item"]')
 		for tr in tbs:
 
+			# Обнуляем значения
+			article             = None
+			vendor_synonym_name = None
+			name                = None
+			quantity            = None
+			price               = None
+			currency            = None
+
+			# Получаем информацию о товаре
 			for tdn, td in enumerate(tr[0]):
 				if tdn == num['article']:
 					article = str(td.text).strip()
@@ -160,7 +170,7 @@ class Runner:
 							currency = self.eur
 						elif not price:
 							price = None
-							currency = None
+							currency = self.usd
 						else:
 							price = self.fixPrice(price)
 							currency = self.rub
@@ -195,7 +205,7 @@ class Runner:
 		price = price.replace('€', '')
 		price = price.replace(' ', '')
 		if price: price = float(price)
-		else: price = 0
+		else: price = None
 		return price
 
 	def fixQuantity(self, quantity):

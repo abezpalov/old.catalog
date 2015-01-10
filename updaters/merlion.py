@@ -101,6 +101,7 @@ class Runner:
 
 		print("Получен прайс-лист: " + zip_data.namelist()[0])
 
+		del zip_data
 		return xls_data
 
 
@@ -138,6 +139,7 @@ class Runner:
 			'rrp_date': 'RRP_Date'}
 
 		tree = etree.parse(xml_data)
+		del xml_data
 
 		for g1 in tree.xpath('.//G1'):
 			for g2_n, g2 in enumerate(g1):
@@ -233,22 +235,22 @@ class Runner:
 									# Записываем партии
 									if stock_chehov:
 										party = Party.objects.make(product=product, stock=self.stock_chehov, price = price, price_type = self.dp, currency = currency, quantity = stock_chehov, unit = self.default_unit)
-										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
 									if stock_bykovo:
 										party = Party.objects.make(product=product, stock=self.stock_bykovo, price = price, price_type = self.dp, currency = currency, quantity = stock_bykovo, unit = self.default_unit)
-										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
 									if stock_samara:
 										party = Party.objects.make(product=product, stock=self.stock_samara, price = price, price_type = self.dp, currency = currency, quantity = stock_samara, unit = self.default_unit)
-										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
 									if stock_moscow:
 										party = Party.objects.make(product=product, stock=self.stock_moscow, price = price, price_type = self.dp, currency = currency, quantity = stock_moscow, unit = self.default_unit)
-										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
 									if transit_b:
 										party = Party.objects.make(product=product, stock=self.transit_b, price = price, price_type = self.dp, currency = currency, quantity = transit_b, unit = self.default_unit)
-										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
 									if transit_d:
 										party = Party.objects.make(product=product, stock=self.transit_d, price = price, price_type = self.dp, currency = currency, quantity = transit_d, unit = self.default_unit)
-										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
 
 		print("Обработка прайс-листа завершена.")
 		return True
