@@ -1,5 +1,3 @@
-from datetime import date
-from datetime import datetime
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock
@@ -22,7 +20,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'Treolan'
 		self.alias = 'treolan'
-		self.message = ''
 
 		# Получаем необходимые объекты
 		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
@@ -30,7 +27,7 @@ class Runner:
 		self.stock = Stock.objects.take(alias=self.alias+'-stock', name=self.name+': склад', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
 		self.transit =Stock.objects.take(alias=self.alias+'-transit', name=self.name+': транзит', delivery_time_min = 10, delivery_time_max = 40, distributor=self.distributor)
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-		self.price_type_dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
+		self.dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
 		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 		self.usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
 
@@ -70,7 +67,7 @@ class Runner:
 			r = s.get(self.url_login, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки Cookies.'
+			print("Превышение интервала ожидания загрузки Cookies.")
 			return False
 
 		# Авторизуемся
@@ -79,7 +76,7 @@ class Runner:
 			r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания подтверждения авторизации.'
+			print("Превышение интервала ожидания подтверждения авторизации.")
 			return False
 
 		# Загружаем общий прайс
@@ -87,15 +84,15 @@ class Runner:
 			r = s.get(self.url_price, cookies=cookies, allow_redirects=False, verify=False, timeout=100.0)
 			tree = lxml.html.fromstring(r.text)
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки прайс-листа.'
+			print("Превышение интервала ожидания загрузки прайс-листа.")
 			return False
 
 		# Парсим
 		try:
 			table = tree.xpath("//table")[0]
 		except IndexError:
-			self.message += "Не получилось загрузить прайс-лист.\n"
-			self.message += "Проверьте параметры доступа.\n"
+			print("Не получилось загрузить прайс-лист.")
+			print("Проверьте параметры доступа.")
 			return False
 
 		for trn, tr in enumerate(table):
@@ -115,9 +112,9 @@ class Runner:
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['name'] or not num['vendor'] or not num['stock'] or not num['transit'] or not num['price_usd'] or not num['price_rub']:
-					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
+					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
-				else: self.message += "Структура данных без изменений.\n"
+				else: print("Структура данных без изменений.")
 
 			# Категория
 			elif len(tr) == 1:
@@ -148,20 +145,23 @@ class Runner:
 
 				# Цена в долларах
 				if price_usd:
-					party = Party.objects.make(product=product, stock=self.stock, price = price_usd, price_type = self.price_type_dp, currency = self.usd, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.transit, price = price_usd, price_type = self.price_type_dp, currency = self.usd, quantity = transit, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = price_usd, price_type = self.dp, currency = self.usd, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.transit, price = price_usd, price_type = self.dp, currency = self.usd, quantity = transit, unit = self.default_unit)
+					print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
 				# Цена в рублях
 				elif price_rub:
-					party = Party.objects.make(product=product, stock=self.stock, price = price_rub, price_type = self.price_type_dp, currency = self.rub, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.transit, price = price_rub, price_type = self.price_type_dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = price_rub, price_type = self.dp, currency = self.rub, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.transit, price = price_rub, price_type = self.dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+					print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
 				# Цена не определена
 				else:
-					party = Party.objects.make(product=product, stock=self.stock, price = None, price_type = self.price_type_dp, currency = self.rub, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.transit, price = None, price_type = self.price_type_dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.stock, price = None, price_type = self.dp, currency = self.rub, quantity = stock, unit = self.default_unit)
+					party = Party.objects.make(product=product, stock=self.transit, price = None, price_type = self.dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+					print(product.vendor.name + ' ' + product.article)
 
-		self.message += 'Обработка прайс-листа завершена.\n'
+		print("Обработка прайс-листа завершена.")
 		return True
 
 	def fixPrice(self, price):

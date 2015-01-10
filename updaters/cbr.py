@@ -1,5 +1,5 @@
 from datetime import date
-from datetime import datetime
+from django.utils import timezone
 from catalog.models import Updater
 from catalog.models import Currency
 
@@ -11,7 +11,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'Обновление курсов валют (Центральный банк России)'
 		self.alias = 'cbr'
-		self.message = ''
 
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name)
 		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
@@ -41,7 +40,7 @@ class Runner:
 			r = s.get(self.url, timeout=100.0)
 			tree = lxml.html.fromstring(r.text)
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки.'
+			print("Превышение интервала ожидания загрузки.")
 			return False
 
 		table = tree.xpath("//table[@class='CBRTBL']/tr")
@@ -68,8 +67,8 @@ class Runner:
 				currency = Currency.objects.take(alias=alias, name=name, full_name=name, rate=rate, quantity=quantity)
 				currency.rate = rate
 				currency.quantity = quantity
-				currency.modified = datetime.now()
+				currency.modified = timezone.now()
 				currency.save()
-				self.message += currency.alias + ' = ' + str(currency.rate) + ' / ' + currency.quantity + '\n'
+				print(currency.alias + ' = ' + str(currency.rate) + ' / ' + currency.quantity)
 
 		return True

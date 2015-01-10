@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils import timezone
 
 # Connector
 class Connector(models.Model):
@@ -21,11 +22,10 @@ class Connector(models.Model):
 class DistributorManager(models.Manager):
 
 	def take(self, alias, name):
-		from datetime import datetime
 		try:
 			distributor = self.get(alias=alias)
 		except Distributor.DoesNotExist:
-			distributor = Distributor(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			distributor = Distributor(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
 			distributor.save()
 		return distributor
 
@@ -50,11 +50,10 @@ class Distributor(models.Model):
 class UpdaterManager(models.Manager):
 
 	def take(self, alias, name, distributor=None):
-		from datetime import datetime
 		try:
 			updater = self.get(alias=alias)
 		except Updater.DoesNotExist:
-			updater = Updater(alias=alias, name=name, distributor=distributor, created=datetime.now(), modified=datetime.now(), updated=datetime.now())
+			updater = Updater(alias=alias, name=name, distributor=distributor, created=timezone.now(), modified=timezone.now(), updated=timezone.now())
 			updater.save()
 		return updater
 
@@ -81,11 +80,10 @@ class Updater(models.Model):
 class StockManager(models.Manager):
 
 	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20, distributor=None):
-		from datetime import datetime
 		try:
 			stock = self.get(alias=alias)
 		except Stock.DoesNotExist:
-			stock = Stock(alias=alias, name=name, delivery_time_min = 10, delivery_time_max = 20, distributor=distributor, created=datetime.now(), modified=datetime.now())
+			stock = Stock(alias=alias, name=name, delivery_time_min = 10, delivery_time_max = 20, distributor=distributor, created=timezone.now(), modified=timezone.now())
 			stock.save()
 		return stock
 
@@ -130,11 +128,10 @@ class Category(models.Model):
 class VendorManager(models.Manager):
 
 	def take(self, alias, name):
-		from datetime import datetime
 		try:
 			vendor = self.get(alias=alias)
 		except Vendor.DoesNotExist:
-			vendor = Vendor(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			vendor = Vendor(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
 			vendor.save()
 		return vendor
 
@@ -158,11 +155,10 @@ class Vendor(models.Model):
 class UnitManager(models.Manager):
 
 	def take(self, alias, name):
-		from datetime import datetime
 		try:
 			unit = self.get(alias=alias)
 		except Unit.DoesNotExist:
-			unit = Unit(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			unit = Unit(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
 			unit.save()
 		return unit
 
@@ -185,11 +181,10 @@ class Unit(models.Model):
 class PriceTypeManager(models.Manager):
 
 	def take(self, alias, name):
-		from datetime import datetime
 		try:
 			price_type = self.get(alias=alias)
 		except PriceType.DoesNotExist:
-			price_type = PriceType(alias=alias, name=name, created=datetime.now(), modified=datetime.now())
+			price_type = PriceType(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
 			price_type.save()
 		return price_type
 
@@ -213,11 +208,10 @@ class PriceType(models.Model):
 class CurrencyManager(models.Manager):
 
 	def take(self, alias, name, full_name, rate=1, quantity=1):
-		from datetime import datetime
 		try:
 			currency = self.get(alias=alias)
 		except Currency.DoesNotExist:
-			currency = Currency(alias=alias, name=name, full_name=full_name, rate=rate, quantity=quantity, created=datetime.now(), modified=datetime.now())
+			currency = Currency(alias=alias, name=name, full_name=full_name, rate=rate, quantity=quantity, created=timezone.now(), modified=timezone.now())
 			currency.save()
 		return currency
 
@@ -244,7 +238,6 @@ class PriceManager(models.Manager):
 
 	def recalculate(self):
 
-		from datetime import datetime
 		from catalog.models import Currency
 		from catalog.models import Product
 		from catalog.models import Party
@@ -267,7 +260,7 @@ class PriceManager(models.Manager):
 				price = product.price
 			else:
 				price = Price()
-				price.created = datetime.now()
+				price.created = timezone.now()
 
 			# Вычисляем розничные цены на основании входных цен
 			prices = []
@@ -284,7 +277,7 @@ class PriceManager(models.Manager):
 				price.price = None
 				price.price_type = None
 				price.currency = None
-			price.modified = datetime.now()
+			price.modified = timezone.now()
 			price.save()
 
 			# Если цена не привязана к продукту, привязываем
@@ -325,8 +318,6 @@ class ProductManager(models.Manager):
 
 	def take(self, article, vendor, name, category = None, unit = None):
 
-		from datetime import datetime
-
 		name = str(name).strip()
 		name = name.replace("\u00AD", "")
 		name = name.replace("™", "")
@@ -342,20 +333,19 @@ class ProductManager(models.Manager):
 			product = self.get(article=article, vendor=vendor)
 			if not product.category and category:
 				product.category = category
-				product.modified = datetime.now()
+				product.modified = timezone.now()
 				product.save()
 		except Product.DoesNotExist:
-			product = Product(name=name[:500], full_name = name, article=article, vendor=vendor, category=category, unit=unit, created = datetime.now(), modified = datetime.now())
+			product = Product(name=name[:500], full_name = name, article=article, vendor=vendor, category=category, unit=unit, created = timezone.now(), modified = timezone.now())
 			product.save()
 
 		return product
 
 	def fixNames(self):
-		from datetime import datetime
 		products = self.all()
 		for product in products:
 			product.name = product.name.replace("\u00AD", '')
-			product.modified = datetime.now()
+			product.modified = timezone.now()
 			product.save()
 		return True
 
@@ -387,8 +377,7 @@ class Product(models.Model):
 class PartyManager(models.Manager):
 
 	def make(self, product, stock, price, price_type, currency, quantity, unit):
-		from datetime import datetime
-		party = Party(product=product, stock=stock, price=price, price_type=price_type, currency=currency, quantity=quantity, unit=unit, created=datetime.now(), modified=datetime.now())
+		party = Party(product=product, stock=stock, price=price, price_type=price_type, currency=currency, quantity=quantity, unit=unit, created=timezone.now(), modified=timezone.now())
 		party.save()
 		return party
 
@@ -499,11 +488,10 @@ class Parameter(models.Model):
 class CategorySynonymManager(models.Manager):
 
 	def take(self, name, updater=None, distributor=None, category=None):
-		from datetime import datetime
 		try:
 			categorySynonym = self.get(name=name, updater=updater, distributor=distributor)
 		except CategorySynonym.DoesNotExist:
-			categorySynonym = CategorySynonym(name=name, updater=updater, distributor=distributor, category=category, created=datetime.now(), modified=datetime.now())
+			categorySynonym = CategorySynonym(name=name, updater=updater, distributor=distributor, category=category, created=timezone.now(), modified=timezone.now())
 			categorySynonym.save()
 		return categorySynonym
 
@@ -527,11 +515,10 @@ class CategorySynonym(models.Model):
 class VendorSynonymManager(models.Manager):
 
 	def take(self, name, updater=None, distributor=None, vendor=None):
-		from datetime import datetime
 		try:
 			vendorSynonym = self.get(name=name, updater=updater, distributor=distributor)
 		except VendorSynonym.DoesNotExist:
-			vendorSynonym = VendorSynonym(name=name, updater=updater, distributor=distributor, vendor=vendor, created=datetime.now(), modified=datetime.now())
+			vendorSynonym = VendorSynonym(name=name, updater=updater, distributor=distributor, vendor=vendor, created=timezone.now(), modified=timezone.now())
 			vendorSynonym.save()
 		return vendorSynonym
 

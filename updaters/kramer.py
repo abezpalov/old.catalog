@@ -1,5 +1,3 @@
-from datetime import date
-from datetime import datetime
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock
@@ -22,7 +20,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'Kramer'
 		self.alias = 'kramer'
-		self.message = ''
 
 		# Получаем необходимые объекты
 		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
@@ -30,7 +27,7 @@ class Runner:
 		self.factory = Stock.objects.take(alias=self.alias+'-factory', name=self.name+': завод', delivery_time_min = 10, delivery_time_max = 40, distributor=self.distributor)
 		self.vendor = Vendor.objects.take(alias=self.alias, name=self.name)
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-		self.price_type_rrp = PriceType.objects.take(alias='RRP', name='Рекомендованная розничная цена')
+		self.rrp = PriceType.objects.take(alias='RRP', name='Рекомендованная розничная цена')
 		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
 		self.usd = Currency.objects.take(alias='USD', name='$', full_name='Доллар США', rate=60, quantity=1)
 
@@ -67,20 +64,20 @@ class Runner:
 
 		# Ещем ссылки
 		urls = tree.xpath('//a/@href')
-		ok = False
+		ok = 0
 		for url in urls:
 			if self.devices_url in url:
 				xls_data = self.getXLS(request = s.get(url, cookies=cookies, allow_redirects=True))
 				self.parseDevices(xls_data)
-				ok = True
+				ok += 1
 			elif self.cables_url in url:
 				xls_data = self.getXLS(request = s.get(url, cookies=cookies, allow_redirects=True))
 				self.parseCables(xls_data)
-				ok = True
+				ok += 1
 
-		if not ok:
-			self.message += "Не получилось загрузить прайс-листы.\n"
-			self.message += "Проверьте параметры доступа.\n"
+		if ok < 2:
+			print("Не получилось загрузить прайс-листы.")
+			print("Проверьте параметры доступа.")
 			return False
 
 		return True
@@ -93,7 +90,7 @@ class Runner:
 		zip_data = ZipFile(BytesIO(request.content))
 		xls_data = zip_data.open(zip_data.namelist()[0])
 
-		self.message += 'Получен прайс-лист: ' + zip_data.namelist()[0] + '\n'
+		print("Получен прайс-лист: " + zip_data.namelist()[0])
 
 		return xls_data
 
@@ -139,9 +136,9 @@ class Runner:
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['format'] or not num['name'] or not num['price'] or not num['dop']:
-					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
+					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
-				else: self.message += "Структура данных без изменений.\n"
+				else: print("Структура данных без изменений.")
 
 			# Категория
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
@@ -174,10 +171,10 @@ class Runner:
 
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
-				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
-				self.message += product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
+				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
+				print(product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
-		self.message += 'Обработка прайс-листа оборудования завершена.\n'
+		print("Обработка прайс-листа оборудования завершена.")
 		return True
 
 	def parseCables(self, xls_data):
@@ -218,9 +215,9 @@ class Runner:
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] or not num['model'] or not num['name'] or not num['size'] or not num['price'] or not num['dop']:
-					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
+					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
-				else: self.message += "Структура данных без изменений.\n"
+				else: print("Структура данных без изменений.")
 
 			# Категория
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
@@ -247,10 +244,10 @@ class Runner:
 
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
-				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.price_type_rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
-				self.message += product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
+				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
+				print(product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
-		self.message += 'Обработка прайс-листа материалов завершена.\n'
+		print("Обработка прайс-листа материалов завершена.")
 		return True
 
 	def fixPrice(self, price):

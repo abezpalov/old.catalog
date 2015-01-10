@@ -22,7 +22,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'ЦМО'
 		self.alias = 'cmo'
-		self.message = ''
 
 		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
@@ -61,15 +60,15 @@ class Runner:
 			r = s.get(self.url, timeout=100.0)
 			tree = lxml.html.fromstring(r.text)
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки.'
+			print("Превышение интервала ожидания загрузки.")
 			return False
 
 		# Парсим
 		try:
 			table = tree.xpath("//table")[0]
 		except IndexError:
-			self.message += "Не получилось загрузить прайс-лист.\n"
-			self.message += "Проверьте параметры доступа.\n"
+			print("Не получилось загрузить прайс-лист.")
+			print("Проверьте параметры доступа.")
 			return False
 
 		for trn, tr in enumerate(table):
@@ -84,9 +83,9 @@ class Runner:
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['code'] or not num['name'] or not num['price']:
-					self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
+					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
-				else: self.message += "Структура данных без изменений.\n"
+				else: print("Структура данных без изменений.")
 
 			# Категория
 			elif len(tr) == 1:
@@ -111,13 +110,11 @@ class Runner:
 
 				# Добавляем партии
 				party = Party.objects.make(product=product, stock=self.factory, price=price, price_type = self.rp, currency = self.rub, quantity = -1, unit = self.default_unit)
-				self.message += product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias + '\n'
+				print(product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
 		return True
 
-
 	def fixPrice(self, price):
-
 		price = str(price).strip()
 		if price in ('Цена не найдена'): price = None
 		else:

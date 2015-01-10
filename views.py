@@ -127,7 +127,6 @@ def updater(request, alias):
 # Выполнение загрузчика
 def update(request, alias, key=''):
 	from datetime import datetime
-	from catalog.models import Price
 	Updater = __import__('catalog.updaters.' + alias, fromlist=['Runner'])
 	runner = Updater.Runner()
 	if runner.updater.state:

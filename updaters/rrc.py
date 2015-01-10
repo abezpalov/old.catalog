@@ -26,7 +26,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'RRC'
 		self.alias = 'rrc'
-		self.message = ''
 
 		# Получаем необходимые объекты
 		self.distributor  = Distributor.objects.take(alias=self.alias, name=self.name)
@@ -46,7 +45,6 @@ class Runner:
 		# Используемые ссылки
 		self.url = 'http://rrc.ru/catalog/?login=yes'
 		self.url_prefix = 'http://rrc.ru'
-		self.url_filter = '/catalog/'
 
 		# Шаблон, соответсвующий ссылке на категорию с продуктами
 		self.p = re.compile('^\/catalog\/[0-9]{4}_[0-9]_[0-9]{4}\/(\?PAGEN_[0-9]+=[0-9]+)?$')
@@ -61,7 +59,7 @@ class Runner:
 			r = s.get(self.url, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки Cookies.'
+			print("Превышение интервала ожидания загрузки Cookies.")
 			return False
 
 		# Авторизуемся
@@ -70,7 +68,7 @@ class Runner:
 			r = s.post(self.url, cookies=cookies, data=payload, allow_redirects=True, timeout=30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания подтверждения авторизации.'
+			print("Превышение интервала ожидания подтверждения авторизации.")
 			return False
 
 		# Загружаем начальную страницу каталога
@@ -78,7 +76,7 @@ class Runner:
 			r = s.get(self.url, cookies=cookies, allow_redirects=True, timeout=30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки каталога.'
+			print("Превышение интервала ожидания загрузки каталога.")
 			return False
 
 		# Проходим по всем ссылкам
@@ -90,16 +88,12 @@ class Runner:
 			# Сслыка на категорию
 			if re.match(self.p, urls[i]):
 
-				#TODO test out
-				self.message += self.url_prefix + urls[i] + '\n'
-				hack = self.url_prefix + urls[i]
-
 				# Переходим по ссылке
 				try:
 					r = s.get(self.url_prefix + urls[i], cookies = cookies, timeout=30.0)
-					cookies = r.cookies
+					print("Загружена страница: " + self.url_prefix + urls[i])
 				except requests.exceptions.Timeout:
-					self.message = 'Превышение интервала ожидания загрузки .'
+					print("Превышение интервала ожидания загрузки.")
 					continue
 
 				# Получаем все ссылки. Ссылки, которых нет - добавляем в список.
@@ -131,33 +125,21 @@ class Runner:
 		# Заголовок таблицы
 		ths = tree.xpath('//table[@class="catalog-item-list"]/thead/tr/th')
 		for thn, th in enumerate(ths):
-			if   th.text == word['article']:
-				num['article'] = thn
-				self.message += str(thn) + "\n" 
-			elif th.text == word['vendor']:
-				num['vendor'] = thn
-				self.message += str(thn) + "\n" 
-			elif th.text == word['name']:
-				num['name'] = thn
-				self.message += str(thn) + "\n" 
-			elif th.text == word['quantity']:
-				num['quantity'] = thn
-				self.message += str(thn) + "\n" 
-			elif th.text == word['price']:
-				num['price'] = thn
-				self.message += str(thn) + "\n" 
-			self.message += str(th.text) + "\n" 
+			if   th.text == word['article']:  num['article'] = thn
+			elif th.text == word['vendor']:   num['vendor'] = thn
+			elif th.text == word['name']:     num['name'] = thn
+			elif th.text == word['quantity']: num['quantity'] = thn
+			elif th.text == word['price']:    num['price'] = thn
 
 		# Проверяем, все ли столбцы распознались
 		if len(num) < num['headers']:
-			self.message += "Ошибка структуры данных: не все столбцы опознаны.\n"
+			print("Ошибка структуры данных: не все столбцы опознаны.")
 			return False
-		else: self.message += "Структура данных без изменений.\n"
+		else: print("Структура данных без изменений.")
 
 		# Товар
 		tbs = tree.xpath('//table[@class="catalog-item-list"]/tbody[@class="b-products-item__table x-products-item"]')
 		for tr in tbs:
-
 
 			for tdn, td in enumerate(tr[0]):
 				if tdn == num['article']:
@@ -184,9 +166,7 @@ class Runner:
 							currency = self.rub
 					except IndexError:
 						price = None
-						currency = None
-
-#			self.message += article + ' ' + vendor_synonym_name + ' ' + str(price) + '\n'
+						currency = self.usd
 
 			# Обрабатываем синоним производителя
 			if vendor_synonym_name:
@@ -201,8 +181,10 @@ class Runner:
 			# Партии
 			if quantity:
 				party = Party.objects.make(product=product, stock=self.stock, price = price, price_type = self.dp, currency = currency, quantity = quantity, unit = self.default_unit)
+				print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 			else:
 				party = Party.objects.make(product=product, stock=self.on_order, price = price, price_type = self.dp, currency = currency, quantity = 0, unit = self.default_unit)
+				print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
 		return True
 

@@ -19,7 +19,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'Merlion'
 		self.alias = 'merlion'
-		self.message = ''
 
 		# Получаем необходимые объекты
 		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
@@ -67,7 +66,7 @@ class Runner:
 			r = s.get(self.url_login, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки Cookies.'
+			print("Превышение интервала ожидания загрузки Cookies.")
 			return False
 
 		# Авторизуемся
@@ -80,13 +79,15 @@ class Runner:
 			r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания подтверждения авторизации.'
+			print("Превышение интервала ожидания подтверждения авторизации.")
 			return False
 
 		# Получаем архив с прайс-листом
 		for url in self.url_price:
 			xml_data = self.getXML(request = s.get(url, cookies=cookies))
-			if not self.parsePrice(xml_data): return False
+			if not self.parsePrice(xml_data):
+				print("Парсинг невозможен.")
+				return False
 
 		return True
 
@@ -98,7 +99,7 @@ class Runner:
 		zip_data = ZipFile(BytesIO(request.content))
 		xls_data = zip_data.open(zip_data.namelist()[0])
 
-		self.message += 'Получен прайс-лист: ' + zip_data.namelist()[0] + '\n'
+		print("Получен прайс-лист: " + zip_data.namelist()[0])
 
 		return xls_data
 
@@ -157,6 +158,13 @@ class Runner:
 								else:
 
 									# Обнуляем значения
+									party_article        = None
+									product_name         = None
+									vendor_synonym_name  = None
+									product_article      = None
+									price_usd            = None
+									price_rub            = None
+
 									stock_chehov   = None
 									stock_bykovo   = None
 									stock_dostavka = None
@@ -164,6 +172,17 @@ class Runner:
 									stock_moscow   = None
 									transit_b      = None
 									transit_d      = None
+									transit_date   = None
+
+									pack_minimal = None
+									pack         = None
+									volume       = None
+									weight       = None
+									warranty     = None
+									status       = None
+									maction      = None
+									rrp          = None
+									rrp_date     = None
 
 									# Получаем информацию о товаре
 									for attr in item:
@@ -209,16 +228,29 @@ class Runner:
 										currency = self.rub
 									else:
 										price = None
-										currency = None
+										currency = self.usd
 
 									# Записываем партии
-									if stock_chehov: party = Party.objects.make(product=product, stock=self.stock_chehov, price = price, price_type = self.dp, currency = currency, quantity = stock_chehov, unit = self.default_unit)
-									if stock_bykovo: party = Party.objects.make(product=product, stock=self.stock_bykovo, price = price, price_type = self.dp, currency = currency, quantity = stock_bykovo, unit = self.default_unit)
-									if stock_samara: party = Party.objects.make(product=product, stock=self.stock_samara, price = price, price_type = self.dp, currency = currency, quantity = stock_samara, unit = self.default_unit)
-									if stock_moscow: party = Party.objects.make(product=product, stock=self.stock_moscow, price = price, price_type = self.dp, currency = currency, quantity = stock_moscow, unit = self.default_unit)
-									if transit_b: party = Party.objects.make(product=product, stock=self.transit_b, price = price, price_type = self.dp, currency = currency, quantity = transit_b, unit = self.default_unit)
-									if transit_d: party = Party.objects.make(product=product, stock=self.transit_d, price = price, price_type = self.dp, currency = currency, quantity = transit_d, unit = self.default_unit)
+									if stock_chehov:
+										party = Party.objects.make(product=product, stock=self.stock_chehov, price = price, price_type = self.dp, currency = currency, quantity = stock_chehov, unit = self.default_unit)
+										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+									if stock_bykovo:
+										party = Party.objects.make(product=product, stock=self.stock_bykovo, price = price, price_type = self.dp, currency = currency, quantity = stock_bykovo, unit = self.default_unit)
+										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+									if stock_samara:
+										party = Party.objects.make(product=product, stock=self.stock_samara, price = price, price_type = self.dp, currency = currency, quantity = stock_samara, unit = self.default_unit)
+										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+									if stock_moscow:
+										party = Party.objects.make(product=product, stock=self.stock_moscow, price = price, price_type = self.dp, currency = currency, quantity = stock_moscow, unit = self.default_unit)
+										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+									if transit_b:
+										party = Party.objects.make(product=product, stock=self.transit_b, price = price, price_type = self.dp, currency = currency, quantity = transit_b, unit = self.default_unit)
+										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+									if transit_d:
+										party = Party.objects.make(product=product, stock=self.transit_d, price = price, price_type = self.dp, currency = currency, quantity = transit_d, unit = self.default_unit)
+										print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
+		print("Обработка прайс-листа завершена.")
 		return True
 
 	def fixPrice(self, price):
