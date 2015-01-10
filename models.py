@@ -250,7 +250,7 @@ class PriceManager(models.Manager):
 		# Получаем перечень всех продуктов
 		products = Product.objects.all()
 
-		for product in products:
+		for n, product in enumerate(products):
 
 			# Получаем партии продукта
 			parties = Party.objects.filter(product=product)
@@ -275,8 +275,8 @@ class PriceManager(models.Manager):
 				price.currency = rub
 			else:
 				price.price = None
-				price.price_type = None
-				price.currency = None
+				price.price_type = rp
+				price.currency = rub
 			price.modified = timezone.now()
 			price.save()
 
@@ -284,6 +284,8 @@ class PriceManager(models.Manager):
 			if product.price is None:
 				product.price = price
 				product.save()
+
+			print("%s of %s. %s %s = %s %s" % (str(n), len(products), product.vendor.name, product.article, str(product.price.price), product.price.currency.alias))
 
 		return True
 
