@@ -5,27 +5,27 @@
 
 <!-- Таблица со списком производителей -->
 <div class="row collapse">
-	<div class="small-12 columns">
-		<table>
-			<tr>
-				<th>Наименование</th>
-				<th>Статус</th>
-				<th>Модификатор</th>
-			</tr>
-			{% for item in price_types %}
-			<tr>
-				<td><a id="price-type-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}" data-multiplier="{{ item.multiplier }}">{{ item.name }}</a></td>
-				<td>
-					<div class="switch small">
-						<input id="price-type-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
-						<label for="price-type-state-{{ item.id }}"></label>
-					</div>
-				</td>
-				<td id="price-type-multiplier-{{ item.id }}" >{{ item.multiplier }}</td>
-			</tr>
-			{% endfor %}
-		</table>
-	</div>
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Статус</th>
+			<th>Модификатор</th>
+		</tr>
+		{% for item in price_types %}
+		<tr>
+			<td>{{ forloop.counter }}</td>
+			<td><a id="price-type-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}" data-multiplier="{{ item.multiplier }}">{{ item.name }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="price-type-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
+					<label for="price-type-state-{{ item.id }}"></label>
+				</div>
+			</td>
+			<td id="price-type-multiplier-{{ item.id }}" >{{ item.multiplier }}</td>
+		</tr>
+		{% endfor %}
+	</table>
 </div>
 
 <!-- Модальное окно редактирования элемента -->

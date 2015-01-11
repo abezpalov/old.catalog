@@ -15,25 +15,25 @@
 
 <!-- Таблица со списком производителей -->
 <div class="row collapse">
-	<div class="small-12 columns">
-		<table>
-			<tr>
-				<th>Наименование</th>
-				<th>Статус</th>
-			</tr>
-			{% for item in items %}
-			<tr>
-				<td><a id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}">{{ item.name }}</a></td>
-				<td>
-					<div class="switch small">
-						<input id="item-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
-						<label for="item-state-{{ item.id }}"></label>
-					</div>
-				</td>
-			</tr>
-			{% endfor %}
-		</table>
-	</div>
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Статус</th>
+		</tr>
+		{% for item in items %}
+		<tr>
+			<td>{{ forloop.counter }}</td>
+			<td><a id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}">{{ item.name }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="item-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
+					<label for="item-state-{{ item.id }}"></label>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
 </div>
 
 <!-- Модальное окно редактирования элемента -->

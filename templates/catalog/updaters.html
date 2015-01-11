@@ -5,29 +5,29 @@
 
 <!-- Таблица со списком загрузчиков -->
 <div class="row collapse">
-	<div class="small-12 columns">
-		<table>
-			<tr>
-				<th>Наименование</th>
-				<th>Поставщик</th>
-				<th>Статус</th>
-				<th>Последнее обновление</th>
-			</tr>
-			{% for item in updaters %}
-			<tr>
-				<td><a id="updater-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}" data-login="{{ item.login }}" data-password="{{ item.password }}">{{ item.name }}</a></td>
-				<td><a href="/catalog/distributor/{{ item.distributor.alias }}/">{{ item.distributor.name }}</a></td>
-				<td>
-					<div class="switch small">
-						<input id="updater-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
-						<label for="updater-state-{{ item.id }}"></label>
-					</div>
-				</td>
-				<td>{{ item.updated|date:"d.m.Y H.i" }}&nbsp;<a href="/catalog/updater/{{ item.alias }}/run/" class="tiny button"><i class="fa fa-cogs"></i></a></td>
-			</tr>
-			{% endfor %}
-		</table>
-	</div>
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Поставщик</th>
+			<th>Статус</th>
+			<th>Последнее обновление</th>
+		</tr>
+		{% for item in updaters %}
+		<tr>
+			<td>{{ forloop.counter }}</td>
+			<td><a id="updater-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}" data-login="{{ item.login }}" data-password="{{ item.password }}">{{ item.name }}</a></td>
+			<td><a href="/catalog/distributor/{{ item.distributor.alias }}/">{{ item.distributor.name }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="updater-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
+					<label for="updater-state-{{ item.id }}"></label>
+				</div>
+			</td>
+			<td>{{ item.updated|date:"d.m.Y H.i" }}&nbsp;<a href="/catalog/updater/{{ item.alias }}/run/" class="tiny button"><i class="fa fa-cogs"></i></a></td>
+		</tr>
+		{% endfor %}
+	</table>
 </div>
 
 <!-- Модальное окно редактирования элемента -->
