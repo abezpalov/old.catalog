@@ -45,6 +45,7 @@
 <div class="row collapse">
 	<table>
 		<tr>
+			<th class="text-center">#</th>
 			<th>Наименование</th>
 			<th class="hide-for-small-only">Загрузчик</th>
 			<th class="hide-for-small-only">Поставщик</th>
@@ -53,6 +54,7 @@
 		</tr>
 		{% for item in items %}
 		<tr>
+			<td>{{ forloop.counter }}</td>
 			<td><a href="/catalog/vendor-synonym/{{ item.id }}/" id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-vendor="{{ item.vendor.id }}">{{ item.name }}</a></td>
 			<td class="hide-for-small-only">{{ item.updater }}</td>
 			<td class="hide-for-small-only">{{ item.distributor }}</td>

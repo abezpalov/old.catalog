@@ -45,6 +45,7 @@
 <div class="row collapse">
 	<table>
 		<tr>
+			<th class="text-center">#</th>
 			<th>Наименование</th>
 			<th class="hide-for-small-only">Загрузчик</th>
 			<th class="hide-for-small-only">Поставщик</th>
@@ -52,6 +53,7 @@
 		</tr>
 		{% for synonym in synonyms %}
 		<tr>
+			<td>{{ forloop.counter }}</td>
 			<td><a href="/catalog/category-synonym/{{ synonym.id }}/">{{ synonym.name }}</a></td>
 			<td class="hide-for-small-only">{{ synonym.updater }}</td>
 			<td class="hide-for-small-only">{{ synonym.distributor }}</td>

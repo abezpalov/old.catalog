@@ -38,7 +38,7 @@
 		</tr>
 		{% for product in products %}
 		{% ifchanged product.category %}
-		<tr><td colspan="5"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td></tr>
+		<tr><td colspan="6"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ forloop.counter }}</td>
