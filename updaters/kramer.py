@@ -144,7 +144,7 @@ class Runner:
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				if word['group'] in row[num['name']]: word['group_name'] = row[num['name']]
 				else: word['category_name'] = row[num['name']]
-				category_synonym = CategorySynonym.objects.take(name=word['group_name'] + ' ' + word['category_name'], updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(name="Devices: %s %s" % (word['group_name'], word['category_name']), updater=self.updater, distributor=self.distributor)
 
 			# Товар
 			elif row[num['name']] and row[num['article']] and row[num['price']]:
@@ -222,7 +222,7 @@ class Runner:
 			# Категория
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				word['category_name'] = row[num['name']]
-				category_synonym = CategorySynonym.objects.take(word['category_name'], updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(name="Cables: %s" % (word['category_name']), updater=self.updater, distributor=self.distributor)
 
 			# Товар
 			elif row[num['name']] and row[num['article']] and row[num['price']]:

@@ -50,7 +50,6 @@ $(document).ready(function(){
 		return true;
 	});
 
-
 	$("body").delegate("button[data-do*='trash-item']", "click", function(){
 		$.post("/catalog/ajax/trash-category/", {
 			id: $(this).data('id'),

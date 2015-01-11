@@ -6,31 +6,6 @@ $(document).ready(function(){
 		return true;
 	});
 
-
-//	$("table").delegate("button[data-do*='link-vendor-synonym']", "change", function(){
-//		$.post("/catalog/ajax/link-vendor-synonym/", {
-//			synonym: $(this).data('id'),
-//			vendor: $(this).val(),
-//			csrfmiddlewaretoken: '{{ csrf_token }}'
-//		},
-//		function(data) {
-//			if (null != data.status) {
-//				var notification = new NotificationFx({
-//					wrapper : document.body,
-//					message : '<p>' + data.message + '</p>',
-//					layout : 'growl',
-//					effect : 'genie',
-//					type : data.status,
-//					ttl : 3000,
-//					onClose : function() { return false; },
-//					onOpen : function() { return false; }
-//				});
-//				notification.show();
-//			}
-//		}, "json");
-//		return true;
-//	});
-
 	$("body").delegate("button[data-do*='link-vendor-same-synonym']", "click", function(){
 		$.post("/catalog/ajax/link-vendor-same-synonym/", {
 			synonym: $(this).data('id'),
@@ -98,7 +73,5 @@ $(document).ready(function(){
 		$('#EditItemModal').foundation('reveal', 'close');
 		return false;
 	});
-
-
 
 });

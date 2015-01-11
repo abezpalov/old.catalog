@@ -58,8 +58,11 @@
 			<td><a href="/catalog/vendor-synonym/{{ item.id }}/" id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-vendor="{{ item.vendor.id }}">{{ item.name }}</a></td>
 			<td class="hide-for-small-only">{{ item.updater }}</td>
 			<td class="hide-for-small-only">{{ item.distributor }}</td>
-			<td class="hide-for-small-only">{{ item.vendor.name }}</td>
-			<td><button class="tiny" data-do="link-vendor-same-synonym" data-id="{{ item.id }}"><i class="fa fa-link"></i></button></td>
+			<td>{{ item.vendor.name }}</td>
+			<td>
+				<button class="tiny" data-do="link-vendor-same-synonym" data-id="{{ item.id }}"><i class="fa fa-link"></i></button>
+				<button class="tiny alert" data-do="trash-item" data-id="{{ item.id }}"><i class="fa fa-trash"></i></button>
+			</td>
 		</tr>
 		{% endfor %}
 	</table>
@@ -83,6 +86,7 @@
 	<button data-do="edit-item-save">Сохранить</button>
 	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
 </div>
+
 {% else %}
 <div class="row collapse">
 	<div class="small-12 columns">

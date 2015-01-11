@@ -5,6 +5,7 @@ from django.template import RequestContext, loader
 
 # Каталог (главная)
 def index(request):
+	# Редирект на каталог продуктов
     return HttpResponse("Hello, world.")
 
 
@@ -67,7 +68,6 @@ def products(request, search='', vendor=None, category=None, childs=None):
 		# TODO Что показывать когда нечего показывать?
 		think = True
 
-
 	# Локализуем представление цен
 	for product in products:
 		try:
@@ -86,6 +86,9 @@ def products(request, search='', vendor=None, category=None, childs=None):
 # Продукт
 def product(request, id=None, vendor=None, article=None):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import Vendor, Product
 
@@ -103,6 +106,9 @@ def product(request, id=None, vendor=None, article=None):
 # Список загрузчиков
 def updaters(request):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import Updater
 
@@ -115,6 +121,9 @@ def updaters(request):
 # Загрузчик
 def updater(request, alias):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import Updater
 
@@ -126,6 +135,10 @@ def updater(request, alias):
 
 # Выполнение загрузчика
 def update(request, alias, key=''):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	from datetime import datetime
 	Updater = __import__('catalog.updaters.' + alias, fromlist=['Runner'])
 	runner = Updater.Runner()
@@ -141,6 +154,9 @@ def update(request, alias, key=''):
 # Список производителей
 def vendors(request):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import Vendor
 
@@ -153,6 +169,9 @@ def vendors(request):
 # Производитель
 def vendor(request, alias):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import Vendor
 
@@ -164,6 +183,9 @@ def vendor(request, alias):
 
 # Список категорий
 def categories(request):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from catalog.models import Category
@@ -184,6 +206,9 @@ def categories(request):
 # Дерево категорий (используется рекурсия)
 def getCategoryTree(tree, parent=None):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import Category
 
@@ -201,6 +226,9 @@ def getCategoryTree(tree, parent=None):
 
 # Дерево категорий (используется рекурсия)
 def getCategoryHTMLTree(root, parent=None, first=None):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from lxml import etree
@@ -254,6 +282,9 @@ def getCategoryHTMLTree(root, parent=None, first=None):
 # Категория
 def category(request, category_id):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import Category
 
@@ -264,6 +295,9 @@ def category(request, category_id):
 
 # Список синонимов производителей
 def vendorsynonyms(request, updater_selected='all', distributor_selected='all', vendor_selected='all'):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from catalog.models import VendorSynonym, Vendor, Updater, Distributor
@@ -302,6 +336,9 @@ def vendorsynonyms(request, updater_selected='all', distributor_selected='all', 
 # Синоним производителя
 def vendorsynonym(request, synonym_id):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import VendorSynonym, Vendor, Updater, Distributor
 
@@ -314,22 +351,25 @@ def vendorsynonym(request, synonym_id):
 # Список синонимов категорий
 def categorysynonyms(request, updater_selected='all', distributor_selected='all', category_selected='all'):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import CategorySynonym, Category, Updater, Distributor
 
 	# Получаем список объектов синонимов
-	synonyms = CategorySynonym.objects.all().order_by('name')
+	items = CategorySynonym.objects.all().order_by('name')
 	if (updater_selected != 'all'):
-		synonyms = synonyms.filter(updater=updater_selected)
+		items = items.filter(updater=updater_selected)
 		updater_selected = int(updater_selected)
 	if (distributor_selected != 'all'):
-		synonyms = synonyms.filter(distributor=distributor_selected)
+		items = items.filter(distributor=distributor_selected)
 		distributor_selected = int(distributor_selected)
 	if (category_selected != 'all' and category_selected != 'null'):
-		synonyms = synonyms.filter(category=category_selected)
+		items = items.filter(category=category_selected)
 		category_selected = int(category_selected)
 	if (category_selected == 'null'):
-		synonyms = synonyms.filter(category=None)
+		items = items.filter(category=None)
 
 	# Получаем дополнительные списки объектов
 	updaters = Updater.objects.all().order_by('name')
@@ -345,7 +385,7 @@ def categorysynonyms(request, updater_selected='all', distributor_selected='all'
 		'updater_selected': updater_selected,
 		'distributor_selected': distributor_selected,
 		'category_selected': category_selected,
-		'synonyms': synonyms,
+		'items': items,
 		'updaters': updaters,
 		'distributors': distributors,
 		'categories': categories,
@@ -355,6 +395,9 @@ def categorysynonyms(request, updater_selected='all', distributor_selected='all'
 
 # Синоним производителя
 def categorysynonym(request, synonym_id):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from catalog.models import CategorySynonym, Category, Updater, Distributor
@@ -367,6 +410,9 @@ def categorysynonym(request, synonym_id):
 # Список типов цен
 def priceTypes(request):
 
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
 	# Импортируем
 	from catalog.models import PriceType
 
@@ -378,6 +424,9 @@ def priceTypes(request):
 
 # Тип цены
 def priceType(request, alias):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from catalog.models import PriceType
@@ -744,7 +793,7 @@ def ajaxLinkCategorySynonym(request):
 				category = Category.objects.get(id=request.POST.get('category'))
 				synonym.category = category
 				synonym.save()
-				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к производителю ' + category.name + '.'}
+				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к категории ' + category.name + '.'}
 		except CategorySynonym.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Синоним с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
 		except Category.DoesNotExist:
@@ -912,6 +961,35 @@ def ajaxTrashCategory(request):
 			result = {'status': 'success', 'message': 'Категория удалена.'}
 		except Category.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Trash Category
+def ajaxTrashCategorySynonym(request):
+
+	# Импортируем
+	from catalog.models import CategorySynonym
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			item = CategorySynonym.objects.get(id=request.POST.get('id'))
+			item.delete()
+			result = {'status': 'success', 'message': 'Синоним категории удалён.'}
+		except CategorySynonym.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Синоним категории с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

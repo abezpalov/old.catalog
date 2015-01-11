@@ -49,26 +49,43 @@
 			<th>Наименование</th>
 			<th class="hide-for-small-only">Загрузчик</th>
 			<th class="hide-for-small-only">Поставщик</th>
-			<th width="30%">Категория</th>
+			<th>Категория</th>
+			<th>Управление</th>
 		</tr>
-		{% for synonym in synonyms %}
+		{% for item in items %}
 		<tr>
 			<td>{{ forloop.counter }}</td>
-			<td><a href="/catalog/category-synonym/{{ synonym.id }}/">{{ synonym.name }}</a></td>
-			<td class="hide-for-small-only">{{ synonym.updater }}</td>
-			<td class="hide-for-small-only">{{ synonym.distributor }}</td>
+			<td><a href="/catalog/category-synonym/{{ synonym.id }}/" id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-category="{{ item.category.id }}">{{ item.name }}</a></td>
+			<td class="hide-for-small-only">{{ item.updater }}</td>
+			<td class="hide-for-small-only">{{ item.distributor }}</td>
+			<td class="hide-for-small-only">{{ item.category.name }}</td>
 			<td>
-				<select data-id="{{ synonym.id }}" class="do-link-category-synonym">
-					<option value="null"{% if synonym.category == None %} selected{% endif %}> - Не определена - </option>
-					{% for category in categories %}
-					<option value="{{ category.id }}"{% if synonym.category.id == category.id %} selected{% endif %}>{{ category.name }}</option>
-					{% endfor %}
-				</select>
+				<button class="tiny alert" data-do="trash-item" data-id="{{ item.id }}"><i class="fa fa-trash"></i></button>
 			</td>
 		</tr>
 		{% endfor %}
 	</table>
 </div>
+
+<!-- Модальное окно редактирования элемента -->
+<div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<fieldset>
+		<legend>Редактировать синоним категории</legend>
+		<input id="edit-item-id" type="hidden">
+		<label>Наименование
+			<input id="edit-item-name" type="text">
+		</label>
+		<select id="edit-item-category">
+			<option value="null" selected> - Не определена - </option>
+			{% for category in categories %}
+			<option value="{{ category.id }}">{{ category.name }}</option>
+			{% endfor %}
+		</select>
+	</fieldset>
+	<button data-do="edit-item-save">Сохранить</button>
+	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+</div>
+
 {% else %}
 <div class="row collapse">
 	<div class="small-12 columns">
