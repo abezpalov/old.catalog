@@ -134,6 +134,15 @@ $(document).ready(function(){
 		}
 	});
 
+	$("body").delegate('#top-search-input', "change", function(){
+		$('#filter-items-search-input').val($('#top-search-input').val())
+		if ($('#filter-items-search-input').val() == ''){
+			$('#filter-items-search').addClass('secondary');
+		} else {
+			$('#filter-items-search').removeClass('secondary');
+		}
+	});
+
 	$("body").delegate("#top-search-button", "click", function(){
 		if ($('#top-search-input').val() != ''){
 			location.href = '/catalog/products/search/' + $('#top-search-input').val() + '/';
