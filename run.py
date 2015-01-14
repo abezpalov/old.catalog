@@ -20,5 +20,5 @@ try:
 			runner.updater.updated = timezone.now()
 			runner.updater.save()
 except IndexError: print("Error: Не указан загрузчик (Updater/Runner) для запуска.")
-except ImportError: print("Error: Не найден загрузчик " + sys.argv[1])
+except ImportError: print("ImportError")
 exit()

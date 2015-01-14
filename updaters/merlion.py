@@ -84,19 +84,19 @@ class Runner:
 
 		# Получаем архив с прайс-листом
 		for url in self.url_price:
-			xml_data = self.getXML(request = s.get(url, cookies=cookies))
+			xml_data = self.getXML(r = s.get(url, cookies=cookies))
 			if not self.parsePrice(xml_data):
 				print("Парсинг невозможен.")
 				return False
 
 		return True
 
-	def getXML(self, request):
+	def getXML(self, r):
 
 		from io import BytesIO
 		from catalog.lib.zipfile import ZipFile
 
-		zip_data = ZipFile(BytesIO(request.content))
+		zip_data = ZipFile(BytesIO(r.content))
 		xls_data = zip_data.open(zip_data.namelist()[0])
 
 		print("Получен прайс-лист: " + zip_data.namelist()[0])
