@@ -8,27 +8,38 @@ urlpatterns = patterns('',
 	# ex: /catalog/
 	url(r'^$', views.products, name='products'),
 
+
 	# Product
 	# TODO ex: /catalog/products/c/456-y/fujitsu/search/vfy-rx300/
 	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/(?P<vendor>[a-zA-Z0-9_-]+)/search/(?P<search>[^\f\n\r\t\v]+)/$', views.products, name='products'),
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/(?P<vendor>[a-zA-Z0-9_-]+)/search/(?P<search>[^\f\n\r\t\v]+)/page/(?P<page>[0-9]+)/$', views.products, name='products'),
 	# TODO ex: /catalog/products/c/456-y/search/vfy-rx300/
 	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/search/(?P<search>[^\f\n\r\t\v]+)/$', views.products, name='products'),
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/search/(?P<search>[^\f\n\r\t\v]+)/page/(?P<page>[0-9]+)/$', views.products, name='products'),
 	# TODO ex: /catalog/products/fujitsu/search/vfy-rx300/
 	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/search/(?P<search>[^\f\n\r\t\v]+)/$', views.products, name='products'),
+	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/search/(?P<search>[^\f\n\r\t\v]+)/page/(?P<page>[0-9]+)/$', views.products, name='products'),
 	# TODO ex: /catalog/products/search/vfy-rx300/
 	url(r'^products/search/(?P<search>[^\f\n\r\t\v]{2,})/$', views.products, name='products'),
+	url(r'^products/search/(?P<search>[^\f\n\r\t\v]{2,})/page/(?P<page>[0-9]+)/$', views.products, name='products'),
 	# TODO ex: /catalog/products/c/456-y/fujitsu/
 	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/(?P<vendor>[a-zA-Z0-9_-]+)/$', views.products, name='products'),
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/(?P<vendor>[a-zA-Z0-9_-]+)/page/(?P<page>[0-9]+)/$', views.products, name='products'),
 	# TODO ex: /catalog/products/c/456-y/
 	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/$', views.products, name='products'),
+	url(r'^products/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})/page/(?P<page>[0-9]+)/$', views.products, name='products'),
 	# TODO ex: /catalog/products/fujitsu/
 	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/$', views.products, name='products'),
+	url(r'^products/(?P<vendor>[a-zA-Z0-9_-]+)/page/(?P<page>[0-9]+)/$', views.products, name='products'),
 	# TODO ex: /catalog/products/
 	url(r'^products/$', views.products, name='products'),
-	# TODO ex: /catalog/product/125/
+	url(r'^products/page/(?P<page>[0-9]+)/$', views.products, name='products'),
+
+	# ex: /catalog/product/125/
 	url(r'^product/(?P<id>[0-9]+)/$', views.product, name='product'),
-	# TODO ex: /catalog/product/fujitsu/vfy-rx300/
+	# ex: /catalog/product/fujitsu/vfy-rx300/
 	url(r'^product/(?P<vendor>[a-zA-Z0-9_-]+)/(?P<article>[^\f\n\r\t\v]+)/$', views.product, name='product'),
+
 
 	# Updater
 	# ex: /catalog/updaters/
@@ -39,17 +50,20 @@ urlpatterns = patterns('',
 	url(r'^updater/(?P<alias>[a-zA-Z0-9_-]+)/run/$', views.update, name='update'),
 	url(r'^updater/(?P<alias>[a-zA-Z0-9_-]+)/run/(?P<key>[a-zA-Z0-9]+)/$', views.update, name='update'),
 
+
 	# Vendor
 	# ex: /catalog/vendors/
 	url(r'^vendors/$', views.vendors, name='vendors'),
 	# ex: /catalog/vendor/fujitsu/
 	url(r'^vendor/(?P<alias>[a-zA-Z0-9_-]+)/$', views.vendor, name='vendor'),
 
+
 	# Category
 	# ex: /catalog/categories/
 	url(r'^categories/$', views.categories, name='categories'),
 	# ex: /catalog/category/98/
 	url(r'^category/(?P<category_id>[0-9]+)/$', views.category, name='category'),
+
 
 	# Vendor Synonym
 	# ex: /catalog/vendor-synonyms/
@@ -59,6 +73,7 @@ urlpatterns = patterns('',
 	# ex: /catalog/vendor-synonym/58/
 	url(r'^vendor-synonym/(?P<synonym_id>[0-9]+)/$', views.vendorsynonym, name='vendorsynonym'),
 
+
 	# Category Synonym
 	# ex: /catalog/category-synonyms/
 	url(r'^category-synonyms/$', views.categorysynonyms, name='categorysynonyms'),
@@ -66,6 +81,7 @@ urlpatterns = patterns('',
 	url(r'^category-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<category_selected>[a-zA-Z0-9_-]+)/$', views.categorysynonyms, name='categorysynonyms'),
 	# ex: /catalog/category-synonym/58/
 	url(r'^category-synonym/(?P<synonym_id>[0-9]+)/$', views.categorysynonym, name='categorysynonym'),
+
 
 	# Price Types
 	# ex: /catalog/price-types/

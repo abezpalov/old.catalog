@@ -285,13 +285,13 @@ class PriceManager(models.Manager):
 				product.price = price
 				product.save()
 
-			print("%s of %s. %s %s = %s %s" % (str(n), len(products), product.vendor.name, product.article, str(product.price.price), product.price.currency.alias))
+			print("{} of {}. {} {} = {} {}".format(str(n), len(products), product.vendor.name, product.article, str(product.price.price), str(product.price.currency.alias)))
 
 		return True
 
 # Price
 class Price(models.Model):
-	price = models.DecimalField(max_digits=12, decimal_places=2, null=True, default=None)
+	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
 	price_type = models.ForeignKey(PriceType, null=True, default=None)
 	currency = models.ForeignKey(Currency, null=True, default=None)
 	fixed = models.BooleanField(default=False)
@@ -393,7 +393,7 @@ class Party(models.Model):
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
 	article = models.CharField(max_length=100, null=True, default=None) # Артикул поставщика
-	price = models.DecimalField(max_digits=12, decimal_places=2, null=True, default=None)
+	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
 	price_type = models.ForeignKey(PriceType, null=True, default=None)
 	currency = models.ForeignKey(Currency, null=True, default=None)
 	quantity = models.IntegerField(null=True, default=None)
@@ -412,7 +412,7 @@ class PartyHystory(models.Model):
 	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
 	stock = models.ForeignKey(Stock)
-	price = models.DecimalField(max_digits=12, decimal_places=2, null=True, default=None)
+	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
 	price_type = models.ForeignKey(PriceType, null=True, default=None)
 	currency = models.ForeignKey(Currency, null=True, default=None)
 	quantity = models.IntegerField(null=True, default=None)
@@ -427,7 +427,7 @@ class PartyHystory(models.Model):
 class PriceHystory(models.Model):
 	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
 	product = models.ForeignKey(Product)
-	price = models.DecimalField(max_digits=12, decimal_places=2, null=True, default=None)
+	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
 	price_type = models.ForeignKey(PriceType, null=True, default=None)
 	currency = models.ForeignKey(Currency, null=True, default=None)
 	date = models.DateField()

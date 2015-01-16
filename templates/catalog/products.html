@@ -41,7 +41,7 @@
 		<tr><td colspan="6"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
-			<td>{{ forloop.counter }}</td>
+			<td>{{ product.n }}</td>
 			<td>{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.vendor.alias }}/{{ product.article }}/">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
@@ -50,6 +50,25 @@
 		</tr>
 		{% endfor %}
 	</table>
+
+	<!-- Pagination -->
+	{% if pages %}
+	<div class="pagination-centered">
+		<ul class="pagination">
+			<li class="arrow{% if not page_prev %} unavailable{% endif %}"><a{% if page_prev %} href="{{ url }}{% if page_prev > 1 %}page/{{ page_prev }}/{% endif %}"{% endif %}>&laquo; Влево</a></li>
+			{% for n in pages %}
+				{% if n %}
+				<li{% if page == n %} class="current"{% endif %}><a href="{{ url }}page/{{ n }}/">{{ n }}</a></li>
+				{% else %}
+				{% ifchanged n %}
+				<li class="unavailable"><a>&hellip;</a></li>
+				{% endifchanged %}
+				{% endif %}
+			{% endfor %}
+			<li class="arrow{% if not page_next %} unavailable{% endif %}"><a{% if page_next %} href="{{ url }}page/{{ page_next }}/"{% endif %}>Вправо &raquo;</a></li>
+		</ul>
+	</div>
+	{% endif %}
 </div>
 
 <!-- Модальное окно фильтра -->

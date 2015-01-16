@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import RequestContext, loader
-
+import math
 
 # Каталог (главная)
 def index(request):
@@ -10,7 +10,7 @@ def index(request):
 
 
 # Список продуктов
-def products(request, search='', vendor=None, category=None, childs=None):
+def products(request, search='', vendor=None, category=None, childs=None, page = 1):
 
 	# Импортируем
 	from lxml import etree
@@ -20,9 +20,13 @@ def products(request, search='', vendor=None, category=None, childs=None):
 	from catalog.models import Vendor
 
 	# Инициализируем переменные
+	items_on_page = 100
+	page = int(page)
+
 	categories = []
 	product_categories = []
 	products = []
+	pages = []
 
 	# Получаем список всех имеющихся категорий
 	categories = getCategoryTree(categories)
@@ -68,6 +72,43 @@ def products(request, search='', vendor=None, category=None, childs=None):
 		# TODO Что показывать когда нечего показывать?
 		think = True
 
+	# Нумеруем элементы списка
+	for n, product in enumerate(products):
+		product.n = n + 1
+
+	# Разбиваем на страницы
+	if len(products) > items_on_page:
+
+		# Формируем базовый URL
+		url = '/catalog/products/'
+		if category:
+			url = "{}c/{}-{}/".format(url, category, childs)
+		if vendor:
+			url = "{}{}/".format(url, vendor.alias)
+		if search:
+			url = "{}search/{}/".format(url, search)
+
+		# Формируем список номерв страниц для ссылок
+		page_max = len(products) // items_on_page
+		if len(products) // items_on_page < len(products) / items_on_page:
+			page_max += 1
+
+		for n in range(1, page_max + 1):
+			if n < 4 or n-3 < page < n+3 or n > page_max - 3:
+				pages.append(n)
+			elif n == 4 or n == page_max - 4:
+				pages.append(0)
+
+		# Определяем номера предыдущих и последующих страниц
+		page_prev = page - 1
+		if page == page_max:
+			page_next = 0
+		else:
+			page_next = page + 1
+
+		products = products[(page - 1) * items_on_page : page * items_on_page]
+
+
 	# Локализуем представление цен
 	for product in products:
 		try:
@@ -79,8 +120,7 @@ def products(request, search='', vendor=None, category=None, childs=None):
 			else: product.price_out = '<i class="fa fa-phone"></i>'
 		except: product.price_out = '<i class="fa fa-phone"></i>'
 
-	context = {'products': products, 'categories': categories, 'categories_ul': categories_ul, 'vendors': vendors, 'category': category, 'childs': childs, 'vendor': vendor,  'search': search}
-	return render(request, 'catalog/products.html', context)
+	return render(request, 'catalog/products.html', locals())
 
 
 # Продукт
