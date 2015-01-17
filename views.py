@@ -96,8 +96,14 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 		for n in range(1, page_max + 1):
 			if n < 4 or n-3 < page < n+3 or n > page_max - 3:
 				pages.append(n)
-			elif n == 4 or n == page_max - 4:
+			elif (n == 4 or n == page_max - 4) and pages[len(pages)-1]:
 				pages.append(0)
+
+		#другая версия пейджинга
+
+
+
+
 
 		# Определяем номера предыдущих и последующих страниц
 		page_prev = page - 1

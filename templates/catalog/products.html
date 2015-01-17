@@ -60,9 +60,7 @@
 				{% if n %}
 				<li{% if page == n %} class="current"{% endif %}><a href="{{ url }}page/{{ n }}/">{{ n }}</a></li>
 				{% else %}
-				{% ifchanged n %}
 				<li class="unavailable"><a>&hellip;</a></li>
-				{% endifchanged %}
 				{% endif %}
 			{% endfor %}
 			<li class="arrow{% if not page_next %} unavailable{% endif %}"><a{% if page_next %} href="{{ url }}page/{{ page_next }}/"{% endif %}>Вправо &raquo;</a></li>
