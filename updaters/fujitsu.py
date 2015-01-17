@@ -305,7 +305,7 @@ class Runner:
 			elif rown + 1 < len(rows):
 				print("{} {}".format(row[num['price_a']].strip().replace('"', ''), row[num['price_n']].strip().replace('"', '')))
 				price_types[row[num['price_a']].strip().replace('"', '')] = row[num['price_n']].strip().replace('"', '')
-				
+
 		word['price'] = "SP" + price_types["RDP"]
 		print(word['price'])
 
