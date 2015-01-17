@@ -86,7 +86,7 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 
 		# Формируем список номеров страниц для ссылок
 		page_max = len(products) // items_on_page
-		if len(products) // items_on_page < len(products) / items_on_page:
+		if len(products) % items_on_page:
 			page_max += 1
 
 		for n in range(1, page_max + 1):
