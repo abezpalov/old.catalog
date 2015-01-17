@@ -186,9 +186,13 @@ class Runner:
 		word = {
 			'article':       'SachNr',
 			'name':          'Benennung',
+			'status':        'VertStat',
 			'category_numb': 'PraesKategNr',
 			'description-1': 'Beschreibung',
 			'description-2': 'CfgHint'}
+
+		# Статусы продуктов
+		self.quantity = {}
 
 		# Загружаем таблицу продуктов
 		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Komp'], stdout=subprocess.PIPE).communicate()[0]
@@ -207,11 +211,12 @@ class Runner:
 					cel = cel.strip().replace('"', '')
 					if   cel.strip() == word['article']:       num['article']       = celn
 					elif cel.strip() == word['name']:          num['name']          = celn
+					elif cel.strip() == word['status']:        num['status']        = celn
 					elif cel.strip() == word['category_numb']: num['category_numb'] = celn
 					elif cel.strip() == word['description-1']: num['description-1'] = celn
 					elif cel.strip() == word['description-2']: num['description-2'] = celn
 
-				if len(num) == 5:
+				if len(num) == 6:
 					print("Все столбцы распознаны")
 				else:
 					print("Error: Не опознаны необходимые столбцы.")
@@ -226,6 +231,10 @@ class Runner:
 
 				# Имя
 				name = row[num['name']].strip().replace('"', '')
+
+				# Статус
+				if 50 == row[num['article']].strip().replace('"', ''): self.quantity[article] = -1
+				else: self.quantity[article] = 0
 
 				# Категория
 				try:
@@ -329,12 +338,13 @@ class Runner:
 
 				article = row[num['article']].strip().replace('"', '')
 				price = float(row[num['price']].strip().replace('"', '') or 0)
-
 				print("{} = {} {} {}".format(article, str(price), self.usd.alias, self.rdp.alias))
 
 				try:
 					# Получаем объект товара
 					product = Product.objects.get(article=article, vendor=self.vendor)
+
+					quantity = self.quantity[article]
 
 					# Добавляем партии
 					party = Party.objects.make(
@@ -343,10 +353,10 @@ class Runner:
 						price=price,
 						price_type = self.rdp,
 						currency = self.usd,
-						quantity = -1,
+						quantity = quantity,
 						unit = self.default_unit)
 
-				except Product.DoesNotExist:
-					continue
+				except KeyError: continue
+				except Product.DoesNotExist: continue
 
 		return True

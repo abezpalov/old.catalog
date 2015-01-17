@@ -52,8 +52,7 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 		product_categories.append(None)
 
 	# Получаем объект производителя, чей товар необходимо показать
-	if vendor:
-		vendor = Vendor.objects.get(alias=vendor)
+	if vendor: vendor = Vendor.objects.get(alias=vendor)
 
 	# Получаем список продуктов, которые необходимо показать
 	# Если есть параметры запроса
@@ -81,14 +80,11 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 
 		# Формируем базовый URL
 		url = '/catalog/products/'
-		if category:
-			url = "{}c/{}-{}/".format(url, category, childs)
-		if vendor:
-			url = "{}{}/".format(url, vendor.alias)
-		if search:
-			url = "{}search/{}/".format(url, search)
+		if category: url = "{}c/{}-{}/".format(url, category, childs)
+		if vendor:   url = "{}{}/".format(url, vendor.alias)
+		if search:   url = "{}search/{}/".format(url, search)
 
-		# Формируем список номерв страниц для ссылок
+		# Формируем список номеров страниц для ссылок
 		page_max = len(products) // items_on_page
 		if len(products) // items_on_page < len(products) / items_on_page:
 			page_max += 1
@@ -99,10 +95,7 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 			elif (n == 4 or n == page_max - 4) and pages[len(pages)-1]:
 				pages.append(0)
 
-		#другая версия пейджинга
-
-
-
+		# TODO Вторая версия пейджинга
 
 
 		# Определяем номера предыдущих и последующих страниц
