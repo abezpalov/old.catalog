@@ -80,7 +80,7 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 
 		# Формируем базовый URL
 		url = '/catalog/products/'
-		if category: url = "{}c/{}-{}/".format(url, category, childs)
+		if category: url = "{}c/{}-{}/".format(url, category.id, childs)
 		if vendor:   url = "{}{}/".format(url, vendor.alias)
 		if search:   url = "{}search/{}/".format(url, search)
 
