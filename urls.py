@@ -107,7 +107,11 @@ urlpatterns = patterns('',
 	url(r'^ajax/save-category/$', views.ajaxSaveCategory, name='ajaxSaveCategory'),
 	url(r'^ajax/save-vendor/$', views.ajaxSaveVendor, name='ajaxSaveVendor'),
 	url(r'^ajax/save-price-type/$', views.ajaxSavePriceType, name='ajaxSavePriceType'),
+	url(r'^ajax/save-product/$', views.ajaxSaveProduct, name='ajaxSaveProduct'),
 
 	url(r'^ajax/trash-category/$', views.ajaxTrashCategory, name='ajaxTrashCategory'),
 	url(r'^ajax/trash-category-synonym/$', views.ajaxTrashCategorySynonym, name='ajaxTrashCategorySynonym'),
+
+	url(r'^ajax/get-product/$', views.ajaxGetProduct, name='ajaxGetProduct'),
+
 )

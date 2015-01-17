@@ -318,7 +318,7 @@ class Quantity(models.Model):
 # Product manager
 class ProductManager(models.Manager):
 
-	def take(self, article, vendor, name, category = None, unit = None):
+	def take(self, article, vendor, name, category = None, unit = None, description = None):
 
 		name = str(name).strip()
 		name = name.replace("\u00AD", "")
@@ -335,6 +335,10 @@ class ProductManager(models.Manager):
 			product = self.get(article=article, vendor=vendor)
 			if not product.category and category:
 				product.category = category
+				product.modified = timezone.now()
+				product.save()
+			if not product.description and description:
+				product.description = description
 				product.modified = timezone.now()
 				product.save()
 		except Product.DoesNotExist:

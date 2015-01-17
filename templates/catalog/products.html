@@ -38,12 +38,12 @@
 		</tr>
 		{% for product in products %}
 		{% ifchanged product.category %}
-		<tr><td colspan="6"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}</{% endif %}</strong></td></tr>
+		<tr><td colspan="6"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.n }}</td>
 			<td>{{ product.article }}</td>
-			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.vendor.alias }}/{{ product.article }}/">{{ product.name }}</a></td>
+			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.vendor.alias }}/{{ product.article }}/" data-do="edit-item" data-id="{{ product.id }}">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
 			<td style="white-space: nowrap;" class="text-right">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</td>
 			<td style="white-space: nowrap;"></td>
@@ -115,6 +115,49 @@
 	<button data-do="filter-items-cancel" class="secondary">Отмена</button>
 </div>
 
+{% if perms.catalog.change_product %}
+<!-- Модальное окно редактирования элемента -->
+<div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<fieldset>
+		<legend>Редактировать синоним категории</legend>
+		<input id="edit-item-id" type="hidden">
+		<label>Наименование
+			<input id="edit-item-name" type="text">
+		</label>
+		<label>Артикул
+			<input id="edit-item-article" type="text">
+		</label>
+		<label>Производитель
+			<select id="edit-item-vendor">
+				{% for vendor in vendors %}
+				<option value="{{ vendor.id }}">{{ vendor.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+		<label>Категория
+			<select id="edit-item-category">
+				<option value="null" selected> - Не определена - </option>
+				{% for category in categories %}
+				<option value="{{ category.id }}">{{ category.name }}</option>
+				{% endfor %}
+			</select>
+		<label>Описание
+			<textarea id="edit-item-description" type="text"></textarea>
+		</label>
+		<label>Дубль
+			<input id="edit-item-double" type="text">
+		</label>
+		<label>Статус
+			<div class="switch small">
+				<input id="edit-item-state" type="checkbox">
+				<label for="edit-item-state"></label>
+			</div>
+		</label>
+	</fieldset>
+	<button data-do="edit-item-save">Сохранить</button>
+	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+</div>
+{% endif %}
 
 {% endblock %}
 {% block js-content %}

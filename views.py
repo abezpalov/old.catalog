@@ -31,6 +31,10 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 	# Получаем список всех имеющихся категорий
 	categories = getCategoryTree(categories)
 
+	# Корректируем имена категорий с учетом вложенноти
+	for c in categories:
+		c.name = '— ' * c.level + c.name
+
 	root = etree.Element("div")
 	getCategoryHTMLTree(root, None, True)
 	categories_ul = etree.tostring(root)
@@ -416,7 +420,7 @@ def categorysynonyms(request, updater_selected='all', distributor_selected='all'
 	categories = []
 	categories = getCategoryTree(categories)
 
-	# Корректируем имена категорий с учетом вложеннот
+	# Корректируем имена категорий с учетом вложенноти
 	for category in categories:
 		category.name = '— ' * category.level + category.name
 
@@ -944,7 +948,7 @@ def ajaxSaveVendor(request):
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
-# Save Vendor
+# Save Price Type
 def ajaxSavePriceType(request):
 
 	# Импортируем
@@ -971,6 +975,64 @@ def ajaxSavePriceType(request):
 			result = {'status': 'success', 'message': 'Изменения типа цены ' + item.name + ' сохранены.'}
 		except PriceType.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Тип цены с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+# Save Product
+def ajaxSaveProduct(request):
+
+	# Импортируем
+	from catalog.models import Product
+	from catalog.models import Vendor
+	from catalog.models import Category
+	from django.utils import timezone
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id') or not request.POST.get('product_name') or not request.POST.get('product_article') or not request.POST.get('product_vendor_id'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			item = Product.objects.get(id=request.POST.get('id'))
+			item.name = request.POST.get('product_name')
+			item.article = request.POST.get('product_article')
+			item.vendor = Vendor.objects.get(id=request.POST.get('product_vendor_id'))
+			if 'null' == request.POST.get('product_category_id'):
+				item.category = None
+			else:
+				item.category = Category.objects.get(id=request.POST.get('product_category_id'))
+			item.description = request.POST.get('product_description')
+			if request.POST.get('product_duble_id'):
+				item.double = Product.objects.get(id=request.POST.get('product_duble_id'))
+			if 'true' == request.POST.get('product_state'):
+				item.state = True
+			else:
+				item.state = False
+			item.edited = True
+			item.modified = timezone.now()
+			item.save()
+			result = {
+				'status': 'success',
+				'message': 'Изменения продукта {} {} сохранены.'.format(item.vendor.name, item.article)}
+		except Product.DoesNotExist:
+			result = {
+				'status': 'alert',
+				'message': 'Продукт с идентификатором {} отсутствует в базе.'.format(request.POST.get('id'))}
+		except Vendor.DoesNotExist:
+			result = {
+				'status': 'alert',
+				'message': 'Производитель с идентификатором {} отсутствует в базе.'.format(request.POST.get('product_vendor_id'))}
+		except Category.DoesNotExist:
+			result = {
+				'status': 'alert',
+				'message': 'Категория с идентификатором {} отсутствует в базе.'.format(request.POST.get('product_category_id'))}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
@@ -1029,6 +1091,47 @@ def ajaxTrashCategorySynonym(request):
 			result = {'status': 'success', 'message': 'Синоним категории удалён.'}
 		except CategorySynonym.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Синоним категории с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+# Get Product
+def ajaxGetProduct(request):
+
+	# Импортируем
+	from catalog.models import Product
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	if not request.POST.get('id'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			product = Product.objects.get(id=request.POST.get('id'))
+
+			if product.category: product_category_id = product.category.id
+			else: product_category_id = 'null'
+			if product.unit: product_unit_id = product.unit.id
+			else: product_unit_id = 0
+			if product.duble: product_duble_id = product.duble.id
+			else: product_duble_id = ''
+
+			result = {
+				'status': 'success',
+				'message': 'Данные продукта получены.',
+				'product_name': product.name,
+				'product_article': product.article,
+				'product_vendor_id': product.vendor.id,
+				'product_category_id': product_category_id,
+				'product_unit_ud': product_unit_id,
+				'product_description': product.description,
+				'product_duble_id': product_duble_id,
+				'product_state': product.state}
+		except Product.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Продукт с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

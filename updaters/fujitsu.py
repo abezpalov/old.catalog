@@ -253,11 +253,12 @@ class Runner:
 				# Добавляем продукт в базу
 				if article and name:
 					product = Product.objects.take(
-						article  = article,
-						vendor   = self.vendor,
-						name     = name,
-						category = category,
-						unit     = self.default_unit)
+						article     = article,
+						vendor      = self.vendor,
+						name        = name,
+						category    = category,
+						unit        = self.default_unit,
+						description = description)
 
 		return True
 
