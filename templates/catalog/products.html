@@ -21,7 +21,7 @@
 	<ul class="button-group even-3">
 		<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
 		<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
-		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if search == '' %} class="secondary"{% endif %}><i class="fa fa-search"></i> Искомое слово</button></li>
+		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if search == '' %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительные параметры</button></li>
 	</ul>
 </div>
 
@@ -45,7 +45,7 @@
 			<td>{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.vendor.alias }}/{{ product.article }}/" data-do="edit-item" data-id="{{ product.id }}">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
-			<td style="white-space: nowrap;" class="text-right">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</td>
+			<td style="white-space: nowrap;" class="text-right"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</a></td>
 			<td style="white-space: nowrap;"></td>
 		</tr>
 		{% endfor %}
@@ -75,7 +75,7 @@
 	<dl class="tabs" data-tab>
 		<dd id="CategoryPanelDD" class="active"><a href="#CategoryPanel"><i class="fa fa-folder-open-o"></i> Категория</a></dd>
 		<dd id="VendorPanelDD"><a href="#VendorPanel"><i class="fa fa-building"></i> Производитель</a></dd>
-		<dd id="SearchPanelDD"><a href="#SearchPanel"><i class="fa fa-search"></i> Искомое слово</a></dd>
+		<dd id="SearchPanelDD"><a href="#SearchPanel"><i class="fa fa-search"></i> Дополнительные параметры</a></dd>
 	</dl>
 	<div class="tabs-content">
 		<div class="content active" id="CategoryPanel">
@@ -118,8 +118,8 @@
 {% if perms.catalog.change_product %}
 <!-- Модальное окно редактирования элемента -->
 <div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<h2>Редактировать продукт</h2>
 	<fieldset>
-		<legend>Редактировать синоним категории</legend>
 		<input id="edit-item-id" type="hidden">
 		<label>Наименование
 			<input id="edit-item-name" type="text">
@@ -156,8 +156,17 @@
 	</fieldset>
 	<button data-do="edit-item-save">Сохранить</button>
 	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}
+
+<!-- TODO Включить проверку прав -->
+<!-- Модальное окно просмотра партий  -->
+<div id="ViewPartiesModal" class="reveal-modal" data-reveal>
+	<h2>Партии продукта</h2>
+	<div id="ViewPartiesModalContent"></div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
 
 {% endblock %}
 {% block js-content %}

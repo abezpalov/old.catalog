@@ -1095,6 +1095,7 @@ def ajaxTrashCategorySynonym(request):
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
+
 # Get Product
 def ajaxGetProduct(request):
 
@@ -1130,6 +1131,52 @@ def ajaxGetProduct(request):
 				'product_description': product.description,
 				'product_duble_id': product_duble_id,
 				'product_state': product.state}
+		except Product.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Продукт с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Get Parties
+def ajaxGetParties(request):
+
+	# Импортируем
+	from catalog.models import Product, Party
+	import json
+
+	# Инициализируем переменные
+	html_data = ''
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	if not request.POST.get('id'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			product = Product.objects.get(id=request.POST.get('id'))
+
+			parties = Party.objects.filter(product=product)
+
+			if len(parties):
+				for party in parties:
+					
+
+
+
+					html_data += '<tr><td>{}</td><td>{} {}</td><td>{}</td><td>{} {}</td></tr>\n'.format(party.stock.name, party.price, party.currency.alias, party.price_type.alias, party.quantity, party.unit.name)
+				html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
+			else:
+				html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
+
+
+			result = {
+				'status': 'success',
+				'message': 'Данные партий получены. Количество партий {}'.format(len(parties)),
+				'len': len(parties),
+				'html_data': html_data}
 		except Product.DoesNotExist:
 			result = {'status': 'alert', 'message': 'Продукт с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
 

@@ -255,12 +255,49 @@ $(document).ready(function(){
 		}, "json");
 		return false;
 	});
-
-
-
-
-
 {% endif %}
+
+{% if perms.catalog.change_party %}
+
+	// Редактирование элемента
+	$("body").delegate("a[data-do*='view-parties']", "click", function(){
+
+		// Очищаем содержимое
+		$('#ViewPartiesModalContent').html('')
+
+		// Запрашиваем партии на сервере
+		$.post("/catalog/ajax/get-parties/", {
+			id: $(this).data('id'),
+			csrfmiddlewaretoken: '{{ csrf_token }}'
+		},
+		function(data) {
+			if (null != data.status) {
+				if ('success' == data.status){
+					$('#ViewPartiesModalContent').html(data.html_data)
+				} else {
+					var notification = new NotificationFx({
+						wrapper : document.body,
+						message : '<p>' + data.message + '</p>',
+						layout : 'growl',
+						effect : 'genie',
+						type : data.status,
+						ttl : 3000,
+						onClose : function() { return false; },
+						onOpen : function() { return false; }
+					});
+					notification.show();
+				}
+			}
+		}, "json");
+
+		// Открываем модальное окно
+		$('#ViewPartiesModal').foundation('reveal', 'open');
+		return false;
+	});
+{% endif %}
+
+
+
 
 
 

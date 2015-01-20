@@ -114,4 +114,6 @@ urlpatterns = patterns('',
 
 	url(r'^ajax/get-product/$', views.ajaxGetProduct, name='ajaxGetProduct'),
 
+	url(r'^ajax/get-parties/$', views.ajaxGetParties, name='ajaxGetParties'),
+
 )
