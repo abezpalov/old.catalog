@@ -123,11 +123,11 @@ $(document).ready(function(){
 		}
 
 		// Переходим по ссылке
-		if (ct == '' || vn == '' || sr == '') {
+		if (ct == '' && vn == '' && sr == '') {
+			alert ('Определите хотя бы одно условие выборки.');
+		} else {
 			$('#FilterItemsModal').foundation('reveal', 'close');
 			location.href = url;
-		} else {
-			alert ('Определите хотя бы одно условие выборки.');
 		}
 	});
 
