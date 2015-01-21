@@ -257,7 +257,6 @@ $(document).ready(function(){
 	});
 {% endif %}
 
-{% if perms.catalog.change_party %}
 
 	// Редактирование элемента
 	$("body").delegate("a[data-do*='view-parties']", "click", function(){
@@ -294,11 +293,5 @@ $(document).ready(function(){
 		$('#ViewPartiesModal').foundation('reveal', 'open');
 		return false;
 	});
-{% endif %}
-
-
-
-
-
 
 });
