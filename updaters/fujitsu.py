@@ -233,7 +233,7 @@ class Runner:
 				name = row[num['name']].strip().replace('"', '')
 
 				# Статус
-				if 50 == row[num['article']].strip().replace('"', ''): self.quantity[article] = -1
+				if '50' == row[num['status']].strip().replace('"', ''): self.quantity[article] = -1
 				else: self.quantity[article] = 0
 
 				# Категория
