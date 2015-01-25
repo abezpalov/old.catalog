@@ -145,20 +145,26 @@ class Runner:
 
 				# Цена в долларах
 				if price_usd:
-					party = Party.objects.make(product=product, stock=self.stock, price = price_usd, price_type = self.dp, currency = self.usd, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.transit, price = price_usd, price_type = self.dp, currency = self.usd, quantity = transit, unit = self.default_unit)
+					if stock or not transit:
+						party = Party.objects.make(product=product, stock=self.stock, price = price_usd, price_type = self.dp, currency = self.usd, quantity = stock, unit = self.default_unit)
+					if transit:
+						party = Party.objects.make(product=product, stock=self.transit, price = price_usd, price_type = self.dp, currency = self.usd, quantity = transit, unit = self.default_unit)
 					print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
 				# Цена в рублях
 				elif price_rub:
-					party = Party.objects.make(product=product, stock=self.stock, price = price_rub, price_type = self.dp, currency = self.rub, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.transit, price = price_rub, price_type = self.dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+					if stock or not transit:
+						party = Party.objects.make(product=product, stock=self.stock, price = price_rub, price_type = self.dp, currency = self.rub, quantity = stock, unit = self.default_unit)
+					if transit:
+						party = Party.objects.make(product=product, stock=self.transit, price = price_rub, price_type = self.dp, currency = self.rub, quantity = transit, unit = self.default_unit)
 					print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
 				# Цена не определена
 				else:
-					party = Party.objects.make(product=product, stock=self.stock, price = None, price_type = self.dp, currency = self.rub, quantity = stock, unit = self.default_unit)
-					party = Party.objects.make(product=product, stock=self.transit, price = None, price_type = self.dp, currency = self.rub, quantity = transit, unit = self.default_unit)
+					if stock or not transit:
+						party = Party.objects.make(product=product, stock=self.stock, price = None, price_type = self.dp, currency = self.rub, quantity = stock, unit = self.default_unit)
+					if transit:
+						party = Party.objects.make(product=product, stock=self.transit, price = None, price_type = self.dp, currency = self.rub, quantity = transit, unit = self.default_unit)
 					print(product.vendor.name + ' ' + product.article)
 
 		print("Обработка прайс-листа завершена.")

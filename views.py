@@ -63,13 +63,13 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 	if search or category or vendor:
 		for product_category in product_categories:
 			if search != '' and vendor:
-				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(vendor=vendor).filter(category=product_category)
+				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(vendor=vendor).filter(category=product_category).filter(state=True)
 			elif search != '':
-				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(category=product_category)
+				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(category=product_category).filter(state=True)
 			elif vendor:
-				new_products = Product.objects.filter(vendor=vendor).filter(category=product_category)
+				new_products = Product.objects.filter(vendor=vendor).filter(category=product_category).filter(state=True)
 			else:
-				new_products = Product.objects.filter(category=product_category)
+				new_products = Product.objects.filter(category=product_category).filter(state=True)
 			products.extend(new_products)
 	else:
 		# TODO Что показывать когда нечего показывать?
@@ -1162,11 +1162,10 @@ def ajaxGetParties(request):
 
 			if len(parties):
 				for party in parties:
-					
-
-
-
-					html_data += '<tr><td>{}</td><td>{} {}</td><td>{}</td><td>{} {}</td></tr>\n'.format(party.stock.name, party.price, party.currency.alias, party.price_type.alias, party.quantity, party.unit.name)
+					if -1 == party.quantity:
+						html_data += '<tr><td>{}</td><td>{} {}</td><td>{}</td><td>{}</td></tr>\n'.format(party.stock.name, party.price, party.currency.alias, party.price_type.alias, '&infin;')
+					else:
+						html_data += '<tr><td>{}</td><td>{} {}</td><td>{}</td><td>{} {}</td></tr>\n'.format(party.stock.name, party.price, party.currency.alias, party.price_type.alias, party.quantity, party.unit.name)
 				html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
 			else:
 				html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
