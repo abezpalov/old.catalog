@@ -30,8 +30,18 @@ class Runner:
 		# Получаем необходимые объекты
 		self.distributor  = Distributor.objects.take(alias=self.alias, name=self.name)
 		self.updater      = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
-		self.stock        = Stock.objects.take(alias=self.alias+'-stock', name=self.name+': склад', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
-		self.on_order     = Stock.objects.take(alias=self.alias+'-on-order', name=self.name+': на заказ', delivery_time_min = 10, delivery_time_max = 40, distributor=self.distributor)
+		self.stock        = Stock.objects.take(
+					alias=self.alias+'-stock',
+					name=self.name+': склад',
+					delivery_time_min = 3,
+					delivery_time_max = 10,
+					distributor=self.distributor)
+		self.on_order     = Stock.objects.take(
+					alias=self.alias+'-on-order',
+					name=self.name+': на заказ',
+					delivery_time_min = 10,
+					delivery_time_max = 40,
+					distributor=self.distributor)
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
 		self.dp           = PriceType.objects.take(alias='DP', name='Диллерская цена')
 		self.rub          = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
@@ -64,7 +74,13 @@ class Runner:
 
 		# Авторизуемся
 		try:
-			payload = {'AUTH_FORM': 'Y', 'TYPE': 'AUTH', 'backurl': '/catalog/', 'USER_LOGIN': self.updater.login, 'USER_PASSWORD': self.updater.password, 'Login': '1'}
+			payload = {
+				'AUTH_FORM': 'Y',
+				'TYPE': 'AUTH',
+				'backurl': '/catalog/',
+				'USER_LOGIN': self.updater.login,
+				'USER_PASSWORD': self.updater.password,
+				'Login': '1'}
 			r = s.post(self.url, cookies=cookies, data=payload, allow_redirects=True, timeout=30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
@@ -182,22 +198,44 @@ class Runner:
 
 			# Обрабатываем синоним производителя
 			if vendor_synonym_name:
-				vendor_synonym = VendorSynonym.objects.take(name=vendor_synonym_name, updater=self.updater, distributor=self.distributor)
+				vendor_synonym = VendorSynonym.objects.take(
+					name=vendor_synonym_name,
+					updater=self.updater,
+					distributor=self.distributor)
 			else: continue
 
 			# Получаем объект товара
 			if article and name and vendor_synonym.vendor:
-				product = Product.objects.take(article=article, vendor=vendor_synonym.vendor, name=name, unit = self.default_unit)
+				product = Product.objects.take(
+					article=article,
+					vendor=vendor_synonym.vendor,
+					name=name,
+					unit = self.default_unit)
 			else: continue
 
 			# Партии
 			if quantity:
-				party = Party.objects.make(product=product, stock=self.stock, price = price, price_type = self.dp, currency = currency, quantity = quantity, unit = self.default_unit)
+				party = Party.objects.make(
+					product=product,
+					stock=self.stock,
+					price = price,
+					price_type = self.dp,
+					currency = currency,
+					quantity = quantity,
+					unit = self.default_unit)
 				print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 			else:
-				party = Party.objects.make(product=product, stock=self.on_order, price = price, price_type = self.dp, currency = currency, quantity = 0, unit = self.default_unit)
+				party = Party.objects.make(
+					product=product,
+					stock=self.on_order,
+					price = price,
+					price_type = self.dp,
+					currency = currency,
+					quantity = 0,
+					unit = self.default_unit)
 				print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
 
+		del tree
 		return True
 
 	def fixPrice(self, price):
