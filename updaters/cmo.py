@@ -25,7 +25,12 @@ class Runner:
 
 		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
-		self.factory = Stock.objects.take(alias=self.alias+'-factory', name=self.name+': завод', delivery_time_min = 10, delivery_time_max = 20, distributor=self.distributor)
+		self.factory = Stock.objects.take(
+			alias=self.alias+'-factory',
+			name=self.name+': завод',
+			delivery_time_min = 10,
+			delivery_time_max = 20,
+			distributor=self.distributor)
 		self.vendor = Vendor.objects.take(alias=self.alias, name=self.name)
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
 		self.rp = PriceType.objects.take(alias='RP', name='Розничная цена')
@@ -50,7 +55,8 @@ class Runner:
 			'article': 'Артикул',
 			'code': 'Код (ID)',
 			'name': 'Наименование продукции',
-			'price': '"Цена, RUB"'}
+			'price': '"Цена, RUB"',
+			'price-alt': '"Цена, RUB'}
 
 		# Создаем сессию
 		s = requests.Session()
@@ -76,10 +82,12 @@ class Runner:
 			# Заголовок таблицы
 			if trn == num['header']:
 				for tdn, td in enumerate(tr):
-					if   td.text == word['article']: num['article'] = tdn
-					elif td.text == word['code']:    num['code'] = tdn
-					elif td.text == word['name']:    num['name'] = tdn
-					elif td.text == word['price']:   num['price'] = tdn
+					print(td.text)
+					if   td.text == word['article']:   num['article'] = tdn
+					elif td.text == word['code']:      num['code'] = tdn
+					elif td.text == word['name']:      num['name'] = tdn
+					elif td.text == word['price']:     num['price'] = tdn
+					elif td.text == word['price-alt']: num['price'] = tdn
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['code'] or not num['name'] or not num['price']:
@@ -89,7 +97,10 @@ class Runner:
 
 			# Категория
 			elif len(tr) == 1:
-				category_synonym = CategorySynonym.objects.take(name=tr[0][0][0].text.strip(), updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(
+					name=tr[0][0][0].text.strip(),
+					updater=self.updater,
+					distributor=self.distributor)
 
 			# Товар
 			elif len(tr) == 4:
@@ -105,7 +116,12 @@ class Runner:
 
 				# Получаем объект товара
 				if article and name:
-					product = Product.objects.take(article=article, vendor=self.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
+					product = Product.objects.take(
+						article=article,
+						vendor=self.vendor,
+						name=name,
+						category = category_synonym.category,
+						unit = self.default_unit)
 				else: continue
 
 				# Добавляем партии
