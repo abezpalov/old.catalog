@@ -1,5 +1,3 @@
-from datetime import date
-from datetime import datetime
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock
@@ -22,7 +20,6 @@ class Runner:
 		# Инициируем переменные
 		self.name = 'OCS'
 		self.alias = 'ocs'
-		self.message = ''
 
 		# Получаем необходимые объекты
 		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
@@ -38,7 +35,6 @@ class Runner:
 		self.usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
 		self.eur = Currency.objects.take(alias='EUR', name='EUR', full_name='Euro', rate=80, quantity=1)
 
-
 		# Удаляем неактуальные партии
 		Party.objects.clear(stock=self.stock_s)
 		Party.objects.clear(stock=self.stock_m)
@@ -47,42 +43,37 @@ class Runner:
 		Party.objects.clear(stock=self.transit_u)
 
 		# Используемые ссылки
-		self.url = 'https://b2bservice.ocs.ru/b2b.asmx/'
+		self.url = 'https://b2bservice.ocs.ru/b2bJSON.asmx/'
 
 
 	def run(self):
 
 		import requests
-
-
-
-
-
-
-
-
-
-		# Создаем сессию
-		s = requests.Session()
+		import json
 
 		# Получаем каталоги
-#		payload = {'Login': self.updater.login, 'Token': self.updater.password}
-
-# Content-Type: application/json; charset=utf-8
-
 		headers = {'Content-Type': 'application/json; charset=utf-8'}
-		payload = '{"Login":"' + self.updater.login + '","Token":"' + self.updater.password + '"}"'
+		payload = json.dumps({
+			'Login': self.updater.login,
+			'Token': self.updater.password})
+		print(payload)
+
 		try:
-			r = s.get(self.url+'GetCatalog', data=payload, headers=headers, allow_redirects=True, verify=False, timeout=100.0)
+			r = requests.post(
+				self.url+'GetCatalog',
+				data=payload,
+				headers=headers,
+				verify=False,
+				timeout=100.0)
 		except requests.exceptions.Timeout:
-			self.message = 'Превышение интервала ожидания загрузки Cookies.'
+			print("Превышение интервала ожидания загрузки Cookies.")
 			return False
 
-		self.message = r.text
+		print(r.text)
 
 
 
 
 
 
-		return False
+		return True
