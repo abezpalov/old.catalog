@@ -155,7 +155,7 @@ class Runner:
 								if not item_n:
 									# Получаем объект синонима категории
 									g[2] = item.text.strip()
-									category_synonym_name = g[0] + ' ' + g[1] + ' ' + g[2]
+									category_synonym_name = "{} | {} | {}".format(g[0], g[1], g[2])
 									category_synonym = CategorySynonym.objects.take(name=category_synonym_name, updater=self.updater, distributor=self.distributor)
 								else:
 
