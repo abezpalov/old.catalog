@@ -97,7 +97,7 @@ $(document).ready(function(){
 		ct = $('#filter-items-selected-category').data('id');
 		ch = $('#filter-items-selected-childs').prop('checked');
 		vn = $('#filter-items-selected-vendor').data('alias');
-		sr = $('#filter-items-search-input').val();
+		sr = $.trim($('#filter-items-search-input').val());
 
 		// Формируем URL
 		url = '/catalog/products/'
@@ -146,8 +146,8 @@ $(document).ready(function(){
 		}
 	});
 	$("body").delegate("#top-search-button", "click", function(){
-		if ($('#top-search-input').val() != ''){
-			location.href = '/catalog/products/search/' + $('#top-search-input').val() + '/';
+		if ($.trim($('#top-search-input').val()) != ''){
+			location.href = '/catalog/products/search/' + $.trim($('#top-search-input').val()) + '/';
 		}
 		return false;
 	});
