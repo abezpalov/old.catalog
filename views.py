@@ -10,7 +10,7 @@ def index(request):
 
 
 # Список продуктов
-def products(request, search='', vendor=None, category=None, childs=None, page = 1):
+def products(request, search=None, vendor=None, category=None, childs=None, page = 1):
 
 	# Импортируем
 	from lxml import etree
@@ -62,9 +62,9 @@ def products(request, search='', vendor=None, category=None, childs=None, page =
 	# Если есть параметры запроса
 	if search or category or vendor:
 		for product_category in product_categories:
-			if search != '' and vendor:
+			if search and vendor:
 				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(vendor=vendor).filter(category=product_category).filter(state=True)
-			elif search != '':
+			elif search:
 				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(category=product_category).filter(state=True)
 			elif vendor:
 				new_products = Product.objects.filter(vendor=vendor).filter(category=product_category).filter(state=True)

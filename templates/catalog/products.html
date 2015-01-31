@@ -6,7 +6,7 @@
 <li class="has-form">
 	<div class="row collapse">
 		<div class="large-10 small-9 columns">
-			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="{{ search }}">
+			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="{% if search %}{{ search }}{% endif %}">
 		</div>
 		<div class="large-2 small-3 columns">
 			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
@@ -21,7 +21,7 @@
 	<ul class="button-group even-3">
 		<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
 		<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
-		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if search == '' %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительные параметры</button></li>
+		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if not search %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительные параметры</button></li>
 	</ul>
 </div>
 
@@ -75,7 +75,7 @@
 	<dl class="tabs" data-tab>
 		<dd id="CategoryPanelDD" class="active"><a href="#CategoryPanel"><i class="fa fa-folder-open-o"></i> Категория</a></dd>
 		<dd id="VendorPanelDD"><a href="#VendorPanel"><i class="fa fa-building"></i> Производитель</a></dd>
-		<dd id="SearchPanelDD"><a href="#SearchPanel"><i class="fa fa-search"></i> Дополнительные параметры</a></dd>
+		<dd id="SearchPanelDD"><a href="#SearchPanel"><i class="fa fa-search"></i> Дополнительно</a></dd>
 	</dl>
 	<div class="tabs-content">
 		<div class="content active" id="CategoryPanel">
@@ -106,7 +106,7 @@
 		</div>
 		<div class="content" id="SearchPanel">
 			<label>Поисковый запрос
-				<input id="filter-items-search-input" type="text" placeholder="Артикул, наименование или их часть..." value="{{ search }}">
+				<input id="filter-items-search-input" type="text" placeholder="Артикул, наименование или их часть..." value="{% if search %}{{ search }}{% endif %}">
 			</label>
 		</div>
 	</div>
