@@ -107,7 +107,6 @@ class Runner:
 			'article': 'P/N',
 			'model': 'Модель',
 			'size': 'Размер',
-			'format': 'Формат',
 			'name': 'Описание',
 			'price': 'Цена, $',
 			'dop': 'Примечание',
@@ -129,13 +128,12 @@ class Runner:
 					if   str(cel).strip() == word['article']:  num['article'] = cel_num
 					elif str(cel).strip() == word['model']:  num['model'] = cel_num
 					elif str(cel).strip() == word['size']:   num['size'] = cel_num
-					elif str(cel).strip() == word['format']: num['format'] = cel_num
 					elif str(cel).strip() == word['name']:   num['name'] = cel_num
 					elif str(cel).strip() == word['price']:  num['price'] = cel_num
 					elif str(cel).strip() == word['dop']:    num['dop'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
-				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['format'] or not num['name'] or not num['price'] or not num['dop']:
+				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['name'] or not num['price'] or not num['dop']:
 					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
 				else: print("Структура данных без изменений.")
@@ -150,13 +148,8 @@ class Runner:
 			elif row[num['name']] and row[num['article']] and row[num['price']]:
 
 				# Определяем имя
-				name = self.vendor.name + ' ' + str(row[num['model']]) + ' ' + str(row[num['name']])
-				if row[num['size']] or row[num['format']]:
-					name += ' ('
-					if row[num['size']]: name += 'размер: ' + str(row[num['size']])
-					if row[num['size']] and row[num['format']]: name += ', '
-					if row[num['format']]: name += 'формат: ' + str(row[num['format']])
-					name += ')'
+				name = "{} {} {}".format(self.vendor.name, row[num['model']], row[num['name']])
+				if row[num['size']]: name += " ( размер: {})".format(str(row[num['size']]))
 
 				# Определяем артикул
 				article=row[num['article']]
