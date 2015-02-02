@@ -11,7 +11,7 @@ urlpatterns = patterns('',
 
 	# Product
 	# ex: /catalog/products/c/456-y/fujitsu/search/vfy-rx300/
-	url(r'^products(/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})){0,1}(/(?P<vendor>[a-zA-Z0-9_-]+)){0,1}(/search/(?P<search>[\S\s]+)){0,1}/$', views.products, name='products'),
+	url(r'^products(/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})){0,1}(/(?P<vendor>[a-zA-Z0-9_-]+)){0,1}(/search/(?P<search>[\S\s]+)){0,1}(/page/(?P<page>[0-9]+){0,1})/$', views.products, name='products'),
 	# ex: /catalog/product/125/
 	url(r'^product/(?P<id>[0-9]+)/$', views.product, name='product'),
 	# ex: /catalog/product/fujitsu/vfy-rx300/
