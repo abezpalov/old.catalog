@@ -10,7 +10,7 @@ def index(request):
 
 
 # Список продуктов
-def products(request, search=None, vendor=None, category=None, childs=None, page = 1):
+def products(request, search=None, vendor=None, category=None, childs=None, page=None):
 
 	# Импортируем
 	from lxml import etree
@@ -21,6 +21,7 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 
 	# Инициализируем переменные
 	items_on_page = 100
+	if not page: page = 1
 	page = int(page)
 
 	categories = []
