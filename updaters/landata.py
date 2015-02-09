@@ -235,7 +235,7 @@ class Runner:
 			else:
 
 				# Обрабатываем информацию о товаре
-				product_article = tr[num['product_article']].text.strip()
+				product_article = tr[num['product_article']].text.strip().split('//')[0]
 				product_name    = tr[num['product_name']].text.strip()
 				if product_article and product_name:
 					product = Product.objects.take(
