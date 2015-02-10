@@ -65,7 +65,7 @@ class Runner:
 			distributor = self.distributor)
 		Party.objects.clear(stock = self.dt)
 
-		# Типы цен и валюты
+		# Типы цен, валюты и единицы
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
 		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
 		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
