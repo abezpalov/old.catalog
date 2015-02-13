@@ -6,16 +6,16 @@ from catalog.models import Currency
 
 class Runner:
 
+	name = 'Обновление курсов валют (Центральный банк России)'
+	alias = 'cbr'
+
 	def __init__(self):
 
-		# Инициируем переменные
-		self.name = 'Обновление курсов валют (Центральный банк России)'
-		self.alias = 'cbr'
+		self.updater = Updater.objects.take(alias = self.alias, name = self.name)
+		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
 
-		self.updater = Updater.objects.take(alias=self.alias, name=self.name)
-		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+		self.url = 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'.format(date.today().strftime("%d.%m.%Y"))
 
-		self.url = 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req='+date.today().strftime("%d.%m.%Y")
 
 	def run(self):
 
@@ -37,7 +37,7 @@ class Runner:
 
 		# Загружаем данные
 		try:
-			r = s.get(self.url, timeout=100.0)
+			r = s.get(self.url, timeout = 100.0)
 			tree = lxml.html.fromstring(r.text)
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки.")
@@ -64,11 +64,16 @@ class Runner:
 				rate     = tr[num['rate']].text.strip()
 
 				# Записываем информацию в базу
-				currency = Currency.objects.take(alias=alias, name=name, full_name=name, rate=rate, quantity=quantity)
+				currency = Currency.objects.take(
+					alias = alias,
+					name = name,
+					full_name = name,
+					rate = rate,
+					quantity = quantity)
 				currency.rate = rate
 				currency.quantity = quantity
 				currency.modified = timezone.now()
 				currency.save()
-				print(currency.alias + ' = ' + str(currency.rate) + ' / ' + currency.quantity)
+				print('{} = {} / {}'.format(currency.alias, currency.rate, currency.quantity))
 
 		return True
