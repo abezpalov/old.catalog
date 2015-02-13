@@ -17,29 +17,45 @@ from catalog.models import Price
 
 class Runner:
 
+
+	self.name = 'Digis'
+	self.alias = 'digis'
+
+
 	def __init__(self):
 
-		# Инициируем переменные
-		self.name = 'Treolan'
-		self.alias = 'treolan'
-		self.message = ''
+		# Поставщик
+		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
 
-		# Получаем необходимые объекты
-		self.distributor  = Distributor.objects.take(alias=self.alias, name=self.name)
-		self.updater      = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
-		self.stock        = Stock.objects.take(alias=self.alias+'-stock', name=self.name+': склад', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
-		self.transit      = Stock.objects.take(alias=self.alias+'-transit', name=self.name+': транзит', delivery_time_min = 10, delivery_time_max = 40, distributor=self.distributor)
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-		self.rp           = PriceType.objects.take(alias='RP', name='Розничная цена')
-		self.dp           = PriceType.objects.take(alias='DP', name='Диллерская цена')
-		self.rub          = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
-		self.usd          = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
-		self.eur          = Currency.objects.take(alias='EUR', name='EUR', full_name='Евро', rate=80, quantity=1)
+		# Загрузчик
+		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
 
-		# Удаляем неактуальные партии
-		Party.objects.clear(stock=self.stock)
+		# Склад
+		self.stock = Stock.objects.take(
+			alias = self.alias + '-stock',
+			name = self.name+': склад',
+			delivery_time_min = 3,
+			delivery_time_max = 10,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.stock)
+
+		# Транзит
+		self.transit = Stock.objects.take(
+			alias = self.alias + '-transit',
+			name = self.name + ': транзит',
+			delivery_time_min = 10,
+			delivery_time_max = 40,
+			distributor = self.distributor)
 		Party.objects.clear(stock=self.transit)
 
-		# Используемые ссылки
-		self.url_login = ''
-		self.url_price = ''
+		# Единица измерения
+		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+
+		# Типы цен
+		self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
+		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
+
+		# Валюты
+		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
+		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'US Dollar', rate = 60, quantity = 1)
+		self.eur = Currency.objects.take(alias = 'EUR', name = 'EUR', full_name = 'Евро', rate = 80, quantity = 1)
