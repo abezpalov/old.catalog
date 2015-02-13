@@ -11,10 +11,21 @@ class Runner:
 
 	def __init__(self):
 
-		self.updater = Updater.objects.take(alias = self.alias, name = self.name)
-		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
+		# Загрузчик
+		self.updater = Updater.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
-		self.url = 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'.format(date.today().strftime("%d.%m.%Y"))
+		# Основная валюта
+		self.rub = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
+
+		self.url = 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'\
+			.format(date.today().strftime("%d.%m.%Y"))
 
 
 	def run(self):
@@ -27,10 +38,10 @@ class Runner:
 
 		# Распознаваемые слова
 		word = {
-			'alias': 'Char code',
+			'alias':    'Char code',
 			'quantity': 'Unit',
-			'name': 'Currency',
-			'rate': 'Rate'}
+			'name':     'Currency',
+			'rate':     'Rate'}
 
 		# Создаем сессию
 		s = requests.Session()
@@ -49,10 +60,10 @@ class Runner:
 			# Заголовок таблицы
 			if trn == num['header']:
 				for tdn, td in enumerate(tr):
-					if   td[0].text == word['alias']:    num['alias'] = tdn
+					if   td[0].text == word['alias']:    num['alias']    = tdn
 					elif td[0].text == word['quantity']: num['quantity'] = tdn
-					elif td[0].text == word['name']:     num['name'] = tdn
-					elif td[0].text == word['rate']:     num['rate'] = tdn
+					elif td[0].text == word['name']:     num['name']     = tdn
+					elif td[0].text == word['rate']:     num['rate']     = tdn
 
 			# Валюта
 			else:
@@ -65,15 +76,18 @@ class Runner:
 
 				# Записываем информацию в базу
 				currency = Currency.objects.take(
-					alias = alias,
-					name = name,
+					alias     = alias,
+					name      = name,
 					full_name = name,
-					rate = rate,
-					quantity = quantity)
-				currency.rate = rate
+					rate      = rate,
+					quantity  = quantity)
+				currency.rate     = rate
 				currency.quantity = quantity
 				currency.modified = timezone.now()
 				currency.save()
-				print('{} = {} / {}'.format(currency.alias, currency.rate, currency.quantity))
+				print('{} = {} / {}'.format(
+					currency.alias,
+					currency.rate,
+					currency.quantity))
 
 		return True

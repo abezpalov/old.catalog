@@ -1,5 +1,5 @@
-from datetime import date
-from datetime import datetime
+import lxml.html
+import requests
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock
@@ -24,18 +24,23 @@ class Runner:
 	def __init__(self):
 
 		# Дистрибьютор
-		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
+		self.distributor = Distributor.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
 		# Загрузчик
-		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
+		self.updater = Updater.objects.take(
+			alias       = self.alias,
+			name        = self.name,
+			distributor = self.distributor)
 
 		# Завод
 		self.factory = Stock.objects.take(
-			alias = self.alias + '-factory',
-			name = self.name + ': завод',
+			alias             = self.alias + '-factory',
+			name              = self.name + ': завод',
 			delivery_time_min = 10,
 			delivery_time_max = 20,
-			distributor = self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.factory)
 
 		# Производитель
@@ -48,15 +53,17 @@ class Runner:
 		self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
 
 		# Валюта
-		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
+		self.rub = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
 
 		# Переменные
 		self.url = 'http://www.cmo.ru/catalog/price/'
 
 	def run(self):
-
-		import lxml.html
-		import requests
 
 		# Номера строк и столбцов
 		num = {'header': 0}
@@ -144,7 +151,10 @@ class Runner:
 					currency = self.rub,
 					quantity = -1,
 					unit = self.default_unit)
-				print('{} = {} {}'.format(product.article, party.price, party.currency.alias))
+				print('{} = {} {}'.format(
+					product.article,
+					party.price,
+					party.currency.alias))
 
 		return True
 
