@@ -171,7 +171,7 @@ class Runner:
 				# Ждем, чтобы не получить отбой сервера
 				time.sleep(1)
 
-		return False
+		return True
 
 	def parseProducts(self, table, vendor_synonym_name):
 
