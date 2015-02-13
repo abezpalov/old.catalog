@@ -21,11 +21,11 @@
 	<ul class="button-group even-3">
 		<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
 		<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
-		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if not search %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительные параметры</button></li>
+		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if not search %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительно</button></li>
 	</ul>
 </div>
 
-<!-- Таблица со списком синонимов -->
+<!-- Таблица со списком продуктов -->
 <div class="row collapse">
 	<table>
 		<tr>
@@ -43,7 +43,7 @@
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.n }}</td>
 			<td>{{ product.article }}</td>
-			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.vendor.alias }}/{{ product.article }}/" data-do="edit-item" data-id="{{ product.id }}">{{ product.name }}</a></td>
+			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/" data-do="edit-item" data-id="{{ product.id }}">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
 			<td style="white-space: nowrap;" class="text-right"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</a></td>
 			<td style="white-space: nowrap;"></td>
