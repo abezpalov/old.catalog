@@ -16,8 +16,8 @@ from catalog.models import Price
 class Runner:
 
 
-	self.name = 'Fujitsu'
-	self.alias = 'fujitsu'
+	name = 'Fujitsu'
+	alias = 'fujitsu'
 
 
 	def __init__(self):
