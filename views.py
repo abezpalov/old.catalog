@@ -177,24 +177,6 @@ def updater(request, alias):
 	return render(request, 'catalog/updater.html', context)
 
 
-# Выполнение загрузчика
-def update(request, alias, key=''):
-
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
-	from datetime import datetime
-	Updater = __import__('catalog.updaters.' + alias, fromlist=['Runner'])
-	runner = Updater.Runner()
-	if runner.updater.state:
-		if runner.run():
-			runner.updater.updated = datetime.now()
-			runner.updater.save()
-
-	context = {'update_name': runner.name, 'update_message': runner.message}
-	return render(request, 'catalog/update.html', context)
-
-
 # Список производителей
 def vendors(request):
 
