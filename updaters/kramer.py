@@ -83,11 +83,11 @@ class Runner:
 		urls = tree.xpath('//a/@href')
 		ok = 0
 		for url in urls:
-			if self.devices_url in url:
+			if self.url['devices'] in url:
 				xls_data = self.getXLS(request = s.get(url, cookies = cookies, allow_redirects = True))
 				self.parseDevices(xls_data)
 				ok += 1
-			elif self.cables_url in url:
+			elif self.url['cables'] in url:
 				xls_data = self.getXLS(request = s.get(url, cookies = cookies, allow_redirects = True))
 				self.parseCables(xls_data)
 				ok += 1
