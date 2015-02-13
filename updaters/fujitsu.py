@@ -16,23 +16,38 @@ from catalog.models import Price
 class Runner:
 
 
+	self.name = 'Fujitsu'
+	self.alias = 'fujitsu'
+
+
 	def __init__(self):
 
-		# Инициируем переменные
-		self.name = 'Fujitsu'
-		self.alias = 'fujitsu'
+		# Дистрибьютор
+		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
 
-		# Получаем необходимые объекты
-		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
-		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
-		self.vendor = Vendor.objects.take(alias=self.alias, name=self.name)
-		self.factory = Stock.objects.take(alias=self.alias+'-factory', name=self.name+': на заказ', delivery_time_min = 40, delivery_time_max = 60, distributor=self.distributor)
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-		self.rdp = PriceType.objects.take(alias='RDP-Fujitsu', name='Рекомендованная диллерская цена Fujitsu')
-		self.usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
+		# Загрузчик
+		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
 
-		# Удаляем неактуальные партии
-		Party.objects.clear(stock=self.factory)
+		# Производитель
+		self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
+
+		# Завод
+		self.factory = Stock.objects.take(
+			alias = self.alias + '-factory',
+			name = self.name + ': на заказ',
+			delivery_time_min = 40,
+			delivery_time_max = 60,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.factory)
+
+		# Единица измерения
+		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+
+		# Тип цены
+		self.rdp = PriceType.objects.take(alias = 'RDP-Fujitsu', name = 'Рекомендованная диллерская цена Fujitsu')
+
+		# Валюта
+		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'US Dollar', rate = 60, quantity = 1)
 
 		# Используемые ссылки
 		self.url = {
@@ -54,7 +69,7 @@ class Runner:
 		# Получаем куки
 		try:
 			""
-			r = s.get(self.url['start'], allow_redirects=True, timeout=30.0)
+			r = s.get(self.url['start'], allow_redirects = True, timeout = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки Cookies.")
@@ -71,7 +86,7 @@ class Runner:
 				'password': self.updater.password,
 				'SubmitCreds': 'Sign In',
 				'trusted': '0'}
-			r = s.post(self.url['login'], cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=30.0)
+			r = s.post(self.url['login'], cookies = cookies, data = payload, allow_redirects = True, verify = False, timeout = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания подтверждения авторизации.")
@@ -79,7 +94,7 @@ class Runner:
 
 		# Заходим на страницу загрузки
 		try:
-			r = s.get(self.url['links'], cookies=cookies, timeout=30.0)
+			r = s.get(self.url['links'], cookies = cookies, timeout = 30.0)
 		except requests.exceptions.Timeout:
 			print("Превышение интервала загрузки ссылок.")
 			return False
@@ -93,7 +108,7 @@ class Runner:
 				# Скачиваем архив
 				url = self.url['prefix'] + url
 				print("Архив найден: {}".format(url))
-				r = s.get(url, cookies=cookies)
+				r = s.get(url, cookies = cookies)
 
 				# Парсим sys_arc.mdb
 				mdb = self.getMDB(r, 'sys_arc.mdb')
@@ -139,7 +154,7 @@ class Runner:
 			'name': 'PraesKateg'}
 
 		# Загружаем таблицу категорий
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'], stdout=subprocess.PIPE).communicate()[0]
+		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'], stdout = subprocess.PIPE).communicate()[0]
 		rows = rows.decode("utf-8").split("%row%}")
 
 		for rown, row in enumerate(rows):
@@ -166,9 +181,9 @@ class Runner:
 
 				# Получаем объект синонима
 				category_synonym = CategorySynonym.objects.take(
-					name="{}|{}".format(row[num['numb']], row[num['name']].strip().replace('"', '')),
-					updater=self.updater,
-					distributor=self.distributor)
+					name = "{}|{}".format(row[num['numb']], row[num['name']].strip().replace('"', '')),
+					updater = self.updater,
+					distributor = self.distributor)
 				self.category_synonyms[row[num['numb']]] = category_synonym
 				print(self.category_synonyms[row[num['numb']]].name)
 
@@ -195,7 +210,7 @@ class Runner:
 		self.quantity = {}
 
 		# Загружаем таблицу продуктов
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Komp'], stdout=subprocess.PIPE).communicate()[0]
+		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Komp'], stdout = subprocess.PIPE).communicate()[0]
 		rows = rows.decode("utf-8").split("%row%}")
 
 		for rown, row in enumerate(rows):
@@ -279,7 +294,7 @@ class Runner:
 		price_types = {}
 
 		# Загружаем таблицу типов цен
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PriceSpec'], stdout=subprocess.PIPE).communicate()[0]
+		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PriceSpec'], stdout = subprocess.PIPE).communicate()[0]
 		rows = rows.decode("utf-8").split("%row%}")
 
 		for rown, row in enumerate(rows):
@@ -311,7 +326,7 @@ class Runner:
 		print(word['price'])
 
 		# Загружаем таблицу цен
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Prices'], stdout=subprocess.PIPE).communicate()[0]
+		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Prices'], stdout = subprocess.PIPE).communicate()[0]
 		rows = rows.decode("utf-8").split("%row%}")
 
 		for rown, row in enumerate(rows):
@@ -343,15 +358,15 @@ class Runner:
 
 				try:
 					# Получаем объект товара
-					product = Product.objects.get(article=article, vendor=self.vendor)
+					product = Product.objects.get(article = article, vendor = self.vendor)
 
 					quantity = self.quantity[article]
 
 					# Добавляем партии
 					party = Party.objects.make(
-						product=product,
-						stock=self.factory,
-						price=price,
+						product = product,
+						stock = self.factory,
+						price = price,
 						price_type = self.rdp,
 						currency = self.usd,
 						quantity = quantity,
