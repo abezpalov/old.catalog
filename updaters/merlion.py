@@ -14,39 +14,91 @@ from catalog.models import Price
 
 class Runner:
 
+
+	name = 'Merlion'
+	alias = 'merlion'
+
+
 	def __init__(self):
 
-		# Инициируем переменные
-		self.name = 'Merlion'
-		self.alias = 'merlion'
+		# Поставщик
+		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
 
-		# Получаем необходимые объекты
-		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
-		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
+		# Загрузчик
+		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
 
-		self.stock_samara = Stock.objects.take(alias=self.alias+'-samara-stock', name=self.name+': самарский склад', delivery_time_min = 1, delivery_time_max = 3, distributor=self.distributor)
-		self.stock_moscow = Stock.objects.take(alias=self.alias+'-moscow-stock', name=self.name+': московский склад', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
-		self.stock_chehov = Stock.objects.take(alias=self.alias+'-chehov-stock', name=self.name+': московский склад (Чехов)', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
-		self.stock_bykovo = Stock.objects.take(alias=self.alias+'-bykovo-stock', name=self.name+': московский склад (Быково)', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
-		self.stock_dostavka = Stock.objects.take(alias=self.alias+'-chehov-stock', name=self.name+': московский склад доставки', delivery_time_min = 3, delivery_time_max = 10, distributor=self.distributor)
-		self.transit_b =Stock.objects.take(alias=self.alias+'-b-transit', name=self.name+': ближний транзит', delivery_time_min = 10, delivery_time_max = 20, distributor=self.distributor)
-		self.transit_d =Stock.objects.take(alias=self.alias+'-d-transit', name=self.name+': дальний транзит', delivery_time_min = 20, delivery_time_max = 60, distributor=self.distributor)
+		# Склад в Самаре
+		self.stock_samara = Stock.objects.take(
+			alias = self.alias + '-samara-stock',
+			name = self.name+': Склад в Самаре',
+			delivery_time_min = 1,
+			delivery_time_max = 3,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.stock_samara)
 
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
+		# Склад в Москве
+		self.stock_moscow = Stock.objects.take(
+			alias = self.alias + '-moscow-stock',
+			name = self.name+': склад в Москве',
+			delivery_time_min = 3,
+			delivery_time_max = 10,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.stock_moscow)
 
-		self.dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
+		# Склад в Москве (Чехов)
+		self.stock_chehov = Stock.objects.take(
+			alias = self.alias + '-chehov-stock',
+			name = self.name + ': склад в Москве (Чехов)',
+			delivery_time_min = 3,
+			delivery_time_max = 10,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.stock_chehov)
 
-		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
-		self.usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
+		# Склад в Москве (Быково)
+		self.stock_bykovo = Stock.objects.take(
+			alias = self.alias + '-bykovo-stock',
+			name = self.name + ': склад в Москве (Быково)',
+			delivery_time_min = 3,
+			delivery_time_max = 10,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.stock_bykovo)
 
-		# Удаляем неактуальные партии
-		Party.objects.clear(stock=self.stock_samara)
-		Party.objects.clear(stock=self.stock_moscow)
-		Party.objects.clear(stock=self.stock_chehov)
-		Party.objects.clear(stock=self.stock_bykovo)
-		Party.objects.clear(stock=self.stock_dostavka)
-		Party.objects.clear(stock=self.transit_b)
-		Party.objects.clear(stock=self.transit_d)
+		# Склад в Москве (склад доставки)
+		self.stock_dostavka = Stock.objects.take(
+			alias = self.alias + '-dostavka-stock',
+			name = self.name+': склад в Москве (склад доставки)',
+			delivery_time_min = 3,
+			delivery_time_max = 10,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.stock_dostavka)
+
+		# Ближний транзит
+		self.transit_b = Stock.objects.take(
+			alias = self.alias + '-b-transit',
+			name = self.name + ': ближний транзит',
+			delivery_time_min = 10,
+			delivery_time_max = 20,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.transit_b)
+
+		# Дальний транзит
+		self.transit_d = Stock.objects.take(
+			alias = self.alias + '-d-transit',
+			name = self.name + ': дальний транзит',
+			delivery_time_min = 20,
+			delivery_time_max = 60,
+			distributor = self.distributor)
+		Party.objects.clear(stock = self.transit_d)
+
+		# Единица измерения
+		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+
+		# Тип цены
+		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
+
+		# Валюты
+		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
+		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'US Dollar', rate = 60, quantity = 1)
 
 		# Используемые ссылки
 		self.url_login = 'https://b2b.merlion.com/'
