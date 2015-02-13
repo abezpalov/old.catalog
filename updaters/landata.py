@@ -25,8 +25,8 @@ class Runner:
 		self.alias = 'landata'
 
 		# Получаем необходимые объекты
-		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
-		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
+		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
+		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
 
 		# Склады
 		# C1- склад №1 по адресу 2-ой пер. Петра Алексеева д.2 стр.1
@@ -66,7 +66,7 @@ class Runner:
 		Party.objects.clear(stock = self.dt)
 
 		# Типы цен, валюты и единицы
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
+		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
 		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
 		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
 		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'US Dollar', rate = 60, quantity = 1)
