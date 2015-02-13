@@ -1,3 +1,5 @@
+import requests
+from lxml import etree
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock
@@ -108,7 +110,6 @@ class Runner:
 
 	def run(self):
 
-		import requests
 
 		# Создаем сессию
 		s = requests.Session()
@@ -136,30 +137,31 @@ class Runner:
 
 		# Получаем архив с прайс-листом
 		for url in self.url_price:
-			xml_data = self.getXML(r = s.get(url, cookies=cookies))
-			if not self.parsePrice(xml_data):
+			tree = etree.parse(self.getData(r = s.get(url, cookies = cookies)))
+			if self.parsePrice(tree):
+				del(tree)
+			else:
 				print("Парсинг невозможен.")
 				return False
 
 		return True
 
-	def getXML(self, r):
+
+	def getData(self, r):
 
 		from io import BytesIO
 		from catalog.lib.zipfile import ZipFile
 
 		zip_data = ZipFile(BytesIO(r.content))
-		xls_data = zip_data.open(zip_data.namelist()[0])
+		xml_data = zip_data.open(zip_data.namelist()[0])
 
 		print("Получен прайс-лист: " + zip_data.namelist()[0])
 
 		del zip_data
-		return xls_data
+		return xml_data
 
 
-	def parsePrice(self, xml_data):
-
-		from lxml import etree
+	def parsePrice(self, tree):
 
 		# Словарь для составления имени синонима категории
 		g = {0: '', 1: '', 2: ''}
@@ -190,9 +192,6 @@ class Runner:
 			'rrp': 'RRP',
 			'rrp_date': 'RRP_Date'}
 
-		tree = etree.parse(xml_data)
-		del xml_data
-
 		for g1 in tree.xpath('.//G1'):
 			for g2_n, g2 in enumerate(g1):
 				if not g2_n:
@@ -208,7 +207,10 @@ class Runner:
 									# Получаем объект синонима категории
 									g[2] = item.text.strip()
 									category_synonym_name = "{} | {} | {}".format(g[0], g[1], g[2])
-									category_synonym = CategorySynonym.objects.take(name=category_synonym_name, updater=self.updater, distributor=self.distributor)
+									category_synonym = CategorySynonym.objects.take(
+										name = category_synonym_name,
+										updater = self.updater,
+										distributor = self.distributor)
 								else:
 
 									# Обнуляем значения
@@ -266,12 +268,20 @@ class Runner:
 
 									# Обрабатываем синоним производителя
 									if vendor_synonym_name:
-										vendor_synonym = VendorSynonym.objects.take(name=vendor_synonym_name, updater=self.updater, distributor=self.distributor)
+										vendor_synonym = VendorSynonym.objects.take(
+											name        = vendor_synonym_name,
+											updater     = self.updater,
+											distributor = self.distributor)
 									else: continue
 
 									# Получаем объект товара
 									if product_article and product_name and vendor_synonym.vendor:
-										product = Product.objects.take(article=product_article, vendor=vendor_synonym.vendor, name=product_name, category = category_synonym.category, unit = self.default_unit)
+										product = Product.objects.take(
+											article  = product_article,
+											vendor   = vendor_synonym.vendor,
+											name     = product_name,
+											category = category_synonym.category,
+											unit     = self.default_unit)
 									else: continue
 
 									if price_usd:
@@ -286,26 +296,74 @@ class Runner:
 
 									# Записываем партии
 									if stock_chehov:
-										party = Party.objects.make(product=product, stock=self.stock_chehov, price = price, price_type = self.dp, currency = currency, quantity = stock_chehov, unit = self.default_unit)
-										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
+										party = Party.objects.make(
+											product = product,
+											stock = self.stock_chehov,
+											price = price,
+											price_type = self.dp,
+											currency = currency,
+											quantity = stock_chehov,
+											unit = self.default_unit)
+										print("{} {} = {} {}".format(product.vendor.name, product.article, party.price, party.currency.alias))
+
 									if stock_bykovo:
-										party = Party.objects.make(product=product, stock=self.stock_bykovo, price = price, price_type = self.dp, currency = currency, quantity = stock_bykovo, unit = self.default_unit)
-										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
+										party = Party.objects.make(
+											product = product,
+											stock = self.stock_bykovo,
+											price = price,
+											price_type = self.dp,
+											currency = currency,
+											quantity = stock_bykovo,
+											unit = self.default_unit)
+										print("{} {} = {} {}".format(product.vendor.name, product.article, party.price, party.currency.alias))
+
 									if stock_samara:
-										party = Party.objects.make(product=product, stock=self.stock_samara, price = price, price_type = self.dp, currency = currency, quantity = stock_samara, unit = self.default_unit)
-										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
+										party = Party.objects.make(
+											product = product,
+											stock = self.stock_samara,
+											price = price,
+											price_type = self.dp,
+											currency = currency,
+											quantity = stock_samara,
+											unit = self.default_unit)
+										print("{} {} = {} {}".format(product.vendor.name, product.article, party.price, party.currency.alias))
+
 									if stock_moscow:
-										party = Party.objects.make(product=product, stock=self.stock_moscow, price = price, price_type = self.dp, currency = currency, quantity = stock_moscow, unit = self.default_unit)
-										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
+										party = Party.objects.make(
+											product = product,
+											stock = self.stock_moscow,
+											price = price,
+											price_type = self.dp,
+											currency = currency,
+											quantity = stock_moscow,
+											unit = self.default_unit)
+										print("{} {} = {} {}".format(product.vendor.name, product.article, party.price, party.currency.alias))
+
 									if transit_b:
-										party = Party.objects.make(product=product, stock=self.transit_b, price = price, price_type = self.dp, currency = currency, quantity = transit_b, unit = self.default_unit)
-										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
+										party = Party.objects.make(
+											product = product,
+											stock = self.transit_b,
+											price = price,
+											price_type = self.dp,
+											currency = currency,
+											quantity = transit_b,
+											unit = self.default_unit)
+										print("{} {} = {} {}".format(product.vendor.name, product.article, party.price, party.currency.alias))
+
 									if transit_d:
-										party = Party.objects.make(product=product, stock=self.transit_d, price = price, price_type = self.dp, currency = currency, quantity = transit_d, unit = self.default_unit)
-										print("%s %s = %s %s %s" % (product.vendor.name, product.article, str(party.price), party.currency.alias, party.price_type.alias))
+										party = Party.objects.make(
+											product = product,
+											stock = self.transit_d,
+											price = price,
+											price_type = self.dp,
+											currency = currency,
+											quantity = transit_d,
+											unit = self.default_unit)
+										print("{} {} = {} {}".format(product.vendor.name, product.article, party.price, party.currency.alias))
 
 		print("Обработка прайс-листа завершена.")
 		return True
+
 
 	def fixPrice(self, price):
 		price = str(price).strip()
@@ -314,6 +372,7 @@ class Runner:
 		if price: price = float(price)
 		else: price = None
 		return price
+
 
 	def fixQuantity(self, quantity):
 		quantity = str(quantity).strip()
