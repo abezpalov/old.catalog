@@ -15,28 +15,48 @@ from catalog.models import Price
 
 class Runner:
 
+
+	name = 'Kramer'
+	alias = 'kramer'
+
+
 	def __init__(self):
 
-		# Инициируем переменные
-		self.name = 'Kramer'
-		self.alias = 'kramer'
+		# Поставщик
+		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
 
-		# Получаем необходимые объекты
-		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
-		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
-		self.factory = Stock.objects.take(alias=self.alias+'-factory', name=self.name+': завод', delivery_time_min = 10, delivery_time_max = 40, distributor=self.distributor)
-		self.vendor = Vendor.objects.take(alias=self.alias, name=self.name)
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-		self.rrp = PriceType.objects.take(alias='RRP', name='Рекомендованная розничная цена')
-		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
-		self.usd = Currency.objects.take(alias='USD', name='$', full_name='Доллар США', rate=60, quantity=1)
+		# Загрузчик
+		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
 
-		# Удаляем неактуальные партии
+		# Завод
+		self.factory = Stock.objects.take(
+			alias = self.alias + '-factory',
+			name = self.name + ': завод',
+			delivery_time_min = 10,
+			delivery_time_max = 40,
+			distributor = self.distributor)
 		Party.objects.clear(stock=self.factory)
 
-		# Фильтры ссылок
-		self.devices_url = "http://www.kramer.ru/Useful_files/Kramer-RUS-List-Price-"
-		self.cables_url = "http://www.kramer.ru/Useful_files/Kramer-Cable-List-Price-"
+		# Производитель
+		self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
+
+		# Единица измерения
+		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+
+		# Тип цены
+		self.rrp = PriceType.objects.take(alias = 'RRP', name = 'Рекомендованная розничная цена')
+
+		# Валюты
+		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
+		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'Доллар США', rate = 60, quantity = 1)
+
+		# Ссылки
+		self.url = {
+			'start': 'http://kramer.ru/',
+			'login': 'http://kramer.ru/',
+			'files': 'http://kramer.ru/closed/files/',
+			'devices': "http://www.kramer.ru/Useful_files/Kramer-RUS-List-Price-",
+			'cables':  "http://www.kramer.ru/Useful_files/Kramer-Cable-List-Price-"}
 
 	def run(self):
 
@@ -47,19 +67,16 @@ class Runner:
 		s = requests.Session()
 
 		# Получаем куки
-		url = 'http://kramer.ru/'
-		r = s.get(url)
+		r = s.get(self.url['start'])
 		cookies = r.cookies
 
 		# Авторизуемся
-		url = 'http://kramer.ru/'
 		payload = {'dealer_login': self.updater.login, 'dealer_pass': self.updater.password}
-		r = s.post(url, cookies=cookies, data=payload, allow_redirects=True)
+		r = s.post(self.url['login'], cookies = cookies, data = payload, allow_redirects = True)
 		cookies = r.cookies
 
 		# Переходим на закрытую часть
-		url = 'http://kramer.ru/closed/files/'
-		r = s.get(url, cookies=cookies, allow_redirects=True)
+		r = s.get(self.url['files'], cookies = cookies, allow_redirects = True)
 		tree = lxml.html.fromstring(r.text)
 
 		# Ещем ссылки
@@ -67,11 +84,11 @@ class Runner:
 		ok = 0
 		for url in urls:
 			if self.devices_url in url:
-				xls_data = self.getXLS(request = s.get(url, cookies=cookies, allow_redirects=True))
+				xls_data = self.getXLS(request = s.get(url, cookies = cookies, allow_redirects = True))
 				self.parseDevices(xls_data)
 				ok += 1
 			elif self.cables_url in url:
-				xls_data = self.getXLS(request = s.get(url, cookies=cookies, allow_redirects=True))
+				xls_data = self.getXLS(request = s.get(url, cookies = cookies, allow_redirects = True))
 				self.parseCables(xls_data)
 				ok += 1
 
@@ -113,7 +130,7 @@ class Runner:
 			'group_name': '',
 			'category_name': ''}
 
-		book = xlrd.open_workbook(file_contents=xls_data.read())
+		book = xlrd.open_workbook(file_contents = xls_data.read())
 		sheet = book.sheet_by_index(0)
 		for row_num in range(sheet.nrows):
 			row = sheet.row_values(row_num)
@@ -126,11 +143,11 @@ class Runner:
 			elif row_num == num['header']:
 				for cel_num, cel in enumerate(row):
 					if   str(cel).strip() == word['article']:  num['article'] = cel_num
-					elif str(cel).strip() == word['model']:  num['model'] = cel_num
-					elif str(cel).strip() == word['size']:   num['size'] = cel_num
-					elif str(cel).strip() == word['name']:   num['name'] = cel_num
-					elif str(cel).strip() == word['price']:  num['price'] = cel_num
-					elif str(cel).strip() == word['dop']:    num['dop'] = cel_num
+					elif str(cel).strip() == word['model']:    num['model']   = cel_num
+					elif str(cel).strip() == word['size']:     num['size']    = cel_num
+					elif str(cel).strip() == word['name']:     num['name']    = cel_num
+					elif str(cel).strip() == word['price']:    num['price']   = cel_num
+					elif str(cel).strip() == word['dop']:      num['dop']     = cel_num
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['name'] or not num['price'] or not num['dop']:
@@ -142,7 +159,10 @@ class Runner:
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				if word['group'] in row[num['name']]: word['group_name'] = row[num['name']]
 				else: word['category_name'] = row[num['name']]
-				category_synonym = CategorySynonym.objects.take(name="Devices: %s %s" % (word['group_name'], word['category_name']), updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(
+					name = "Devices: {} {}".format(word['group_name'], word['category_name']),
+					updater = self.updater,
+					distributor = self.distributor)
 
 			# Товар
 			elif row[num['name']] and row[num['article']] and row[num['price']]:
@@ -152,10 +172,15 @@ class Runner:
 				if row[num['size']]: name += " ( размер: {})".format(str(row[num['size']]))
 
 				# Определяем артикул
-				article=row[num['article']]
+				article = row[num['article']]
 
 				# Получаем объект товара
-				product = Product.objects.take(article=article, vendor=self.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
+				product = Product.objects.take(
+					article = article,
+					vendor = self.vendor,
+					name = name,
+					category = category_synonym.category,
+					unit = self.default_unit)
 
 				# Указываем категорию
 				if not product.category and category_synonym.category:
@@ -164,8 +189,15 @@ class Runner:
 
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
-				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
-				print(product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+				party = Party.objects.make(
+					product = product,
+					stock = self.factory,
+					price = price,
+					price_type = self.rrp,
+					currency = self.usd,
+					quantity = -1,
+					unit = self.default_unit)
+				print("{} = {} {}".format(product.article, party.price, party.currency.alias))
 
 		print("Обработка прайс-листа оборудования завершена.")
 		return True
@@ -187,7 +219,7 @@ class Runner:
 			'dop': 'Примечание',
 			'category_name': ''}
 
-		book = xlrd.open_workbook(file_contents=xls_data.read())
+		book = xlrd.open_workbook(file_contents = xls_data.read())
 		sheet = book.sheet_by_index(0)
 		for row_num in range(sheet.nrows):
 			row = sheet.row_values(row_num)
@@ -215,20 +247,28 @@ class Runner:
 			# Категория
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				word['category_name'] = row[num['name']]
-				category_synonym = CategorySynonym.objects.take(name="Cables: %s" % (word['category_name']), updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(
+					name = "Cables: {}".format(word['category_name']),
+					updater = self.updater,
+					distributor = self.distributor)
 
 			# Товар
 			elif row[num['name']] and row[num['article']] and row[num['price']]:
 
 				# Определяем имя
-				name = self.vendor.name + ' ' + str(row[num['model']]) + ' ' + str(row[num['name']])
-				if row[num['size']]: name += ' (длина: ' + str(row[num['size']]).replace('.', ',') + ' м.)'
+				name = '{} {} {}'.format(self.vendor.name, row[num['model']], row[num['name']])
+				if row[num['size']]: name += ' (длина: {} м.)'.format(str(row[num['size']]).replace('.', ','))
 
 				# Определяем артикул
-				article=row[num['article']]
+				article = row[num['article']]
 
 				# Получаем объект товара
-				product = Product.objects.take(article=article, vendor=self.vendor, name=name, category = category_synonym.category, unit = self.default_unit)
+				product = Product.objects.take(
+					article = article,
+					vendor = self.vendor,
+					name = name,
+					category = category_synonym.category,
+					unit = self.default_unit)
 
 				# Указываем категорию
 				if not product.category and category_synonym.category:
@@ -237,8 +277,15 @@ class Runner:
 
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
-				party = Party.objects.make(product=product, stock=self.factory, price = price, price_type = self.rrp, currency = self.usd, quantity = -1, unit = self.default_unit)
-				print(product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+				party = Party.objects.make(
+					product = product,
+					stock = self.factory,
+					price = price,
+					price_type = self.rrp,
+					currency = self.usd,
+					quantity = -1,
+					unit = self.default_unit)
+				print("{} = {} {}".format(product.article, party.price, party.currency.alias))
 
 		print("Обработка прайс-листа материалов завершена.")
 		return True
