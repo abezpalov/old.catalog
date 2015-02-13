@@ -21,36 +21,67 @@ from catalog.models import Price
 
 class Runner:
 
+
+	name = 'RRC'
+	alias = 'rrc'
+
+
 	def __init__(self):
 
-		# Инициируем переменные
-		self.name = 'RRC'
-		self.alias = 'rrc'
+		# Поставщик
+		self.distributor = Distributor.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
-		# Получаем необходимые объекты
-		self.distributor = Distributor.objects.take(alias=self.alias, name=self.name)
-		self.updater = Updater.objects.take(alias=self.alias, name=self.name, distributor=self.distributor)
+		# Загрузчик
+		self.updater = Updater.objects.take(
+			alias       = self.alias,
+			name        = self.name,
+			distributor = self.distributor)
+
+		# Склад
 		self.stock = Stock.objects.take(
 			alias=self.alias+'-stock',
 			name=self.name+': склад',
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor=self.distributor)
+		Party.objects.clear(stock = self.stock)
+
+		# На заказ
 		self.on_order = Stock.objects.take(
 			alias=self.alias+'-on-order',
 			name=self.name+': на заказ',
 			delivery_time_min = 10,
 			delivery_time_max = 40,
 			distributor=self.distributor)
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-		self.dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
-		self.rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
-		self.usd = Currency.objects.take(alias='USD', name='$', full_name='US Dollar', rate=60, quantity=1)
-		self.eur = Currency.objects.take(alias='EUR', name='EUR', full_name='Евро', rate=80, quantity=1)
+		Party.objects.clear(stock = self.on_order)
 
-		# Удаляем неактуальные партии
-		Party.objects.clear(stock=self.stock)
-		Party.objects.clear(stock=self.on_order)
+		# Единица измерения
+		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+
+		# Тип цен
+		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
+
+		# Валюты
+		self.rub = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
+		self.usd = Currency.objects.take(
+			alias     = 'USD',
+			name      = '$',
+			full_name = 'US Dollar',
+			rate      = 60,
+			quantity  = 1)
+		self.eur = Currency.objects.take(
+			alias     = 'EUR',
+			name      = 'EUR',
+			full_name = 'Евро',
+			rate      = 80,
+			quantity  = 1)
 
 		# Используемые ссылки
 		self.url = 'http://rrc.ru/catalog/?login=yes'
@@ -66,7 +97,7 @@ class Runner:
 
 		# Получаем куки
 		try:
-			r = s.get(self.url, timeout=30.0)
+			r = s.get(self.url, timeout = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки Cookies.")
@@ -81,7 +112,12 @@ class Runner:
 				'USER_LOGIN': self.updater.login,
 				'USER_PASSWORD': self.updater.password,
 				'Login': '1'}
-			r = s.post(self.url, cookies=cookies, data=payload, allow_redirects=True, timeout=30.0)
+			r = s.post(
+				self.url,
+				cookies = cookies,
+				data = payload,
+				allow_redirects = True,
+				timeout = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания подтверждения авторизации.")
@@ -89,7 +125,11 @@ class Runner:
 
 		# Загружаем начальную страницу каталога
 		try:
-			r = s.get(self.url, cookies=cookies, allow_redirects=True, timeout=30.0)
+			r = s.get(
+				self.url,
+				cookies = cookies,
+				allow_redirects = True,
+				timeout = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки каталога.")
@@ -98,6 +138,7 @@ class Runner:
 		# Проходим по всем ссылкам
 		tree = lxml.html.fromstring(r.text)
 		urls = tree.xpath('//a/@href')
+		del(tree)
 		i = 0
 		while i < len(urls):
 
@@ -106,7 +147,10 @@ class Runner:
 
 				# Переходим по ссылке
 				try:
-					r = s.get(self.url_prefix + urls[i], cookies = cookies, timeout=30.0)
+					r = s.get(
+						self.url_prefix + urls[i],
+						cookies = cookies,
+						timeout = 30.0)
 					print("\nЗагружена страница: " + self.url_prefix + urls[i])
 				except requests.exceptions.Timeout:
 					print("Превышение интервала ожидания загрузки.")
@@ -114,13 +158,13 @@ class Runner:
 
 				# Получаем все ссылки. Ссылки, которых нет - добавляем в список.
 				tree = lxml.html.fromstring(r.text)
-				del r
+				del(r)
 				for url in tree.xpath('//a/@href'):
 					if not url in urls: urls.append(url)
 
 				# Парсим таблицу с товарами
 				self.parseProducts(tree)
-				del tree
+				del(tree)
 
 			i += 1
 
@@ -215,26 +259,33 @@ class Runner:
 			# Партии
 			if quantity:
 				party = Party.objects.make(
-					product=product,
-					stock=self.stock,
-					price = price,
+					product    = product,
+					stock      = self.stock,
+					price      = price,
 					price_type = self.dp,
-					currency = currency,
-					quantity = quantity,
-					unit = self.default_unit)
-				print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+					currency   = currency,
+					quantity   = quantity,
+					unit       = self.default_unit)
+				print('{} {} = {} {}'.format(
+					product.vendor,
+					product.article,
+					party.price,
+					party.currency.alias))
 			else:
 				party = Party.objects.make(
-					product=product,
-					stock=self.on_order,
-					price = price,
+					product    = product,
+					stock      = self.on_order,
+					price      = price,
 					price_type = self.dp,
-					currency = currency,
-					quantity = 0,
-					unit = self.default_unit)
-				print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+					currency   = currency,
+					quantity   = 0,
+					unit       = self.default_unit)
+				print('{} {} = {} {}'.format(
+					product.vendor,
+					product.article,
+					party.price,
+					party.currency.alias))
 
-		del tree
 		return True
 
 	def fixPrice(self, price):
