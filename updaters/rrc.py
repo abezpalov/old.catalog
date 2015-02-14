@@ -2,8 +2,6 @@ import re
 import time
 import lxml.html
 import requests
-from datetime import date
-from datetime import datetime
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock

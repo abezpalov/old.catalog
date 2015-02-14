@@ -18,8 +18,8 @@ from catalog.models import Price
 class Runner:
 
 
-		self.name = 'OCS'
-		self.alias = 'ocs'
+	name = 'OCS'
+	alias = 'ocs'
 
 
 	def __init__(self):
@@ -252,7 +252,7 @@ class Runner:
 						currency = currency,
 						quantity = quantity,
 						unit = self.default_unit)
-					print("{} {} = {} {} {}".format(
+					print("{} {} = {} {}".format(
 						product.vendor.name,
 						product.article,
 						party.price,
