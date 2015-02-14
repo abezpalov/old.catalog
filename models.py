@@ -285,7 +285,7 @@ class PriceManager(models.Manager):
 				product.price = price
 				product.save()
 
-			print("{} of {}. {} {} = {} {}".format(str(n), len(products), product.vendor.name, product.article, str(product.price.price), str(product.price.currency.alias)))
+			print("{} of {}. {} {} = {} {}".format(str(n+1), len(products), product.vendor.name, product.article, str(product.price.price), str(product.price.currency.alias)))
 
 		return True
 
