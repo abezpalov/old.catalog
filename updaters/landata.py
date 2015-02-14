@@ -1,6 +1,6 @@
-import lxml.html
-import requests
 import time
+import requests
+import lxml.html
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock

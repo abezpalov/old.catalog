@@ -1,7 +1,7 @@
 import re
 import time
-import lxml.html
 import requests
+import lxml.html
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock
@@ -163,6 +163,9 @@ class Runner:
 				# Парсим таблицу с товарами
 				self.parseProducts(tree)
 				del(tree)
+
+				# Ждем, чтобы не получить отбой сервера
+				time.sleep(1)
 
 			i += 1
 
