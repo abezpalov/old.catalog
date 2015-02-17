@@ -1,3 +1,4 @@
+import time
 import requests
 from catalog.models import Updater
 from catalog.models import Distributor
@@ -106,6 +107,9 @@ class Runner:
 		# Обрабатываем категории
 		if data: self.parseCategories(data)
 		else: return False
+
+		print('Ждем 15 минут.')
+		time.sleep(900)
 
 		# Получаем каталог для обработки
 		data = self.getData('catalog', 'json', 1)
