@@ -109,7 +109,7 @@ class Runner:
 		else: return False
 
 		print('Ждем 15 минут.')
-		time.sleep(900)
+		time.sleep(901)
 
 		# Получаем каталог для обработки
 		data = self.getData('catalog', 'json', 1)
@@ -132,7 +132,7 @@ class Runner:
 			task           = self.task[task],
 			login          = self.updater.login,
 			password       = self.updater.password,
-			key            = self.key,
+			key            = None,
 			pack_status    = pack_status,
 			request_format = self.request_format[request_format])
 		else:
@@ -141,7 +141,7 @@ class Runner:
 			task           = self.task[task],
 			login          = self.updater.login,
 			password       = self.updater.password,
-			key            = self.key,
+			key            = None,
 			request_format = self.request_format[request_format])
 
 		# Выполняем запрос
