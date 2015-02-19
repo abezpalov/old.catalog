@@ -199,7 +199,7 @@ class Runner:
 	def parseCatalog(self, data):
 
 		# Проходим по категориям
-		for item in data:
+		for item in data['CategoryItem']:
 
 			# Определяем значение переменных
 			product_article       = item['WareArticle']
