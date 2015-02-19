@@ -205,7 +205,10 @@ class Runner:
 			product_article       = item['WareArticle']
 			product_name          = item['WareFullName']
 			category_synonym_id   = item['CategoryId']
-			category_synonym_name = self.category_synonyms[category_synonym_id]
+			try:
+				category_synonym_name = self.category_synonyms[category_synonym_id]
+			except KeyError:
+				category_synonym_name = 'Новые'
 			vendor_synonym_name   = item['WareVendor']
 
 			party_price    = self.fixPrice(item['WarePrice'])
