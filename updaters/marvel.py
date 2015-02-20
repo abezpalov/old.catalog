@@ -212,7 +212,7 @@ class Runner:
 			vendor_synonym_name   = item['WareVendor']
 
 			party_price    = self.fixPrice(item['WarePrice'])
-			party_currency = self.currencies[item['WareVendor']]
+			party_currency = self.currencies[item['WarePriceCurrency']]
 			party_quantity = {
 				'msk': self.fixQuantity(item['AvailableForShippingInMSKCount']),
 				'spb': self.fixQuantity(item['AvailableForShippingInSPBCount'])}
