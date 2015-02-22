@@ -382,13 +382,27 @@ class Product(models.Model):
 # Party manager
 class PartyManager(models.Manager):
 
-	def make(self, product, stock, price, price_type, currency, quantity, unit):
-		party = Party(product=product, stock=stock, price=price, price_type=price_type, currency=currency, quantity=quantity, unit=unit, created=timezone.now(), modified=timezone.now())
+	def make(self, product, stock, price, price_type, currency, quantity, unit,
+			price_out = None, price_type_out = None, currency_out = None):
+
+		party = Party(
+			product        = product,
+			stock          = stock,
+			price          = price,
+			price_type     = price_type,
+			currency       = currency,
+			price_out      = price,
+			price_type_out = price_type,
+			currency_out   = currency,
+			quantity       = quantity,
+			unit           = unit,
+			created        = timezone.now(),
+			modified       = timezone.now())
 		party.save()
 		return party
 
 	def clear(self, stock):
-		Party.objects.filter(stock=stock).delete()
+		Party.objects.filter(stock = stock).delete()
 		return True
 
 # Party
@@ -400,6 +414,9 @@ class Party(models.Model):
 	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
 	price_type = models.ForeignKey(PriceType, null=True, default=None)
 	currency = models.ForeignKey(Currency, null=True, default=None)
+	price_out = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
+	price_type_out = models.ForeignKey(PriceType, related_name = 'party_requests_currency_out', null=True, default=None)
+	currency_out = models.ForeignKey(Currency, related_name = 'party_requests_currency_out', null=True, default=None)
 	quantity = models.IntegerField(null=True, default=None)
 	unit = models.ForeignKey(Unit, null=True, default=None)
 	comment = models.TextField()
@@ -419,6 +436,9 @@ class PartyHystory(models.Model):
 	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
 	price_type = models.ForeignKey(PriceType, null=True, default=None)
 	currency = models.ForeignKey(Currency, null=True, default=None)
+	price_out = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
+	price_type_out = models.ForeignKey(PriceType, related_name = 'party_hystory_requests_price_type_out', null=True, default=None)
+	currency_out = models.ForeignKey(Currency, related_name = 'party_hystory_requests_currency_out', null=True, default=None)
 	quantity = models.IntegerField(null=True, default=None)
 	unit = models.ForeignKey(Unit, null=True, default=None)
 	comment = models.TextField()

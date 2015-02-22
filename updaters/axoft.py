@@ -42,11 +42,11 @@ class Runner:
 
 		# На заказ
 		self.on_order = Stock.objects.take(
-			alias=self.alias+'-on-order',
-			name=self.name+': на заказ',
+			alias             = self.alias + '-on-order',
+			name              = self.name + ': на заказ',
 			delivery_time_min = 10,
 			delivery_time_max = 40,
-			distributor=self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.on_order)
 
 		# Единица измерения
@@ -55,6 +55,26 @@ class Runner:
 		# Тип цен
 		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
 		self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
+
+		# Валюты
+		self.rub = Currency.objects.take(
+			alias = 'RUB',
+			name = 'р.',
+			full_name = 'Российский рубль',
+			rate = 1,
+			quantity = 1)
+		self.usd = Currency.objects.take(
+			alias = 'USD',
+			name = '$',
+			full_name = 'US Dollar',
+			rate = 60,
+			quantity = 1)
+		self.eur = Currency.objects.take(
+			alias = 'EUR',
+			name = 'EUR',
+			full_name = 'Euro',
+			rate = 80,
+			quantity = 1)
 
 		# Используемые ссылки
 		self.url = {
@@ -69,6 +89,7 @@ class Runner:
 
 		# Регулярные выражения
 		self.reg = re.compile('var oFilterArray = (\[[^\[]*\])')
+
 
 	def run(self):
 
@@ -106,7 +127,7 @@ class Runner:
 				else:
 					print('Производитель не привязан.')
 
-		return False
+		return True
 
 
 	def login(self):
@@ -208,9 +229,15 @@ class Runner:
 			'product_article': 'VendorSKU',
 			'product_name':    'ProductDescription',
 			'product_version': 'Version',
-			'party_price_in':  'Retail',
-			'party_price_out': 'Partner',
+			'price_in':        'Retail',
+			'price_out':       'Partner',
 			'product_vat':     'NDS'}
+
+		# Сопоставление валют
+		currencies = {
+			'General':           None,
+			'#,##0.00[$р.-419]': self.rub,
+			'[$$-409]#,##0.00':  self.usd}
 
 		# Имя категории поставщика
 		category_synonym_name = None
@@ -220,6 +247,11 @@ class Runner:
 			file_contents   = data.read(),
 			formatting_info = True)
 		sheet = book.sheet_by_index(0)
+
+
+		# Получаем словарь форматов (потребуется при получении валюты)
+		formats = book.format_map
+
 
 		# Проходим по всем строкам
 		for row_num in range(sheet.nrows):
@@ -238,10 +270,10 @@ class Runner:
 						num['product_name'] = cel_num
 					elif str(cel).strip() == word['product_version']:
 						num['product_version'] = cel_num
-					elif str(cel).strip() == word['party_price_in']:
-						num['party_price_in'] = cel_num
-					elif str(cel).strip() == word['party_price_out']:
-						num['party_price_out'] = cel_num
+					elif str(cel).strip() == word['price_in']:
+						num['price_in'] = cel_num
+					elif str(cel).strip() == word['price_out']:
+						num['price_out'] = cel_num
 					elif str(cel).strip() == word['product_vat']:
 						num['product_vat'] = cel_num
 
@@ -258,26 +290,37 @@ class Runner:
 			elif row_num >= num['first_line']:
 
 				# Определяем значение переменных
-				party_article           = row[num['party_article']]
-				product_article         = row[num['product_article']]
-				product_name            = row[num['product_name']]
-				product_version         = row[num['product_version']]
-				party_price_in          = row[num['party_price_in']]
-				# TODO currency_in
-				party_price_out         = row[num['party_price_out']]
-				# TODO currency_out
-				product_vat             = row[num['product_vat']]
+				if row[num['product_article']]:
+					product_article = row[num['product_article']]
+				else:
+					product_article = row[num['party_article']]
+				party_article       = row[num['party_article']]
+				product_name        = row[num['product_name']]
+				product_version     = row[num['product_version']]
+				price_in            = self.fixPrice(row[num['price_in']])
+				price_out           = self.fixPrice(row[num['price_out']])
+				product_vat         = row[num['product_vat']]
 
+				# Валюта входной цены
+				xfx = sheet.cell_xf_index(row_num, num['price_in'])
+				xf = book.xf_list[xfx]
+				format_str = formats[xf.format_key].format_str
+				price_currency_in = currencies[format_str]
+
+				# Валюта выходной цены
+				xfx = sheet.cell_xf_index(row_num, num['price_out'])
+				xf = book.xf_list[xfx]
+				format_str = formats[xf.format_key].format_str
+				price_currency_out = currencies[format_str]
 
 				# Имя синонима категории
-				if product_name and not party_article:
+				if product_name and not product_article:
 					category_synonym_name = "{}: {}".format(
 						vendor.name,
 						row[num['product_name']])
 
 				# Продукт
 				elif product_article and product_name:
-
 
 					# Получаем объект категории
 					if category_synonym_name:
@@ -297,24 +340,30 @@ class Runner:
 						category = category,
 						unit     = self.default_unit)
 
-					# TODO Добавляем партии
-#					party = Party.objects.make(
-#						product    = product,
-#						stock      = self.on_order,
-#						price      = party_price_in,
-#						price_type = self.dp,
-#						currency   = party_currency,
-#						quantity   = party_quantity[stock_name],
-#						unit       = self.default_unit)
+					# Добавляем партии
+					party = Party.objects.make(
+						product        = product,
+						stock          = self.on_order,
+						price          = price_in,
+						price_type     = self.dp,
+						currency       = price_currency_in,
+						price_out      = price_out,
+						price_type_out = self.rp,
+						currency_out   = price_currency_out,
+						quantity       = -1,
+						unit           = self.default_unit)
 					print("{} {} = {} {}".format(
-						vendor.name,
-						product_article,
-						party_price_in,
-						party_price_in_currency))
+						party.product.vendor,
+						party.product.article,
+						party.price,
+						party.currency))
+
+		return True
 
 
-
-
-
-
-
+	def fixPrice(self, price):
+		if price:
+			try: price = float(price)
+			except ValueError: price = None
+		else: price = None
+		return price
