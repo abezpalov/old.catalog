@@ -237,7 +237,8 @@ class Runner:
 		currencies = {
 			'General':           None,
 			'#,##0.00[$р.-419]': self.rub,
-			'[$$-409]#,##0.00':  self.usd}
+			'[$$-409]#,##0.00':  self.usd,
+			'[$€-2]\\ #,##0.00': self.eur}
 
 		# Имя категории поставщика
 		category_synonym_name = None
