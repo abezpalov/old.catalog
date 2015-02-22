@@ -153,10 +153,11 @@ class Runner:
 					currency = self.rub,
 					quantity = -1,
 					unit = self.default_unit)
-				print('{} = {} {}'.format(
+				print('{} {} = {} {}'.format(
+					product.vendor,
 					product.article,
 					party.price,
-					party.currency.alias))
+					party.currency))
 
 		return True
 
