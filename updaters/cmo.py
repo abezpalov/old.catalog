@@ -61,7 +61,7 @@ class Runner:
 			quantity  = 1)
 
 		# Переменные
-		self.url = 'http://www.cmo.ru/catalog/price/'
+		self.url = 'http://www.cmo.ru/price/'
 
 	def run(self):
 
