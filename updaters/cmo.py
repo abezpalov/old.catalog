@@ -73,8 +73,9 @@ class Runner:
 			'article': 'Артикул',
 			'code': 'Код (ID)',
 			'name': 'Наименование продукции',
-			'price': '"Цена, RUB"',
-			'price-alt': '"Цена, RUB'}
+			'price': '',
+			'price-alt': '"Цена, RUB"',
+			'price-alt2': '"Цена, RUB'}
 
 		# Создаем сессию
 		s = requests.Session()
@@ -101,11 +102,12 @@ class Runner:
 			if trn == num['header']:
 				for tdn, td in enumerate(tr):
 					print(td.text)
-					if   td.text == word['article']:   num['article'] = tdn
-					elif td.text == word['code']:      num['code']    = tdn
-					elif td.text == word['name']:      num['name']    = tdn
-					elif td.text == word['price']:     num['price']   = tdn
-					elif td.text == word['price-alt']: num['price']   = tdn
+					if   td.text == word['article']:    num['article'] = tdn
+					elif td.text == word['code']:       num['code']    = tdn
+					elif td.text == word['name']:       num['name']    = tdn
+					elif td.text == word['price']:      num['price']   = tdn
+					elif td.text == word['price-alt']:  num['price']   = tdn
+					elif td.text == word['price-alt2']: num['price']   = tdn
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['code'] or not num['name'] or not num['price']:
