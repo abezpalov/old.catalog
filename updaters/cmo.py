@@ -73,7 +73,7 @@ class Runner:
 			'article': 'Артикул',
 			'code': 'Код (ID)',
 			'name': 'Наименование продукции',
-			'price': '',
+			'price': None,
 			'price-alt': '"Цена, RUB"',
 			'price-alt2': '"Цена, RUB'}
 
