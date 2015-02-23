@@ -281,6 +281,7 @@ class Runner:
 
 
 	def fixQuantity(self, quantity):
-		price = price.replace('+', '')
+		quantity = str(quantity)
+		quantity = quantity.replace('+', '')
 		quantity = int(quantity)
 		return quantity
