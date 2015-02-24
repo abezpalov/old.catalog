@@ -206,7 +206,12 @@ class Runner:
 			print("Превышение интервала ожидания загрузки каталога.")
 			return False
 
-		zip_data = ZipFile(BytesIO(r.content))
+		try:
+			zip_data = ZipFile(BytesIO(r.content))
+		except:
+			print("Ошибка: битый архив.")
+			return False
+
 		data = zip_data.open(zip_data.namelist()[0])
 
 		print('Получен прайс: {}'.format(zip_data.namelist()[0]))
@@ -244,9 +249,13 @@ class Runner:
 		category_synonym_name = None
 
 		# Парсим
-		book = xlrd.open_workbook(
-			file_contents   = data.read(),
-			formatting_info = True)
+		try:
+			book = xlrd.open_workbook(
+				file_contents   = data.read(),
+				formatting_info = True)
+		except NotImplementedError:
+			print("Ошибка: непонятная ошибка при открытии файла.")
+			return False
 		sheet = book.sheet_by_index(0)
 
 
