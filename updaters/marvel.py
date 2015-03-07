@@ -87,8 +87,10 @@ class Runner:
 		self.category_synonyms = {}
 		self.currencies = {
 			'RUB': self.rub,
+			'RUR': self.rub,
 			'USD': self.usd,
-			'EUR': self.eur}
+			'EUR': self.eur,
+			'':    None}
 		self.stocks = {
 			'msk': self.stock_msk,
 			'spb': self.stock_spb}
@@ -109,7 +111,10 @@ class Runner:
 		else: return False
 
 		print('Ждем 15 минут.')
-		time.sleep(901)
+		m = 905
+		for i in range(m):
+			print("Осталось {} секунд.".format(m-i))
+			time.sleep(1)
 
 		# Получаем каталог для обработки
 		data = self.getData('catalog', 'json', 1)
@@ -239,37 +244,37 @@ class Runner:
 					unit     = self.default_unit)
 				print("{} {}".format(product.vendor.name, product.article))
 
-			# Партии
-			stock_name = 'msk'
-			if party_quantity[stock_name]:
-				party = Party.objects.make(
-					product    = product,
-					stock      = self.stocks[stock_name],
-					price      = party_price,
-					price_type = self.dp,
-					currency   = party_currency,
-					quantity   = party_quantity[stock_name],
-					unit       = self.default_unit)
-				print("{} {} = {} {}".format(
-					product.vendor.name,
-					product.article,
-					party.price,
-					party.currency.alias))
-			stock_name = 'spb'
-			if party_quantity[stock_name]:
-				party = Party.objects.make(
-					product    = product,
-					stock      = self.stocks[stock_name],
-					price      = party_price,
-					price_type = self.dp,
-					currency   = party_currency,
-					quantity   = party_quantity[stock_name],
-					unit       = self.default_unit)
-				print("{} {} = {} {}".format(
-					product.vendor.name,
-					product.article,
-					party.price,
-					party.currency.alias))
+				# Партии
+				stock_name = 'msk'
+				if party_quantity[stock_name]:
+					party = Party.objects.make(
+						product    = product,
+						stock      = self.stocks[stock_name],
+						price      = party_price,
+						price_type = self.dp,
+						currency   = party_currency,
+						quantity   = party_quantity[stock_name],
+						unit       = self.default_unit)
+					print("{} {} = {} {}".format(
+						product.vendor.name,
+						product.article,
+						party.price,
+						party.currency))
+				stock_name = 'spb'
+				if party_quantity[stock_name]:
+					party = Party.objects.make(
+						product    = product,
+						stock      = self.stocks[stock_name],
+						price      = party_price,
+						price_type = self.dp,
+						currency   = party_currency,
+						quantity   = party_quantity[stock_name],
+						unit       = self.default_unit)
+					print("{} {} = {} {}".format(
+						product.vendor.name,
+						product.article,
+						party.price,
+						party.currency))
 
 
 	def fixPrice(self, price):
