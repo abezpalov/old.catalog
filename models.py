@@ -300,6 +300,24 @@ class Price(models.Model):
 	modified = models.DateTimeField()
 	objects = PriceManager()
 
+	def _get_price_str(self):
+
+		try:
+			price = self.price
+			currency = self.currency
+		except: return None
+
+		if price:
+			price = '{:,}'.format(price)
+			price = price.replace(',', '&nbsp;')
+			price = price.replace('.', ',')
+			price = price + '&nbsp;' + currency.name
+		else: return '<i class="fa fa-phone"></i>'
+
+		return price
+
+	price_str = property(_get_price_str)
+
 	class Meta:
 		ordering = ['-created']
 

@@ -45,7 +45,7 @@
 			<td>{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/" data-do="edit-item" data-id="{{ product.id }}">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
-			<td style="white-space: nowrap;" class="text-right"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price_out }}{% endautoescape %}</a></td>
+			<td style="white-space: nowrap;" class="text-right"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</a></td>
 			<td style="white-space: nowrap;"></td>
 		</tr>
 		{% endfor %}

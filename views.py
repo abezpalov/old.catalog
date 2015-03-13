@@ -112,18 +112,6 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 
 		products = products[(page - 1) * items_on_page : page * items_on_page]
 
-
-	# Локализуем представление цен
-	for product in products:
-		try:
-			if product.price.price:
-				product.price_out = '{:,}'.format(product.price.price)
-				product.price_out = product.price_out.replace(',', '&nbsp;')
-				product.price_out = product.price_out.replace('.', ',')
-				product.price_out = product.price_out + '&nbsp;' + product.price.currency.name
-			else: product.price_out = '<i class="fa fa-phone"></i>'
-		except: product.price_out = '<i class="fa fa-phone"></i>'
-
 	return render(request, 'catalog/products.html', locals())
 
 
@@ -1152,7 +1140,12 @@ def ajaxGetParties(request):
 							party.price_type.alias,
 							'&infin;')
 					else:
-						html_data += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{} {}</td></tr>\n'.format(party.stock.name, party.price_str, party.price_type.alias, party.quantity, party.unit.name)
+						html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{} {}</td></tr>\n".format(
+							party.stock.name,
+							party.price_str,
+							party.price_type.alias,
+							party.quantity,
+							party.unit.name)
 				html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
 			else:
 				html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
