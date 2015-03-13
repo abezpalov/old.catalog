@@ -18,8 +18,51 @@
 {% block content %}
 
 <div class="row">
-	<div class="large-12 columns">
-		<h2>{{ product.name }} [{{ product.article }}]</h2>
+	<div class="small-12 columns">
+		<h3>{{ product.name }}</h3>
+	</div>
+</div>
+
+<div class="row">
+	<div class="large-8 medium-6 columns">
+		<div class="fotorama"
+			data-nav="thumbs"
+			data-transition="crossfade"
+			data-arrows="true"
+			data-click="false"
+			data-swipe="false"
+			data-trackpad="true">
+			<img src="http://s.fotorama.io/1.jpg" data-caption="1">
+			<img src="http://s.fotorama.io/2.jpg" data-caption="2">
+			<img src="http://s.fotorama.io/3.jpg" data-caption="3">
+			<img src="http://s.fotorama.io/4.jpg" data-caption="4">
+			<img src="http://s.fotorama.io/5.jpg" data-caption="5">
+			<img src="http://s.fotorama.io/1.jpg" data-caption="1">
+			<img src="http://s.fotorama.io/2.jpg" data-caption="2">
+			<img src="http://s.fotorama.io/3.jpg" data-caption="3">
+			<img src="http://s.fotorama.io/4.jpg" data-caption="4">
+			<img src="http://s.fotorama.io/5.jpg" data-caption="5">
+			<img src="http://s.fotorama.io/1.jpg" data-caption="1">
+			<img src="http://s.fotorama.io/2.jpg" data-caption="2">
+			<img src="http://s.fotorama.io/3.jpg" data-caption="3">
+			<img src="http://s.fotorama.io/4.jpg" data-caption="4">
+			<img src="http://s.fotorama.io/5.jpg" data-caption="5">
+		</div>
+	</div>
+	<div class="large-4 medium-6 columns">
+		<ul class="pricing-table">
+			<li class="bullet-item">{{ product.vendor }}</li>
+			<li class="bullet-item">{{ product.article }}</li>
+			<li class="price">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</li>
+			<li class="cta-button"><button><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;В заказ</button></li>
+		</ul>
+	</div>
+</div>
+
+<div class="row">
+	<div class="large-12 visible-for-large-up columns">
+		<p>{{ product.description }}</p>
+		<p>Характеристики</p>
 	</div>
 </div>
 
