@@ -1146,9 +1146,13 @@ def ajaxGetParties(request):
 			if len(parties):
 				for party in parties:
 					if -1 == party.quantity:
-						html_data += '<tr><td>{}</td><td>{} {}</td><td>{}</td><td>{}</td></tr>\n'.format(party.stock.name, party.price, party.currency.alias, party.price_type.alias, '&infin;')
+						html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(
+							party.stock.name,
+							party.price_str,
+							party.price_type.alias,
+							'&infin;')
 					else:
-						html_data += '<tr><td>{}</td><td>{} {}</td><td>{}</td><td>{} {}</td></tr>\n'.format(party.stock.name, party.price, party.currency.alias, party.price_type.alias, party.quantity, party.unit.name)
+						html_data += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{} {}</td></tr>\n'.format(party.stock.name, party.price_str, party.price_type.alias, party.quantity, party.unit.name)
 				html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
 			else:
 				html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
