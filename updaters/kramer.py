@@ -53,10 +53,10 @@ class Runner:
 		# Ссылки
 		self.url = {
 			'start': 'http://kramer.ru/',
-			'login': 'http://kramer.ru/',
-			'files': 'http://kramer.ru/closed/files/',
-			'devices': "http://www.kramer.ru/Useful_files/Kramer-RUS-List-Price-",
-			'cables':  "http://www.kramer.ru/Useful_files/Kramer-Cable-List-Price-"}
+			'login': 'http://kramer.ru/?login=yes',
+			'files': 'http://kramer.ru/partners/prices/',
+			'base':  'http://kramer.ru',
+			'price': 'http://kramer.ru/filedownload.php?id='}
 
 	def run(self):
 
@@ -71,7 +71,13 @@ class Runner:
 		cookies = r.cookies
 
 		# Авторизуемся
-		payload = {'dealer_login': self.updater.login, 'dealer_pass': self.updater.password}
+		payload = {
+			'backurl': '/',
+			'AUTH_FORM': 'Y',
+			'TYPE': 'AUTH',
+			'USER_LOGIN': self.updater.login,
+			'USER_PASSWORD': self.updater.password,
+			'Login': 'Войти'}
 		r = s.post(self.url['login'], cookies = cookies, data = payload, allow_redirects = True)
 		cookies = r.cookies
 
@@ -83,14 +89,11 @@ class Runner:
 		urls = tree.xpath('//a/@href')
 		ok = 0
 		for url in urls:
-			if self.url['devices'] in url:
-				xls_data = self.getXLS(request = s.get(url, cookies = cookies, allow_redirects = True))
-				self.parseDevices(xls_data)
-				ok += 1
-			elif self.url['cables'] in url:
-				xls_data = self.getXLS(request = s.get(url, cookies = cookies, allow_redirects = True))
-				self.parseCables(xls_data)
-				ok += 1
+			url = self.url['base'] + url
+#			print(url)
+			if self.url['price'] in url:
+				if self.parsePrice(request = s.get(url, cookies = cookies, allow_redirects = True)):
+					ok += 1
 
 		if ok < 2:
 			print("Не получилось загрузить прайс-листы.")
@@ -99,17 +102,31 @@ class Runner:
 
 		return True
 
-	def getXLS(self, request):
+	def parsePrice(self, request):
 
 		from io import BytesIO
 		from zipfile import ZipFile
 
-		zip_data = ZipFile(BytesIO(request.content))
-		xls_data = zip_data.open(zip_data.namelist()[0])
+		words = {
+			'cable': 'Cable',
+			'device': 'device'}
 
-		print("Получен прайс-лист: " + zip_data.namelist()[0])
+#		zip_data = ZipFile(BytesIO(request.content))
+#		xls_data = zip_data.open(zip_data.namelist()[0])
+		filename = request.headers.get('content-disposition')
+		print(filename)
 
-		return xls_data
+		xls_data = BytesIO(request.content)
+
+
+		if words['cable'] in filename:
+			print("Получен прайс-лист кабелей и материалов.")
+			self.parseCables(xls_data)
+			return True
+		elif words['device'] in filename:
+			print("Получен прайс-лист оборудования.")
+			self.parseDevices(xls_data)
+			return True
 
 	def parseDevices(self, xls_data):
 
