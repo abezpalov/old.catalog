@@ -3,7 +3,9 @@ from datetime import datetime
 from catalog.models import Updater
 from catalog.models import Price
 
+
 class Runner:
+
 
 	def __init__(self):
 
@@ -13,6 +15,7 @@ class Runner:
 
 		# Получаем необходимые объекты
 		self.updater = Updater.objects.take(alias=self.alias, name=self.name)
+
 
 	def run(self):
 

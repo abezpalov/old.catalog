@@ -20,7 +20,7 @@ from catalog.models import Price
 class Runner:
 
 
-	name = 'RRC'
+	name  = 'RRC'
 	alias = 'rrc'
 
 
@@ -39,20 +39,20 @@ class Runner:
 
 		# Склад
 		self.stock = Stock.objects.take(
-			alias=self.alias+'-stock',
-			name=self.name+': склад',
+			alias             = self.alias+'-stock',
+			name              = self.name+': склад',
 			delivery_time_min = 3,
 			delivery_time_max = 10,
-			distributor=self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.stock)
 
 		# На заказ
 		self.on_order = Stock.objects.take(
-			alias=self.alias+'-on-order',
-			name=self.name+': на заказ',
+			alias             = self.alias+'-on-order',
+			name              = self.name+': на заказ',
 			delivery_time_min = 10,
 			delivery_time_max = 40,
-			distributor=self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.on_order)
 
 		# Единица измерения
@@ -82,13 +82,18 @@ class Runner:
 			quantity  = 1)
 
 		# Используемые ссылки
-		self.url = 'http://rrc.ru/catalog/?login=yes'
+		self.url        = 'http://rrc.ru/catalog/?login=yes'
 		self.url_prefix = 'http://rrc.ru'
 
 		# Шаблон, соответсвующий ссылке на категорию с продуктами
 		self.p = re.compile('^\/catalog\/[0-9]{4}_[0-9]_[0-9]{4}\/(\?PAGEN_[0-9]+=[0-9]+)?$')
 
 	def run(self):
+
+		# Проверяем наличие параметров авторизации
+		if not self.updater.login or not self.updater.password:
+			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
+			return False
 
 		# Создаем сессию
 		s = requests.Session()
@@ -112,10 +117,10 @@ class Runner:
 				'Login': '1'}
 			r = s.post(
 				self.url,
-				cookies = cookies,
-				data = payload,
+				cookies         = cookies,
+				data            = payload,
 				allow_redirects = True,
-				timeout = 30.0)
+				timeout         = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания подтверждения авторизации.")
@@ -125,9 +130,9 @@ class Runner:
 		try:
 			r = s.get(
 				self.url,
-				cookies = cookies,
+				cookies         = cookies,
 				allow_redirects = True,
-				timeout = 30.0)
+				timeout         = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки каталога.")
@@ -243,18 +248,18 @@ class Runner:
 			# Обрабатываем синоним производителя
 			if vendor_synonym_name:
 				vendor_synonym = VendorSynonym.objects.take(
-					name=vendor_synonym_name,
-					updater=self.updater,
-					distributor=self.distributor)
+					name        = vendor_synonym_name,
+					updater     = self.updater,
+					distributor = self.distributor)
 			else: continue
 
 			# Получаем объект товара
 			if article and name and vendor_synonym.vendor:
 				product = Product.objects.take(
-					article=article,
-					vendor=vendor_synonym.vendor,
-					name=name,
-					unit = self.default_unit)
+					article = article,
+					vendor  = vendor_synonym.vendor,
+					name    = name,
+					unit    = self.default_unit)
 			else: continue
 
 			# Партии

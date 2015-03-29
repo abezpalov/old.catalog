@@ -90,7 +90,6 @@ class Runner:
 		ok = 0
 		for url in urls:
 			url = self.url['base'] + url
-#			print(url)
 			if self.url['price'] in url:
 				if self.parsePrice(request = s.get(url, cookies = cookies, allow_redirects = True)):
 					ok += 1
@@ -102,22 +101,21 @@ class Runner:
 
 		return True
 
+
 	def parsePrice(self, request):
 
 		from io import BytesIO
 		from zipfile import ZipFile
 
+		# Распознаваемые слова
 		words = {
 			'cable': 'Cable',
 			'device': 'device'}
 
-#		zip_data = ZipFile(BytesIO(request.content))
-#		xls_data = zip_data.open(zip_data.namelist()[0])
 		filename = request.headers.get('content-disposition')
 		print(filename)
 
 		xls_data = BytesIO(request.content)
-
 
 		if words['cable'] in filename:
 			print("Получен прайс-лист кабелей и материалов.")
@@ -127,6 +125,7 @@ class Runner:
 			print("Получен прайс-лист оборудования.")
 			self.parseDevices(xls_data)
 			return True
+
 
 	def parseDevices(self, xls_data):
 
@@ -219,6 +218,7 @@ class Runner:
 		print("Обработка прайс-листа оборудования завершена.")
 		return True
 
+
 	def parseCables(self, xls_data):
 
 		import xlrd
@@ -306,6 +306,7 @@ class Runner:
 
 		print("Обработка прайс-листа материалов завершена.")
 		return True
+
 
 	def fixPrice(self, price):
 		if price in ('CALL', '?'): price = None

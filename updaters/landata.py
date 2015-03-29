@@ -18,59 +18,86 @@ from catalog.models import Price
 
 class Runner:
 
+
+	name = 'Landata'
+	alias = 'landata'
+
+
 	def __init__(self):
 
-		# Инициируем переменные
-		self.name = 'Landata'
-		self.alias = 'landata'
+		# Поставщик
+		self.distributor = Distributor.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
-		# Получаем необходимые объекты
-		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
-		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
+		# Загрузчик
+		self.updater = Updater.objects.take(
+			alias       = self.alias,
+			name        = self.name,
+			distributor = self.distributor)
 
 		# Склады
 		# C1- склад №1 по адресу 2-ой пер. Петра Алексеева д.2 стр.1
 		self.s1 = Stock.objects.take(
-			alias = self.alias + '-stock-1',
-			name = self.name + ': склад № 1',
+			alias             = self.alias + '-stock-1',
+			name              = self.name + ': склад № 1',
 			delivery_time_min = 3,
 			delivery_time_max = 10,
-			distributor = self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.s1)
 
 		# C2- склад №2 по адресу Дмитровское шоссе
 		self.s2 = Stock.objects.take(
-			alias = self.alias + '-stock-2',
-			name = self.name + ': склад № 2',
+			alias             = self.alias + '-stock-2',
+			name              = self.name + ': склад № 2',
 			delivery_time_min = 3,
 			delivery_time_max = 10,
-			distributor = self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.s2)
 
 		# БТ- Ближний транзит - свободный товар, поступающий на склады Landata в течение 1-21 дней
 		self.bt = Stock.objects.take(
-			alias = self.alias + '-b-transit',
-			name = self.name + ': ближний транзит',
+			alias             = self.alias + '-b-transit',
+			name              = self.name + ': ближний транзит',
 			delivery_time_min = 10,
 			delivery_time_max = 30,
-			distributor = self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.bt)
 
 		# ДТ- Дальний транзит - свободный товар, поступающий на склады Landata в период между 22 - 60 днями
 		self.dt = Stock.objects.take(
-			alias = self.alias + '-d-transit',
-			name = self.name + ': дальний транзит',
+			alias             = self.alias + '-d-transit',
+			name              = self.name + ': дальний транзит',
 			delivery_time_min = 25,
 			delivery_time_max = 80,
-			distributor = self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.dt)
 
-		# Типы цен, валюты и единицы
+		# Единица измерения
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+
+		# Тип цены
 		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
-		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
-		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'US Dollar', rate = 60, quantity = 1)
-		self.eur = Currency.objects.take(alias = 'EUR', name = 'EUR', full_name = 'Euro', rate = 80, quantity = 1)
+
+		# Валюта
+		self.rub = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
+		self.usd = Currency.objects.take(
+			alias     = 'USD',
+			name      = '$',
+			full_name = 'US Dollar',
+			rate      = 60,
+			quantity  = 1)
+		self.eur = Currency.objects.take(
+			alias     = 'EUR',
+			name      = 'EUR',
+			full_name = 'Euro',
+			rate      = 80,
+			quantity  = 1)
 
 		# Используемые ссылки
 		self.url = {
@@ -79,6 +106,7 @@ class Runner:
 			'price': 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
 			'backurl': '/index.php',
 			'filter': '?vendor_code='}
+
 
 	def run(self):
 
@@ -173,6 +201,7 @@ class Runner:
 
 		return True
 
+
 	def parseProducts(self, table, vendor_synonym_name):
 
 		# Номера строк и столбцов
@@ -263,46 +292,46 @@ class Runner:
 				# Записываем партии
 				if s1:
 					party = Party.objects.make(
-						product = product,
-						stock=self.s1,
-						price = price,
+						product    = product,
+						stock      = self.s1,
+						price      = price,
 						price_type = self.dp,
-						currency = currency,
-						quantity = s1,
-						unit = self.default_unit)
+						currency   = currency,
+						quantity   = s1,
+						unit       = self.default_unit)
 					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
 
 				if s2:
 					party = Party.objects.make(
-						product = product,
-						stock=self.s1,
-						price = price,
+						product    = product,
+						stock      = self.s1,
+						price      = price,
 						price_type = self.dp,
-						currency = currency,
-						quantity = s2,
-						unit = self.default_unit)
+						currency   = currency,
+						quantity   = s2,
+						unit       = self.default_unit)
 					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
 
 				if bt:
 					party = Party.objects.make(
-						product = product,
-						stock=self.s1,
-						price = price,
+						product    = product,
+						stock      = self.s1,
+						price      = price,
 						price_type = self.dp,
-						currency = currency,
-						quantity = bt,
-						unit = self.default_unit)
+						currency   = currency,
+						quantity   = bt,
+						unit       = self.default_unit)
 					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
 
 				if dt:
 					party = Party.objects.make(
-						product = product,
-						stock=self.s1,
-						price = price,
+						product    = product,
+						stock      = self.s1,
+						price      = price,
 						price_type = self.dp,
-						currency = currency,
-						quantity = dt,
-						unit = self.default_unit)
+						currency   = currency,
+						quantity   = dt,
+						unit       = self.default_unit)
 					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
 
 		return True

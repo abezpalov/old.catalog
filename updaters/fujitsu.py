@@ -68,7 +68,6 @@ class Runner:
 
 		# Получаем куки
 		try:
-			""
 			r = s.get(self.url['start'], allow_redirects = True, timeout = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:

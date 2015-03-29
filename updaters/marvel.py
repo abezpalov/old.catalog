@@ -58,30 +58,30 @@ class Runner:
 
 		# Валюты
 		self.rub = Currency.objects.take(
-			alias = 'RUB',
-			name = 'р.',
+			alias     = 'RUB',
+			name      = 'р.',
 			full_name = 'Российский рубль',
-			rate = 1,
-			quantity = 1)
+			rate      = 1,
+			quantity  = 1)
 		self.usd = Currency.objects.take(
-			alias = 'USD',
-			name = '$',
+			alias     = 'USD',
+			name      = '$',
 			full_name = 'US Dollar',
-			rate = 60,
-			quantity = 1)
+			rate      = 60,
+			quantity  = 1)
 		self.eur = Currency.objects.take(
-			alias = 'EUR',
-			name = 'EUR',
+			alias     = 'EUR',
+			name      = 'EUR',
 			full_name = 'Euro',
-			rate = 80,
-			quantity = 1)
+			rate      = 80,
+			quantity  = 1)
 
 		# Дополнительные переменные
 		self.url = 'https://b2b.marvel.ru/Api/'
 		self.key = ''
 		self.task = {
 			'categories': 'GetCatalogCategories',
-			'catalog':    'GetFullStock'}
+			'catalog': 'GetFullStock'}
 		self.request_format = {'xml': '0', 'json': '1'}
 		self.cookies = None
 		self.category_synonyms = {}

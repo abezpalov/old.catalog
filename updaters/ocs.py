@@ -155,17 +155,17 @@ class Runner:
 		# Получаем локации
 		print('Получаем локации.')
 		payload = json.dumps({
-			'Login': self.updater.login,
-			'Token': self.updater.password,
+			'Login':        self.updater.login,
+			'Token':        self.updater.password,
 			'Availability': 1,
 			'ShipmentCity': 'Самара'})
 
 		try:
 			r = requests.post(
 				self.url + 'GetLocations',
-				data = payload,
+				data    = payload,
 				headers = headers,
-				verify = False,
+				verify  = False,
 				timeout = 100.0)
 		except requests.exceptions.Timeout:
 			print("Ошибка: превышен интервал ожидания загрузки локаций.")
@@ -190,9 +190,9 @@ class Runner:
 		try:
 			r = requests.post(
 				self.url + 'GetProductAvailability',
-				data = payload,
+				data    = payload,
 				headers = headers,
-				verify = False,
+				verify  = False,
 				timeout = 100.0)
 		except requests.exceptions.Timeout:
 			print("Ошибка: превышен интервал ожидания загрузки товаров.")
@@ -207,14 +207,14 @@ class Runner:
 			except KeyError:
 				category_synonym_name = p['CategoryID']
 			category_synonym = CategorySynonym.objects.take(
-				name = category_synonym_name,
-				updater = self.updater,
+				name        = category_synonym_name,
+				updater     = self.updater,
 				distributor = self.distributor)
 
 			# Синоним производителя
 			vendor_synonym = VendorSynonym.objects.take(
-				name = p['Producer'],
-				updater = self.updater,
+				name        = p['Producer'],
+				updater     = self.updater,
 				distributor = self.distributor)
 
 			# Продукт
@@ -222,11 +222,11 @@ class Runner:
 			product_name = p['ItemName']
 			if product_article and product_name and vendor_synonym.vendor:
 				product = Product.objects.take(
-					article = product_article,
-					vendor = vendor_synonym.vendor,
-					name = product_name,
+					article  = product_article,
+					vendor   = vendor_synonym.vendor,
+					name     = product_name,
 					category = category_synonym.category,
-					unit = self.default_unit)
+					unit     = self.default_unit)
 				print("{} {}".format(product.vendor.name, product.article))
 
 				# Цена
@@ -245,13 +245,13 @@ class Runner:
 					quantity = l['Quantity']
 
 					party = Party.objects.make(
-						product = product,
-						stock = stock,
-						price = price,
+						product    = product,
+						stock      = stock,
+						price      = price,
 						price_type = self.dp,
-						currency = currency,
-						quantity = quantity,
-						unit = self.default_unit)
+						currency   = currency,
+						quantity   = quantity,
+						unit       = self.default_unit)
 					print("{} {} = {} {}".format(
 						product.vendor.name,
 						product.article,
