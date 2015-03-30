@@ -391,5 +391,6 @@ class Runner:
 		elif quantity in('+', '+ '): quantity = 5
 		elif quantity in ('++', '++ '): quantity = 10
 		elif quantity in ('+++', '+++ '): quantity = 50
+		elif quantity in ('++++', '++++ '): quantity = 100
 		else: quantity = int(quantity)
 		return quantity
