@@ -1131,10 +1131,10 @@ def ajaxGetParties(request):
 
 			parties = Party.objects.filter(product=product)
 
-			if len(parties):
+			# TODO Проверяем права доступа
+			if request.user.id:
 
-				# TODO Проверяем права доступа
-				if perms.catalog.change_price:
+				if len(parties):
 
 					for party in parties:
 						if -1 == party.quantity:
@@ -1151,11 +1151,11 @@ def ajaxGetParties(request):
 								party.quantity,
 								party.unit.name)
 						html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
-					else:
-						html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
-
 				else:
-					html_data = '<div class="panel">Недостаточно прав для просмотра партий!</div>'
+					html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
+
+			else:
+				html_data = '<div class="panel">Недостаточно прав для просмотра партий!</div>'
 
 			result = {
 				'status': 'success',
