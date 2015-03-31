@@ -1132,24 +1132,30 @@ def ajaxGetParties(request):
 			parties = Party.objects.filter(product=product)
 
 			if len(parties):
-				for party in parties:
-					if -1 == party.quantity:
-						html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(
-							party.stock.name,
-							party.price_str,
-							party.price_type.alias,
-							'&infin;')
-					else:
-						html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{} {}</td></tr>\n".format(
-							party.stock.name,
-							party.price_str,
-							party.price_type.alias,
-							party.quantity,
-							party.unit.name)
-				html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
-			else:
-				html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
 
+				# TODO Проверяем права доступа
+				if perms.catalog.change_price:
+
+					for party in parties:
+						if -1 == party.quantity:
+							html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(
+								party.stock.name,
+								party.price_str,
+								party.price_type.alias,
+								'&infin;')
+						else:
+							html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{} {}</td></tr>\n".format(
+								party.stock.name,
+								party.price_str,
+								party.price_type.alias,
+								party.quantity,
+								party.unit.name)
+						html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
+					else:
+						html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
+
+				else:
+					html_data = '<div class="panel">Недостаточно прав для просмотра партий!</div>'
 
 			result = {
 				'status': 'success',
