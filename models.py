@@ -400,12 +400,15 @@ class Product(models.Model):
 # Party manager
 class PartyManager(models.Manager):
 
-	def make(self, product, stock, price, price_type, currency, quantity, unit,
-			price_out = None, price_type_out = None, currency_out = None):
+	def make(self, product, stock, article = None,
+			price = None, price_type = None, currency = None,
+			price_out = None, price_type_out = None, currency_out = None,
+			quantity = None, unit = None):
 
 		party = Party(
 			product        = product,
 			stock          = stock,
+			article        = article,
 			price          = price,
 			price_type     = price_type,
 			currency       = currency,
