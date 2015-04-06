@@ -116,8 +116,9 @@ class Runner:
 		# Используемые ссылки
 		self.url_login = 'https://b2b.merlion.com/'
 		self.url_price = (
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=988a0b0e1746efc896603ff6ed71ca96&type=xml',
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=8833aa7b2fdc8497f30f85592dae6747&type=xml',)
+			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=84bbfe81dd1cd7966229740eac26ddae&type=xml',
+			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=95a71288d806dfa41c09d2bfacbb5dd6&type=xml',)
+
 
 	def run(self):
 
@@ -148,11 +149,17 @@ class Runner:
 
 		# Получаем архив с прайс-листом
 		for url in self.url_price:
-			tree = etree.parse(self.getData(r = s.get(url, cookies = cookies)))
-			if self.parsePrice(tree):
-				del(tree)
-			else:
-				print("Парсинг невозможен.")
+			try:
+				r = s.get(url, cookies = cookies)
+				data = self.getData(r)
+				tree = etree.parse(data)
+				if self.parsePrice(tree):
+					del(tree)
+				else:
+					print("Ошибка: парсинг невозможен.")
+					return False
+			except:
+				print("Неизвестная ошибка: требуется отладка.")
 				return False
 
 		return True
@@ -163,8 +170,11 @@ class Runner:
 		from io import BytesIO
 		from catalog.lib.zipfile import ZipFile
 
-		zip_data = ZipFile(BytesIO(r.content))
-		xml_data = zip_data.open(zip_data.namelist()[0])
+		try:
+			zip_data = ZipFile(BytesIO(r.content))
+			xml_data = zip_data.open(zip_data.namelist()[0])
+		except:
+			return False
 
 		print("Получен прайс-лист: " + zip_data.namelist()[0])
 
