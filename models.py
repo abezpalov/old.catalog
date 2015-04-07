@@ -454,7 +454,7 @@ class Party(models.Model):
 		except: return ''
 
 		if price:
-			price = '{:,}'.format(price)
+			price = '{:,}'.format(round(price, 2))
 			price = price.replace(',', '&nbsp;')
 			price = price.replace('.', ',')
 			price = price + '&nbsp;' + currency.name
@@ -479,7 +479,7 @@ class Party(models.Model):
 			except: return ''
 
 		if price:
-			price = '{:,}'.format(price)
+			price = '{:,}'.format(round(price, 2))
 			price = price.replace(',', '&nbsp;')
 			price = price.replace('.', ',')
 			price = price + '&nbsp;' + currency.name
