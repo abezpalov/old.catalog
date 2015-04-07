@@ -258,7 +258,7 @@ $(document).ready(function(){
 {% endif %}
 
 
-	// Редактирование элемента
+	// Просмотр партий
 	$("body").delegate("a[data-do*='view-parties']", "click", function(){
 
 		// Очищаем содержимое
@@ -272,17 +272,44 @@ $(document).ready(function(){
 		function(data) {
 			if (null != data.status) {
 				if ('success' == data.status){
-					$('#ViewPartiesModalContent').html(data.html_data)
+					html_data = ""
+
+					// TODO Обработать и вывести данные
+					// Если партии товара есть
+					if (0 < data.len) {
+						// Если получен полный набор данных
+						if (true == data.access) {
+							thead = "<tr><th>Склад</th><th>Срок поставки</th><th>Количество</th><th>Цена<br/>(вход)</th><th>Цена<br/>(выход)</th>"
+							tbody = ""
+							for(i = 0; i < data.len; i++) {
+								tr = "<tr><td>" + data.items[i]['stock'] + "</td><td>" + data.items[i]['delivery_time_min'] + "&ndash;" + data.items[i]['delivery_time_max'] + "&nbsp;дней</td><td>" + data.items[i]['quantity'] + "</td><td>" + data.items[i]['price'] + "</td><td>" + data.items[i]['price_out'] + "</td></tr>";
+								tbody = tbody + tr;
+							}
+						// Если получен сокращенный набор данных
+						} else {
+							thead = "<tr><th>Срок поставки</th><th>Количество</th><th>Цена</th>"
+							tbody = ""
+							for(i = 0; i < data.len; i++) {
+								tr = "<tr><td>" + data.items[i]['delivery_time_min'] + "&ndash;" + data.items[i]['delivery_time_max'] + "&nbsp;дней</td><td>" + data.items[i]['quantity'] + "</td><td>" + data.items[i]['price_out'] + "</td></tr>";
+								tbody = tbody + tr;
+							}
+						}
+						html_data = "<table><thead>" + thead + "</thead><tbody>" + tbody + "</tbody></table>";
+
+					} else {
+						html_data = '<div class="panel">Товар отсутствует.</div>';
+					}
+					$('#ViewPartiesModalContent').html(html_data);
 				} else {
 					var notification = new NotificationFx({
-						wrapper : document.body,
-						message : '<p>' + data.message + '</p>',
-						layout : 'growl',
-						effect : 'genie',
-						type : data.status,
-						ttl : 3000,
-						onClose : function() { return false; },
-						onOpen : function() { return false; }
+						wrapper: document.body,
+						message: '<p>' + data.message + '</p>',
+						layout: 'growl',
+						effect: 'genie',
+						type: data.status,
+						ttl: 3000,
+						onClose: function() { return false; },
+						onOpen: function() { return false; }
 					});
 					notification.show();
 				}

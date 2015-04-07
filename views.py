@@ -1070,7 +1070,7 @@ def ajaxTrashCategorySynonym(request):
 # Get Product
 def ajaxGetProduct(request):
 
-	# Импортируем
+	# Импортируемa
 	from catalog.models import Product
 	import json
 
@@ -1117,7 +1117,7 @@ def ajaxGetParties(request):
 	import json
 
 	# Инициализируем переменные
-	html_data = ''
+	items = []
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
@@ -1134,36 +1134,54 @@ def ajaxGetParties(request):
 			# TODO Проверяем права доступа
 			if request.user.id:
 
-				if len(parties):
+				access = True
 
-					for party in parties:
-						if -1 == party.quantity:
-							html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(
-								party.stock.name,
-								party.price_str,
-								party.price_type.alias,
-								'&infin;')
-						else:
-							html_data += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{} {}</td></tr>\n".format(
-								party.stock.name,
-								party.price_str,
-								party.price_type.alias,
-								party.quantity,
-								party.unit.name)
-						html_data = "<p>{} [{}]</p>\n<table><tr><th>Склад</th><th>Цена</th><th>Тип цены</th><th>Количество</th></tr>\n{}</table>".format(product.name, product.article, html_data)
-				else:
-					html_data = "<p>{} [{}]</p>\nТовар на складах отсутствует.</p>".format(product.name, product.article)
+				for party in parties:
+
+					item = {}
+					item['id']                = str(party.id)
+					item['stock']             = str(party.stock.name)
+					item['delivery_time_min'] = str(party.stock.delivery_time_min)
+					item['delivery_time_max'] = str(party.stock.delivery_time_max)
+					item['price']             = str(party.price_str)
+					item['price_out']         = str(party.price_out_str)
+					if -1 == party.quantity:
+						item['quantity'] = 'неограничено'
+					else:
+						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name)
+					items.append(item)
 
 			else:
-				html_data = '<div class="panel">Недостаточно прав для просмотра партий!</div>'
+
+				access = False
+
+				for party in parties:
+
+					item = {}
+					item['id']                = str(party.id)
+					item['delivery_time_min'] = str(party.stock.delivery_time_min)
+					item['delivery_time_max'] = str(party.stock.delivery_time_max)
+					item['price_out']         = str(party.price_out_str)
+					if -1 == party.quantity:
+						item['quantity'] = 'неограничено'
+					else:
+						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name)
+					items.append(item)
 
 			result = {
 				'status': 'success',
 				'message': 'Данные партий получены. Количество партий {}'.format(len(parties)),
 				'len': len(parties),
-				'html_data': html_data}
+				'items': items,
+				'access': access}
 		except Product.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Продукт с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+			result = {
+				'status': 'alert',
+				'message': 'Продукт с идентификатором {} отсутствует в базе.'.format(request.POST.get('id'))}
+
+	result = json.dumps(result)
+
+
 
 	# Возвращаем ответ
-	return HttpResponse(json.dumps(result), 'application/javascript')
+	return HttpResponse(result, 'application/javascript')

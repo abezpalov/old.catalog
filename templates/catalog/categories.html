@@ -1,5 +1,20 @@
 {% extends "main.html" %}
 {% block title %}Anodos: Категории{% endblock %}
+
+{% block search %}
+<li class="divider"></li>
+<li class="has-form">
+	<div class="row collapse">
+		<div class="large-10 small-9 columns">
+			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="">
+		</div>
+		<div class="large-2 small-3 columns">
+			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
+		</div>
+	</div>
+</li>
+{% endblock %}
+
 {% block content %}
 {% if perms.catalog.change_product %}
 

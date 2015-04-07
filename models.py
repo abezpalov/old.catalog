@@ -451,18 +451,43 @@ class Party(models.Model):
 		try:
 			price = self.price
 			currency = self.currency
-		except: return None
+		except: return ''
 
 		if price:
 			price = '{:,}'.format(price)
 			price = price.replace(',', '&nbsp;')
 			price = price.replace('.', ',')
 			price = price + '&nbsp;' + currency.name
-		else: return None
+		else: return ''
 
 		return price
 
 	price_str = property(_get_price_str)
+
+	def _get_price_out_str(self):
+		try:
+			price = self.price_out * self.currency.rate / self.currency.quantity
+			currency = Currency.objects.take(
+				alias     = 'RUB',
+				name      = 'р.',
+				full_name = 'Российский рубль',
+				rate      = 1,
+				quantity  = 1)
+		except:
+			try:
+				price = self.price * self.currency.rate / self.currency.quantity * self.price_type.multiplier
+			except: return ''
+
+		if price:
+			price = '{:,}'.format(price)
+			price = price.replace(',', '&nbsp;')
+			price = price.replace('.', ',')
+			price = price + '&nbsp;' + currency.name
+		else: return ''
+
+		return price
+
+	price_out_str = property(_get_price_out_str)
 
 	class Meta:
 		ordering = ['-created']
