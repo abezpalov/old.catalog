@@ -1168,11 +1168,18 @@ def ajaxGetParties(request):
 						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name)
 					items.append(item)
 
+			item = {}
+			item['product_id']      = product.id
+			item['product_article'] = product.article
+			item['product_name']    = product.name
+			item['vendor_name']     = product.vendor.name
+
 			result = {
 				'status': 'success',
 				'message': 'Данные партий получены. Количество партий {}'.format(len(parties)),
 				'len': len(parties),
 				'items': items,
+				'product': item,
 				'access': access}
 		except Product.DoesNotExist:
 			result = {

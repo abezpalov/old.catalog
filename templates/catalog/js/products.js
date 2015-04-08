@@ -273,13 +273,14 @@ $(document).ready(function(){
 			if (null != data.status) {
 				if ('success' == data.status){
 					html_data = ""
+					head = "<p>" + data.product['product_name'] + "<br/>Артикул:&nbsp;" + data.product['product_article'] + "<br/>Производитель:&nbsp;" + data.product['vendor_name'] + "</p>"
 
 					// TODO Обработать и вывести данные
 					// Если партии товара есть
 					if (0 < data.len) {
 						// Если получен полный набор данных
 						if (true == data.access) {
-							thead = "<tr><th>Склад</th><th>Срок поставки</th><th>Количество</th><th>Цена<br/>(вход)</th><th>Цена<br/>(выход)</th>"
+							thead = "<tr><th>Склад</th><th>Срок поставки</th><th>Количество</th><th>Цена<br/>(вход)</th><th>Цена<br/>(выход)</th></tr>"
 							tbody = ""
 							for(i = 0; i < data.len; i++) {
 								tr = "<tr><td>" + data.items[i]['stock'] + "</td><td>" + data.items[i]['delivery_time_min'] + "&ndash;" + data.items[i]['delivery_time_max'] + "&nbsp;дней</td><td>" + data.items[i]['quantity'] + "</td><td>" + data.items[i]['price'] + "</td><td>" + data.items[i]['price_out'] + "</td></tr>";
@@ -287,17 +288,17 @@ $(document).ready(function(){
 							}
 						// Если получен сокращенный набор данных
 						} else {
-							thead = "<tr><th>Срок поставки</th><th>Количество</th><th>Цена</th>"
+							thead = "<tr><th>Срок поставки</th><th>Количество</th><th>Цена</th></tr>"
 							tbody = ""
 							for(i = 0; i < data.len; i++) {
 								tr = "<tr><td>" + data.items[i]['delivery_time_min'] + "&ndash;" + data.items[i]['delivery_time_max'] + "&nbsp;дней</td><td>" + data.items[i]['quantity'] + "</td><td>" + data.items[i]['price_out'] + "</td></tr>";
 								tbody = tbody + tr;
 							}
 						}
-						html_data = "<table><thead>" + thead + "</thead><tbody>" + tbody + "</tbody></table>";
+						html_data = head + "<table><thead>" + thead + "</thead><tbody>" + tbody + "</tbody></table>";
 
 					} else {
-						html_data = '<div class="panel">Товар отсутствует.</div>';
+						html_data = head + '<div class="panel">Товар отсутствует.</div>';
 					}
 					$('#ViewPartiesModalContent').html(html_data);
 				} else {
