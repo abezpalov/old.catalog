@@ -323,12 +323,14 @@ class Price(models.Model):
 
 # Quantity
 class Quantity(models.Model):
-	quantity = models.IntegerField(null=True, default=None)
-	unit = models.ForeignKey(Unit, null=True, default=None)
-	fixed = models.BooleanField(default=False)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
+	on_stock   = models.IntegerField(null=True, default=None)
+	on_transit = models.IntegerField(null=True, default=None)
+	on_factory = models.IntegerField(null=True, default=None)
+	unit       = models.ForeignKey(Unit, null=True, default=None)
+	fixed      = models.BooleanField(default=False)
+	state      = models.BooleanField(default=True)
+	created    = models.DateTimeField()
+	modified   = models.DateTimeField()
 
 	class Meta:
 		ordering = ['-created']
@@ -475,7 +477,7 @@ class Party(models.Model):
 				quantity  = 1)
 		except:
 			try:
-				price = self.price * self.currency.rate / self.currency.quantity * self.price_type.multiplier
+				price = self.price * self.price_type.multiplier * self.currency.rate / self.currency.quantity
 			except: return ''
 
 		if price:

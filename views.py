@@ -1186,9 +1186,8 @@ def ajaxGetParties(request):
 				'status': 'alert',
 				'message': 'Продукт с идентификатором {} отсутствует в базе.'.format(request.POST.get('id'))}
 
+	# Переводим результат в формат JSON
 	result = json.dumps(result)
-
-
 
 	# Возвращаем ответ
 	return HttpResponse(result, 'application/javascript')
