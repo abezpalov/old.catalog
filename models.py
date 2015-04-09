@@ -527,11 +527,13 @@ class PriceHystory(models.Model):
 
 # Quantity Hystory
 class QuantityHystory(models.Model):
-	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
-	product = models.ForeignKey(Product)
-	quantity = models.IntegerField(null=True, default=None)
-	unit = models.ForeignKey(Unit, null=True, default=None)
-	date = models.DateField()
+	id         = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
+	product    = models.ForeignKey(Product)
+	on_stock   = models.IntegerField(null=True, default=None)
+	on_transit = models.IntegerField(null=True, default=None)
+	on_factory = models.IntegerField(null=True, default=None)
+	unit       = models.ForeignKey(Unit, null=True, default=None)
+	date       = models.DateField()
 
 	class Meta:
 		ordering = ['-date']
