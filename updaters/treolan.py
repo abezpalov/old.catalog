@@ -275,9 +275,9 @@ class Runner:
 
 	def fixQuantity(self, quantity):
 		quantity = str(quantity).strip()
-		if quantity in ('', '0*'): quantity = 0
-		elif quantity == 'мало': quantity = 5
-		elif quantity == 'много': quantity = 10
-		elif quantity == 'Поставка\n 7 дней': quantity = 0
-		else: quantity = int(quantity)
-		return quantity
+		try:
+			if quantity in ('', '0*'): return 0
+			elif quantity == 'мало':   return 5
+			elif quantity == 'много':  return 10
+			else: return int(quantity)
+		except: return 0
