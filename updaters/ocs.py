@@ -61,6 +61,14 @@ class Runner:
 			distributor       = self.distributor)
 		Party.objects.clear(stock = self.stocks['Оренбург'])
 
+		self.stocks['Нижний Новгород'] = Stock.objects.take(
+			alias             = self.alias + '-stock-nizhniy-novgorod',
+			name              = self.name + ': склад в Нижнем Новгороде',
+			delivery_time_min = 5,
+			delivery_time_max = 10,
+			distributor       = self.distributor)
+		Party.objects.clear(stock = self.stocks['Нижний Новгород'])
+
 		self.stocks['В пути'] = Stock.objects.take(
 			alias             = self.alias + '-transit',
 			name              = self.name + ': в пути',
