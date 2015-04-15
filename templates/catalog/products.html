@@ -34,19 +34,21 @@
 			<th class="text-center">Наименование</th>
 			<th class="text-center">Производитель</th>
 			<th class="text-center">Цена</th>
-			<th class="text-center">Количество</th>
+			<th class="text-center" colspan="3">Количество</th>
 		</tr>
 		{% for product in products %}
 		{% ifchanged product.category %}
-		<tr><td colspan="6"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
+		<tr><td colspan="8"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.n }}</td>
 			<td>{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/" data-do="edit-item" data-id="{{ product.id }}">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
-			<td style="white-space: nowrap;" class="text-right"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</a></td>
-			<td style="white-space: nowrap;"></td>
+			<td class="text-right" style="white-space: nowrap;"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</a></td>
+			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_stock %}{% if product.quantity.on_stock == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_stock }}{% endif %}{% endif %}</td>
+			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_transit %}{% if product.quantity.on_transit == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_transit }}{% endif %}{% endif %}</td>
+			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_factory %}{% if product.quantity.on_factory == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_factory }}{% endif %}{% endif %}</td>
 		</tr>
 		{% endfor %}
 	</table>

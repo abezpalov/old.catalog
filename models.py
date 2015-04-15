@@ -321,6 +321,75 @@ class Price(models.Model):
 	class Meta:
 		ordering = ['-created']
 
+# Quantity manager
+class QuantityManager(models.Manager):
+
+	def recalculate(self):
+
+		from catalog.models import Unit
+		from catalog.models import Product
+		from catalog.models import Party
+
+		# Получаем перечень всех продуктов
+		products = Product.objects.all()
+
+		for n, product in enumerate(products):
+
+			# Получаем партии продукта
+			parties = Party.objects.filter(product=product)
+
+			# Получаем объект количества
+			if product.quantity:
+				quantity = product.quantity
+			else:
+				quantity = Quantity()
+				quantity.created = timezone.now()
+
+			# Вычисляем количество товара
+			on_stock   = [0]
+			on_transit = [0]
+			on_factory = [0]
+
+			for party in parties:
+				if party.quantity:
+					if 'stock' in party.stock.alias:
+						on_stock.append(party.quantity)
+					elif 'transit' in party.stock.alias:
+						on_transit.append(party.quantity)
+					elif 'factory' in party.stock.alias:
+						on_factory.append(party.quantity)
+					elif 'delivery' in party.stock.alias:
+						on_factory.append(party.quantity)
+
+			# Записываем информацию в базу
+			if -1 == min(on_stock): quantity.on_stock = -1
+			else: quantity.on_stock = sum(on_stock)
+
+			if -1 == min(on_transit): quantity.on_transit = -1
+			else: quantity.on_transit = sum(on_transit)
+
+			if -1 == min(on_factory): quantity.on_factory = -1
+			else: quantity.on_factory = sum(on_factory)
+
+			quantity.modified = timezone.now()
+			quantity.save()
+
+			# Если объект количества не привязана к продукту, привязываем
+			if product.quantity is None:
+				product.quantity = quantity
+				product.save()
+
+			print("{} of {}. {} {} = {} | {} | {}".format(
+				str(n+1),
+				len(products),
+				product.vendor.name,
+				product.article,
+				product.quantity.on_stock,
+				product.quantity.on_transit,
+				product.quantity.on_factory))
+
+		return True
+
 # Quantity
 class Quantity(models.Model):
 	on_stock   = models.IntegerField(null=True, default=None)
@@ -331,6 +400,7 @@ class Quantity(models.Model):
 	state      = models.BooleanField(default=True)
 	created    = models.DateTimeField()
 	modified   = models.DateTimeField()
+	objects    = QuantityManager()
 
 	class Meta:
 		ordering = ['-created']
