@@ -266,7 +266,7 @@ class PriceManager(models.Manager):
 			prices = []
 			for party in parties:
 				if party.price and party.currency and party.price_type:
-					prices.append(party.price * party.currency.rate / party.currency.quantity * party.price_type.multiplier)
+					prices.append(party.price * party.currency.rate * party.price_type.multiplier / party.currency.quantity)
 
 			# Записываем лучшую в базу
 			if len(prices):
@@ -362,13 +362,13 @@ class QuantityManager(models.Manager):
 						on_factory.append(party.quantity)
 
 			# Записываем информацию в базу
-			if -1 == min(on_stock): quantity.on_stock = -1
+			if -1 in on_stock: quantity.on_stock = -1
 			else: quantity.on_stock = sum(on_stock)
 
-			if -1 == min(on_transit): quantity.on_transit = -1
+			if -1 in on_transit: quantity.on_transit = -1
 			else: quantity.on_transit = sum(on_transit)
 
-			if -1 == min(on_factory): quantity.on_factory = -1
+			if -1 in on_factory: quantity.on_factory = -1
 			else: quantity.on_factory = sum(on_factory)
 
 			quantity.modified = timezone.now()
@@ -484,8 +484,8 @@ class PartyManager(models.Manager):
 			price          = price,
 			price_type     = price_type,
 			currency       = currency,
-			price_out      = price,
-			price_type_out = price_type,
+			price_out      = price_out,
+			price_type_out = price_type_out,
 			currency_out   = currency,
 			quantity       = quantity,
 			unit           = unit,
@@ -538,7 +538,7 @@ class Party(models.Model):
 
 	def _get_price_out_str(self):
 		try:
-			price = self.price_out * self.currency.rate / self.currency.quantity
+			price = self.price_out * self.currency_out.rate / self.currency_out.quantity
 			currency = Currency.objects.take(
 				alias     = 'RUB',
 				name      = 'р.',
@@ -556,6 +556,7 @@ class Party(models.Model):
 			price = price.replace('.', ',')
 			price = price + '&nbsp;' + currency.name
 		else: return ''
+
 
 		return price
 

@@ -1147,6 +1147,10 @@ def ajaxGetParties(request):
 					item['price_out']         = str(party.price_out_str)
 					if -1 == party.quantity:
 						item['quantity'] = 'неограничено'
+					elif 0 == party.quantity:
+						item['quantity'] = '0'
+					elif party.quantity is None:
+						item['quantity'] = 'неизвестно'
 					else:
 						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name)
 					items.append(item)
@@ -1164,6 +1168,10 @@ def ajaxGetParties(request):
 					item['price_out']         = str(party.price_out_str)
 					if -1 == party.quantity:
 						item['quantity'] = 'неограничено'
+					elif 0 == party.quantity:
+						item['quantity'] = '0'
+					elif party.quantity is None:
+						item['quantity'] = 'неизвестно'
 					else:
 						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name)
 					items.append(item)
