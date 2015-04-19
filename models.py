@@ -539,16 +539,17 @@ class Party(models.Model):
 	def _get_price_out_str(self):
 		try:
 			price = self.price_out * self.currency_out.rate / self.currency_out.quantity
-			currency = Currency.objects.take(
-				alias     = 'RUB',
-				name      = 'р.',
-				full_name = 'Российский рубль',
-				rate      = 1,
-				quantity  = 1)
 		except:
 			try:
 				price = self.price * self.price_type.multiplier * self.currency.rate / self.currency.quantity
 			except: return ''
+
+		currency = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
 
 		if price:
 			price = '{:,}'.format(round(price, 2))
