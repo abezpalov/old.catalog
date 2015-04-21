@@ -92,13 +92,13 @@ $(document).ready(function(){
 			if (filter_text != ''){
 				$("div[data-is*='vendor-selector']").each(function(i, e){
 					if ($(e).text().toLowerCase().search(filter_text) == -1) {
-						$(e).addClass('filtered');
+						$(e).addClass('hidden');
 					} else {
-						$(e).removeClass('filtered');
+						$(e).removeClass('hidden');
 					}
 				});
 			} else {
-				$("div[data-is*='vendor-selector']").removeClass('filtered');
+				$("div[data-is*='vendor-selector']").removeClass('hidden');
 			}
 			return false;
 		}
