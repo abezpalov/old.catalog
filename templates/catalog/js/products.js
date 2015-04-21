@@ -81,6 +81,29 @@ $(document).ready(function(){
 		return false;
 	});
 
+	// Фильтр списка производителей
+	$("body").delegate("input[data-do*='filter-items-filter-vendors']", "keypress", function(e){
+		var filter_text = $.trim($('#filter-items-filter-vendors').val().toLowerCase());
+		var key = e.which;
+		if(key == 13) {
+			$('#top-search-button').click();
+
+			// Скрываем всех, кто не соответствует запросу
+			if (filter_text != ''){
+				$("div[data-is*='vendor-selector']").each(function(i, e){
+					if ($(e).text().toLowerCase().search(filter_text) == -1) {
+						$(e).addClass('filtered');
+					} else {
+						$(e).removeClass('filtered');
+					}
+				});
+			} else {
+				$("div[data-is*='vendor-selector']").removeClass('filtered');
+			}
+			return false;
+		}
+	});
+
 	// Введена строка поиска
 	$("body").delegate("#filter-items-search-input", "change", function(){
 		if ($('#filter-items-search-input').val() == ''){

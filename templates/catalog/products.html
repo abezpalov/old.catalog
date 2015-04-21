@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- Фильтр вывода -->
+<!-- Панель вызова фильтра вывода -->
 <div class="row collapse">
 	<ul class="button-group even-3">
 		<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
@@ -96,15 +96,40 @@
 			{% autoescape off %}{{ categories_ul }}{% endautoescape %}
 		</div>
 		<div class="content" id="VendorPanel">
-			<p><span>Производитель: </span><span id="filter-items-selected-vendor" data-alias="{% if vendor != None %}{{ vendor.alias }}{% endif %}">{% if vendor != None %}{{ vendor.name }}{% else %}Все производители{% endif %}</span>.</p>
-			<ul class="inline-list"><li><a data-do="filter-items-select-vendor" data-alias="">Все производители</a></li></ul>
-			<div class="row">
-				{% for vendor in vendors %}
-				<div class="large-3 medium-6 small-12 columns">
-				<a data-do="filter-items-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
+
+			<!-- Фильтр производителей -->
+			<fieldset>
+				<legend>Производитель</legend>
+
+				<div class="row">
+					<div class="large-12 columns">
+						<p><b><span>Текущий: </span><span id="filter-items-selected-vendor" data-alias="{% if vendor != None %}{{ vendor.alias }}{% endif %}">{% if vendor != None %}{{ vendor.name }}{% else %}Все производители{% endif %}</span>.</b></p>
+					</div>
 				</div>
-				{% endfor %}
-			</div>
+
+				<div class="row">
+					<div class="large-12 columns">
+						<label>Фильтр списка
+							<input id="filter-items-filter-vendors" data-do="filter-items-filter-vendors" type="text" placeholder="Fuj_">
+						</label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="large-12 columns">
+						<a data-do="filter-items-select-vendor" data-alias="">Все производители</a>
+					</div>
+				</div>
+				<hr/>
+				<div class="row">
+					{% for vendor in vendors %}
+					<div class="large-3 medium-6 small-12 columns" data-is="vendor-selector">
+					<a data-do="filter-items-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
+					</div>
+					{% endfor %}
+				</div>
+
+			</fieldset>
 		</div>
 		<div class="content" id="SearchPanel">
 			<label>Поисковый запрос
