@@ -86,8 +86,6 @@ $(document).ready(function(){
 		var filter_text = $.trim($('#filter-items-filter-vendors').val().toLowerCase());
 		var key = e.which;
 		if(key == 13) {
-			$('#top-search-button').click();
-
 			// Скрываем всех, кто не соответствует запросу
 			if (filter_text != ''){
 				$("div[data-is*='vendor-selector']").each(function(i, e){
