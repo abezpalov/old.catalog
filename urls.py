@@ -33,6 +33,13 @@ urlpatterns = patterns('',
 	url(r'^vendor/(?P<alias>[a-zA-Z0-9_-]+)/$', views.vendor, name='vendor'),
 
 
+	# Stock
+	# ex: /catalog/stocks/
+	url(r'^stocks/$', views.stocks, name='stocks'),
+	# ex: /catalog/stock/ocs-stock-samara/
+	url(r'^stock/(?P<alias>[a-zA-Z0-9_-]+)/$', views.stock, name='stock'),
+
+
 	# Category
 	# ex: /catalog/categories/
 	url(r'^categories/$', views.categories, name='categories'),
@@ -73,6 +80,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/switch-category-state/$', views.ajaxSwitchCategoryState, name='ajaxSwitchCategoryState'),
 	url(r'^ajax/switch-updater-state/$', views.ajaxSwitchUpdaterState, name='ajaxSwitchUpdaterState'),
 	url(r'^ajax/switch-price-type-state/$', views.ajaxSwitchPriceTypeState, name='ajaxSwitchPriceTypeState'),
+	url(r'^ajax/switch-stock-state/$', views.ajaxSwitchStockState, name='ajaxSwitchStockState'),
 
 	url(r'^ajax/link-vendor-synonym/$', views.ajaxLinkVendorSynonym, name='ajaxLinkVendorSynonym'),
 	url(r'^ajax/link-vendor-same-synonym/$', views.ajaxLinkVendorSameSynonym, name='ajaxLinkVendorSameSynonym'),
@@ -83,6 +91,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/save-vendor/$', views.ajaxSaveVendor, name='ajaxSaveVendor'),
 	url(r'^ajax/save-price-type/$', views.ajaxSavePriceType, name='ajaxSavePriceType'),
 	url(r'^ajax/save-product/$', views.ajaxSaveProduct, name='ajaxSaveProduct'),
+	url(r'^ajax/save-stock/$', views.ajaxSaveStock, name='ajaxSaveStock'),
 
 	url(r'^ajax/trash-category/$', views.ajaxTrashCategory, name='ajaxTrashCategory'),
 	url(r'^ajax/trash-category-synonym/$', views.ajaxTrashCategorySynonym, name='ajaxTrashCategorySynonym'),

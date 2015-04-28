@@ -1,0 +1,92 @@
+{% extends "main.html" %}
+{% block title %}Anodos: Склады{% endblock %}
+
+{% block search %}
+<li class="divider"></li>
+<li class="has-form">
+	<div class="row collapse">
+		<div class="large-10 small-9 columns">
+			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="{% if search %}{{ search }}{% endif %}">
+		</div>
+		<div class="large-2 small-3 columns">
+			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
+		</div>
+	</div>
+</li>
+{% endblock %}
+
+{% block content %}
+{% if perms.catalog.change_product %}
+
+<!-- Таблица со списком складов -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Поставщик</th>
+			<th>Статус</th>
+			<th>Сроки поставки (дни)</th>
+		</tr>
+		{% for stock in stocks %}
+		<tr>
+			<td>{{ forloop.counter }}</td>
+			<td><a id="stock-{{ stock.id }}" data-do="edit-stock" data-id="{{ stock.id }}" data-alias="{{ stock.alias }}">{{ stock.name }}</a></td>
+			<td><a href="/catalog/distributor/{{ stock.distributor.alias }}/">{{ stock.distributor.name }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="stock-{{ stock.id }}-state" data-id="{{ stock.id }}" data-do="switch-stock-state" type="checkbox"{% if stock.state %} checked{% endif %}>
+					<label for="stock-{{ stock.id }}-state"></label>
+				</div>
+			</td>
+			<td>
+				<span id="stock-{{ stock.id }}-delivery-time-min">{{ stock.delivery_time_min }}</span>
+				<span>&ndash;</span>
+				<span id="stock-{{ stock.id }}-delivery-time-max">{{ stock.delivery_time_max }}</span>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+<!-- Модальное окно редактирования склада -->
+<div id="EditStockModal" class="reveal-modal medium" data-reveal>
+	<fieldset>
+		<legend>Редактировать склад</legend>
+		<input id="edit-stock-id" type="hidden">
+		<label>Наименование
+			<input id="edit-stock-name" type="text">
+		</label>
+		<label>Псевдоним
+			<input id="edit-stock-alias" type="text">
+		</label>
+		<label>Статус
+			<div class="switch small">
+				<input id="edit-stock-state" type="checkbox">
+				<label for="edit-stock-state"></label>
+			</div>
+		</label>
+		<label>Минимальный срок поставки
+			<input id="edit-stock-delivery-time-min" type="text">
+		</label>
+		<label>Максимальный срок поставки
+			<input id="edit-stock-delivery-time-max" type="text">
+		</label>
+	</fieldset>
+	<button data-do="edit-stock-save">Сохранить</button>
+	<button data-do="edit-stock-cancel" class="secondary">Отменить</button>
+</div>
+{% else %}
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/stocks.js" %}
+</script>
+{% endblock %}

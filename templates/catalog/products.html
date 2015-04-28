@@ -143,7 +143,7 @@
 </div>
 
 {% if perms.catalog.change_product %}
-<!-- Модальное окно редактирования элемента -->
+<!-- Модальное окно редактирования продукта -->
 <div id="EditItemModal" class="reveal-modal large" data-reveal>
 	<h2>Редактировать продукт</h2>
 	<fieldset>
@@ -187,15 +187,14 @@
 </div>
 {% endif %}
 
-<!-- TODO Включить проверку прав -->
 <!-- Модальное окно просмотра партий  -->
 <div id="ViewPartiesModal" class="reveal-modal" data-reveal>
 	<h2>Партии продукта</h2>
 	<div id="ViewPartiesModalContent"></div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
-
 {% endblock %}
+
 {% block js-content %}
 <script>
 {% include "catalog/js/products.js" %}

@@ -195,6 +195,36 @@ def vendor(request, alias):
 	return render(request, 'catalog/vendor.html', context)
 
 
+# TODO Список складов
+def stocks(request):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Импортируем
+	from catalog.models import Stock
+
+	# Получаем список
+	stocks = Stock.objects.all().order_by('alias')
+	context = {'stocks': stocks}
+	return render(request, 'catalog/stocks.html', context)
+
+
+# TODO Склад
+def stock(request, alias):
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Импортируем
+	from catalog.models import Stock
+
+	# Получаем список
+	stock = Stock.objects.get(alias=alias)
+	context = {'stock': stock}
+	return render(request, 'catalog/stock.html', context)
+
+
 # Список категорий
 def categories(request):
 
@@ -695,6 +725,40 @@ def ajaxSwitchPriceTypeState(request):
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
+# Switch Stock State
+def ajaxSwitchStockState(request):
+
+	# Импортируем
+	from catalog.models import Stock
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('id') or not request.POST.get('state'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			stock = Stock.objects.get(id=request.POST.get('id'))
+			if request.POST.get('state') == 'true':
+				stock.state = True;
+			else:
+				stock.state = False;
+			stock.save();
+			result = {'status': 'success', 'message': 'Статус склада ' + stock.name + ' изменен на ' + str(stock.state) + '.'}
+		except Stock.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Склад с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
 # Link Vendor Synonym
 def ajaxLinkVendorSynonym(request):
 
@@ -950,6 +1014,7 @@ def ajaxSavePriceType(request):
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
+
 # Save Product
 def ajaxSaveProduct(request):
 
@@ -1004,6 +1069,49 @@ def ajaxSaveProduct(request):
 			result = {
 				'status': 'alert',
 				'message': 'Категория с идентификатором {} отсутствует в базе.'.format(request.POST.get('product_category_id'))}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Save Stock
+def ajaxSaveStock(request):
+
+	# Импортируем
+	from catalog.models import Stock
+	from django.utils import timezone
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# TODO Проверяем права доступа
+	#	return HttpResponse(status=403)
+
+	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') or not request.POST.get('state') or not request.POST.get('delivery_time_min') or not request.POST.get('delivery_time_max'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			stock       = Stock.objects.get(id=request.POST.get('id'))
+			stock.name  = request.POST.get('name')
+			stock.alias = request.POST.get('alias')
+			if 'true' == request.POST.get('state'):
+				stock.state = True
+			else:
+				stock.state = False
+			stock.delivery_time_min = int(request.POST.get('delivery_time_min'))
+			stock.delivery_time_max = int(request.POST.get('delivery_time_max'))
+			stock.edited = True
+			stock.modified = timezone.now()
+			stock.save()
+			result = {
+				'status': 'success',
+				'message': 'Изменения склада {} сохранены.'.format(stock.name)}
+		except Stock.DoesNotExist:
+			result = {
+				'status': 'alert',
+				'message': 'Склад с идентификатором {} отсутствует в базе.'.format(request.POST.get('id'))}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
