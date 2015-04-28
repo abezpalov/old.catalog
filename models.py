@@ -83,7 +83,7 @@ class StockManager(models.Manager):
 		try:
 			stock = self.get(alias=alias)
 		except Stock.DoesNotExist:
-			stock = Stock(alias=alias, name=name, delivery_time_min = 10, delivery_time_max = 20, distributor=distributor, created=timezone.now(), modified=timezone.now())
+			stock = Stock(alias=alias, name=name, delivery_time_min = delivery_time_min, delivery_time_max = delivery_time_max, distributor=distributor, created=timezone.now(), modified=timezone.now())
 			stock.save()
 		return stock
 
