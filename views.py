@@ -59,14 +59,26 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 	# Получаем объект производителя, чей товар необходимо показать
 	if vendor: vendor = Vendor.objects.get(alias=vendor)
 
+	# TODO Разбиваем строку поиска на слова
+	if search:
+		words = search.split(' ')
+
 	# Получаем список продуктов, которые необходимо показать
 	# Если есть параметры запроса
 	if search or category or vendor:
 		for product_category in product_categories:
 			if search and vendor:
-				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(vendor=vendor).filter(category=product_category).filter(state=True)
+				for n, word in enumerate(words):
+					if not n:
+						new_products = Product.objects.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(vendor=vendor).filter(category=product_category).filter(state=True)
+					else:
+						new_products = new_products.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(vendor=vendor).filter(category=product_category).filter(state=True)
 			elif search:
-				new_products = Product.objects.filter(Q(article__icontains=search) | Q(name__icontains=search)).filter(category=product_category).filter(state=True)
+				for n, word in enumerate(words):
+					if not n:
+						new_products = Product.objects.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(category=product_category).filter(state=True)
+					else:
+						new_products = new_products.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(category=product_category).filter(state=True)
 			elif vendor:
 				new_products = Product.objects.filter(vendor=vendor).filter(category=product_category).filter(state=True)
 			else:
