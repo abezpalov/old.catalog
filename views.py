@@ -3,11 +3,6 @@ from django.http import HttpResponse
 from django.template import RequestContext, loader
 import math
 
-# Каталог (главная)
-def index(request):
-	# Редирект на каталог продуктов
-    return HttpResponse("Hello, world.")
-
 
 # Список продуктов
 def products(request, search=None, vendor=None, category=None, childs=None, page=None):
