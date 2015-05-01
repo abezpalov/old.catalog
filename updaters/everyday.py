@@ -56,7 +56,7 @@ class Runner:
 				Log.objects.add(
 					subject    = "everyday: {}".format(updater),
 					channel    = "error",
-					title      = "ConnectionError",
+					title      = "Exception",
 					description = error)
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
