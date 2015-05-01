@@ -1,5 +1,6 @@
 from catalog.models import Updater
 from catalog.models import Log
+from django.utils import timezone
 
 
 class Runner:
