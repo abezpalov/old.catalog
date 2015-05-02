@@ -36,6 +36,7 @@ $("body").delegate("button[data-do*='open-filter-items-search']", "click", funct
 	return false;
 });
 
+
 // Открытие/закрытие ветви категорий
 $("body").delegate("i[data-do*='switch-li-status']", "click", function(){
 	if ($(this).data('state') == 'closed') {
@@ -54,6 +55,7 @@ $("body").delegate("i[data-do*='switch-li-status']", "click", function(){
 	return false;
 });
 
+
 // Выбор категории
 $("body").delegate("a[data-do*='filter-items-select-category']", "click", function(){
 	$('#filter-items-selected-category').data('id', $(this).data('id'));
@@ -66,6 +68,7 @@ $("body").delegate("a[data-do*='filter-items-select-category']", "click", functi
 	return false;
 });
 
+
 // Выбор производителя
 $("body").delegate("a[data-do*='filter-items-select-vendor']", "click", function(){
 	$('#filter-items-selected-vendor').data('alias', $(this).data('alias'));
@@ -77,6 +80,7 @@ $("body").delegate("a[data-do*='filter-items-select-vendor']", "click", function
 	}
 	return false;
 });
+
 
 // Фильтр списка производителей
 $("body").delegate("input[data-do*='filter-items-filter-vendors']", "keypress", function(e){
@@ -99,6 +103,7 @@ $("body").delegate("input[data-do*='filter-items-filter-vendors']", "keypress", 
 	}
 });
 
+
 // Введена строка поиска
 $("body").delegate("#filter-items-search-input", "change", function(){
 	if ($('#filter-items-search-input').val() == ''){
@@ -107,6 +112,7 @@ $("body").delegate("#filter-items-search-input", "change", function(){
 		$('#filter-items-search').removeClass('secondary');
 	}
 });
+
 
 // Применение параметров фильтра
 $("body").delegate("button[data-do*='filter-items-run']", "click", function(){
@@ -149,11 +155,13 @@ $("body").delegate("button[data-do*='filter-items-run']", "click", function(){
 	}
 });
 
+
 // Отмена применения параметров фильтра
 $("body").delegate("button[data-do*='filter-items-cancel']", "click", function(){
 	$('#FilterItemsModal').foundation('reveal', 'close');
 	return false;
 });
+
 
 // Поиск по верхней строке поиска
 $('#top-search-input').keypress(function (e) {
@@ -170,6 +178,7 @@ $("body").delegate("#top-search-button", "click", function(){
 	return false;
 });
 
+
 // Синхронизация полей поиска (только сверху вниз)
 $("body").delegate('#top-search-input', "change", function(){
 	$('#filter-items-search-input').val($('#top-search-input').val())
@@ -181,6 +190,7 @@ $("body").delegate('#top-search-input', "change", function(){
 });
 
 {% if perms.catalog.change_product %}
+
 
 // Редактирование элемента
 $("body").delegate("a[data-do*='edit-item']", "click", function(){
@@ -209,6 +219,7 @@ $("body").delegate("a[data-do*='edit-item']", "click", function(){
 	$('#EditItemModal').foundation('reveal', 'open');
 	return false;
 });
+
 
 // Сохранение элемента
 $("body").delegate("button[data-do*='edit-item-save']", "click", function(){
@@ -243,6 +254,7 @@ $("body").delegate("button[data-do*='edit-item-save']", "click", function(){
 	$('#EditItemModal').foundation('reveal', 'close');
 	return false;
 });
+
 
 $("body").delegate("button[data-do*='edit-item-cancel']", "click", function(){
 	$('#EditItemModal').foundation('reveal', 'close');
