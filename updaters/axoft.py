@@ -234,8 +234,8 @@ class Runner:
 			'product_article': 'VendorSKU',
 			'product_name':    'ProductDescription',
 			'product_version': 'Version',
-			'price_in':        'Retail',
-			'price_out':       'Partner',
+			'price_in':        'Partner',
+			'price_out':       'Retail',
 			'product_vat':     'NDS'}
 
 		# Сопоставление валют
