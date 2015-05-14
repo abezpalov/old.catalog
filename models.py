@@ -704,36 +704,3 @@ class VendorSynonym(models.Model):
 
 	class Meta:
 		ordering = ['name']
-
-
-# Log manager
-class LogManager(models.Manager):
-
-	# TODO add
-	def add(self, subject, channel, title, description):
-
-		log = Log(
-			subject     = subject[:100],
-			channel     = channel[:100],
-			title       = title[:100],
-			description = description,
-			created     = timezone.now())
-		log.save()
-		return log
-
-
-# Product
-class Log(models.Model):
-	subject     = models.CharField(max_length=100)
-	channel     = models.CharField(max_length=100)
-	title       = models.CharField(max_length=100)
-	description = models.TextField()
-	created     = models.DateTimeField()
-	objects     = LogManager()
-
-	def __str__(self):
-		return "{} | {} | {}".format(self.subject, self.channel, self.title) 
-
-	class Meta:
-		ordering = ['-created']
-

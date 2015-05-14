@@ -11,14 +11,11 @@ from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
 # Выполняем необходимый загрузчик
-try:
-	print("Пробую выполнить загрузчик " + sys.argv[1])
-	Updater = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'])
-	runner = Updater.Runner()
-	if runner.updater.state:
-		if runner.run():
-			runner.updater.updated = timezone.now()
-			runner.updater.save()
-except IndexError: print("Error: Не указан загрузчик (Updater/Runner) для запуска.")
-except ImportError: print("ImportError")
+print("Пробую выполнить загрузчик " + sys.argv[1])
+Updater = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'])
+runner = Updater.Runner()
+if runner.updater.state:
+	if runner.run():
+		runner.updater.updated = timezone.now()
+		runner.updater.save()
 exit()

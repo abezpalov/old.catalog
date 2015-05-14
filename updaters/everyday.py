@@ -1,5 +1,6 @@
+import datetime
 from catalog.models import Updater
-from catalog.models import Log
+from project.models import Log
 from django.utils import timezone
 
 
@@ -38,7 +39,6 @@ class Runner:
 
 	def run(self):
 
-		import datetime
 		start = datetime.datetime.now()
 
 		for updater in self.updaters:
@@ -54,7 +54,7 @@ class Runner:
 						runner.updater.save()
 			except Exception  as error:
 				Log.objects.add(
-					subject    = "everyday: {}".format(updater),
+					subject    = "Catalog Updater Everyday: {}".format(updater),
 					channel    = "error",
 					title      = "Exception",
 					description = error)
