@@ -54,7 +54,7 @@ class Runner:
 			'start': 'https://globalpartners.ts.fujitsu.com/com/Pages/Default.aspx',
 			'login': 'https://globalpartners.ts.fujitsu.com/CookieAuth.dll?Logon',
 			'links': 'https://globalpartners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
-			'search': '/sites/CPP/ru/config-tools/2015/База',
+			'search': '/sites/CPP/ru/config-tools/20151/База',
 			'prefix': 'https://globalpartners.ts.fujitsu.com'}
 
 
