@@ -52,7 +52,7 @@ class Runner:
 					if runner.run():
 						runner.updater.updated = timezone.now()
 						runner.updater.save()
-			except Exception  as error:
+			except Exception as error:
 				Log.objects.add(
 					subject    = "Catalog Updater Everyday: {}".format(updater),
 					channel    = "error",
