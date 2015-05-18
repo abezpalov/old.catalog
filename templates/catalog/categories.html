@@ -61,7 +61,7 @@
 						<select>
 							<option value="null">Корневая категория</option>
 							{% for parent in categories %}
-							<option value="{{ item.id }}"{% if item.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
+							<option value="{{ parent.id }}"{% if item.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
 							{% endfor %}
 						</select>
 					</div>
