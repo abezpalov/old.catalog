@@ -1,16 +1,4 @@
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+from catalog.models import *
 
 
 class Runner:
@@ -154,7 +142,7 @@ class Runner:
 
 		# Загружаем таблицу категорий
 		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'], stdout = subprocess.PIPE).communicate()[0]
-		rows = rows.decode("utf-8").split("%row%}")
+		rows = rows.decode("utf-8").split("{%row%}")
 
 		for rown, row in enumerate(rows):
 
@@ -180,11 +168,12 @@ class Runner:
 
 				# Получаем объект синонима
 				category_synonym = CategorySynonym.objects.take(
-					name = "{}|{}".format(row[num['numb']], row[num['name']].strip().replace('"', '')),
+					name = "{} | {}".format(row[num['numb']], row[num['name']].strip().replace('"', '')),
 					updater = self.updater,
 					distributor = self.distributor)
 				self.category_synonyms[row[num['numb']]] = category_synonym
-				print(self.category_synonyms[row[num['numb']]].name)
+
+				print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))
 
 		return True
 
@@ -210,7 +199,7 @@ class Runner:
 
 		# Загружаем таблицу продуктов
 		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Komp'], stdout = subprocess.PIPE).communicate()[0]
-		rows = rows.decode("utf-8").split("%row%}")
+		rows = rows.decode("utf-8").split("{%row%}")
 
 		for rown, row in enumerate(rows):
 
@@ -241,14 +230,13 @@ class Runner:
 
 				# Артикул
 				article = row[num['article']].strip().replace('"', '')
-				print(article)
 
 				# Имя
 				name = row[num['name']].strip().replace('"', '')
 
 				# Статус
 				if '50' == row[num['status']].strip().replace('"', ''): self.quantity[article] = -1
-				else: self.quantity[article] = 0
+				else: self.quantity[article] = None
 
 				# Категория
 				try:
@@ -274,6 +262,8 @@ class Runner:
 						unit        = self.default_unit,
 						description = description)
 
+					print("{} из {}: {}".format(rown + 1, len(rows), article))
+
 		return True
 
 
@@ -294,7 +284,7 @@ class Runner:
 
 		# Загружаем таблицу типов цен
 		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PriceSpec'], stdout = subprocess.PIPE).communicate()[0]
-		rows = rows.decode("utf-8").split("%row%}")
+		rows = rows.decode("utf-8").split("{%row%}")
 
 		for rown, row in enumerate(rows):
 
@@ -318,11 +308,9 @@ class Runner:
 
 			# Строка с данными
 			elif rown + 1 < len(rows):
-				print("{} {}".format(row[num['price_a']].strip().replace('"', ''), row[num['price_n']].strip().replace('"', '')))
 				price_types[row[num['price_a']].strip().replace('"', '')] = row[num['price_n']].strip().replace('"', '')
 
 		word['price'] = "SP" + price_types["RDP"]
-		print(word['price'])
 
 		# Загружаем таблицу цен
 		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Prices'], stdout = subprocess.PIPE).communicate()[0]
@@ -353,7 +341,6 @@ class Runner:
 
 				article = row[num['article']].strip().replace('"', '')
 				price = float(row[num['price']].strip().replace('"', '') or 0)
-				print("{} = {} {} {}".format(article, str(price), self.usd.alias, self.rdp.alias))
 
 				try:
 					# Получаем объект товара
@@ -370,6 +357,8 @@ class Runner:
 						currency = self.usd,
 						quantity = quantity,
 						unit = self.default_unit)
+
+					print("{} из {}: {} = {} {} {}".format(rown + 1, len(rows), article, str(price), self.usd.alias, self.rdp.alias))
 
 				except KeyError: continue
 				except Product.DoesNotExist: continue
