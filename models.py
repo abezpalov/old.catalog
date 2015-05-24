@@ -436,8 +436,11 @@ class ProductManager(models.Manager):
 			product.save()
 		except Product.MultipleObjectsReturned:
 			print("MultipleObjectsReturned: {} {}".format(vendor, article))
-			product = None
-			exit()
+			products = self.get(article=article, vendor=vendor)
+			product = products[0]
+
+		if product.duble:
+			product = self.get(id = product.duble)
 
 		return product
 
