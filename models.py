@@ -437,6 +437,7 @@ class ProductManager(models.Manager):
 		except Product.MultipleObjectsReturned:
 			print("MultipleObjectsReturned: {} {}".format(vendor, article))
 			product = None
+			exit()
 
 		return product
 
