@@ -434,6 +434,9 @@ class ProductManager(models.Manager):
 		except Product.DoesNotExist:
 			product = Product(name=name[:500], full_name = name, article=article, vendor=vendor, category=category, unit=unit, created = timezone.now(), modified = timezone.now())
 			product.save()
+		except Product.MultipleObjectReturned:
+			print("MultipleObjectReturned: {} {}".format(vendor, article))
+			product = None
 
 		return product
 
