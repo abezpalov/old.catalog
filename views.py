@@ -135,8 +135,7 @@ def product(request, id=None, vendor=None, article=None):
 		vendor = Vendor.objects.get(alias=vendor)
 		product = Product.objects.get(vendor=vendor, article=article)
 
-	context = {'product': product}
-	return render(request, 'catalog/product.html', context)
+	return render(request, 'catalog/product.html', locals())
 
 
 # Список загрузчиков
@@ -150,8 +149,8 @@ def updaters(request):
 
 	# Получаем список
 	updaters = Updater.objects.all().order_by('name')
-	context = {'updaters': updaters}
-	return render(request, 'catalog/updaters.html', context)
+
+	return render(request, 'catalog/updaters.html', locals())
 
 
 # Загрузчик
@@ -165,8 +164,8 @@ def updater(request, alias):
 
 	# Получаем объект
 	updater = Updater.objects.get(alias=alias)
-	context = {'updater': updater}
-	return render(request, 'catalog/updater.html', я)
+
+	return render(request, 'catalog/updater.html', locals())
 
 
 # Список производителей
@@ -180,8 +179,8 @@ def vendors(request):
 
 	# Получаем список
 	items = Vendor.objects.all().order_by('name')
-	context = {'items': items}
-	return render(request, 'catalog/vendors.html', context)
+
+	return render(request, 'catalog/vendors.html', locals())
 
 
 # Производитель
@@ -195,8 +194,8 @@ def vendor(request, alias):
 
 	# Получаем список
 	vendor = Vendor.objects.get(alias=alias)
-	context = {'vendor': vendor}
-	return render(request, 'catalog/vendor.html', context)
+
+	return render(request, 'catalog/vendor.html', locals())
 
 
 # TODO Список складов
@@ -210,8 +209,8 @@ def stocks(request):
 
 	# Получаем список
 	stocks = Stock.objects.all().order_by('alias')
-	context = {'stocks': stocks}
-	return render(request, 'catalog/stocks.html', context)
+
+	return render(request, 'catalog/stocks.html', locals())
 
 
 # TODO Склад
@@ -225,8 +224,8 @@ def stock(request, alias):
 
 	# Получаем список
 	stock = Stock.objects.get(alias=alias)
-	context = {'stock': stock}
-	return render(request, 'catalog/stock.html', context)
+
+	return render(request, 'catalog/stock.html', locals())
 
 
 # Список категорий
@@ -247,8 +246,7 @@ def categories(request):
 		category.name = '— ' * category.level + category.name
 
 
-	context = {'categories': categories}
-	return render(request, 'catalog/categories.html', context)
+	return render(request, 'catalog/categories.html', locals())
 
 
 # Дерево категорий (используется рекурсия)
