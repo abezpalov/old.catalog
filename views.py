@@ -125,9 +125,6 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 # Продукт
 def product(request, id=None, vendor=None, article=None):
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import Vendor, Product
 
@@ -169,7 +166,7 @@ def updater(request, alias):
 	# Получаем объект
 	updater = Updater.objects.get(alias=alias)
 	context = {'updater': updater}
-	return render(request, 'catalog/updater.html', context)
+	return render(request, 'catalog/updater.html', я)
 
 
 # Список производителей
