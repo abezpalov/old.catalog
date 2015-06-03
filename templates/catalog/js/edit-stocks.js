@@ -1,30 +1,8 @@
-$("body").delegate("[data-do*='switch-stock-state']", "click", function(){
-	$.post("/catalog/ajax/switch-stock-state/", {
-		id: $(this).data('id'),
-		state: $(this).prop("checked"),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
-	},
-	function(data) {
-		if (null != data.status) {
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
-		}
-	}, "json");
-	return true;
-});
+{% if perms.project.change_stock %}
 
 
 // Открытие модального окна редактирования склада
-$("body").delegate("[data-do*='edit-stock']", "click", function(){
+$("body").delegate("[data-do*='open-edit-stock']", "click", function(){
 
 	// Определяем значения переменных
 	id                = $(this).data('id');
@@ -105,3 +83,30 @@ $("body").delegate("[data-do*='edit-stock-cancel']", "click", function(){
 	$('#EditStockModal').foundation('reveal', 'close');
 	return false;
 });
+
+$("body").delegate("[data-do*='switch-stock-state']", "click", function(){
+	$.post("/catalog/ajax/switch-stock-state/", {
+		id: $(this).data('id'),
+		state: $(this).prop("checked"),
+		csrfmiddlewaretoken: '{{ csrf_token }}'
+	},
+	function(data) {
+		if (null != data.status) {
+			var notification = new NotificationFx({
+				wrapper : document.body,
+				message : '<p>' + data.message + '</p>',
+				layout : 'growl',
+				effect : 'genie',
+				type : data.status,
+				ttl : 3000,
+				onClose : function() { return false; },
+				onOpen : function() { return false; }
+			});
+			notification.show();
+		}
+	}, "json");
+	return true;
+});
+
+
+{% endif %}

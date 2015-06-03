@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-{% if perms.catalog.change_product %}
+{% if perms.catalog.change_stock %}
 
 <!-- Таблица со списком складов -->
 <div class="row collapse">
@@ -31,7 +31,7 @@
 		{% for stock in stocks %}
 		<tr>
 			<td>{{ forloop.counter }}</td>
-			<td><a id="stock-{{ stock.id }}" data-do="edit-stock" data-id="{{ stock.id }}" data-alias="{{ stock.alias }}">{{ stock.name }}</a></td>
+			<td><a id="stock-{{ stock.id }}" data-do="open-edit-stock" data-id="{{ stock.id }}" data-alias="{{ stock.alias }}">{{ stock.name }}</a></td>
 			<td><a href="/catalog/distributor/{{ stock.distributor.alias }}/">{{ stock.distributor.name }}</a></td>
 			<td>
 				<div class="switch small">
@@ -87,6 +87,6 @@
 
 {% block js-content %}
 <script>
-{% include "catalog/js/stocks.js" %}
+{% include "catalog/js/edit-stocks.js" %}
 </script>
 {% endblock %}
