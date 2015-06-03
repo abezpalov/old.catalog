@@ -1,4 +1,4 @@
-$("body").delegate("input[data-do*='switch-stock-state']", "click", function(){
+$("body").delegate("[data-do*='switch-stock-state']", "click", function(){
 	$.post("/catalog/ajax/switch-stock-state/", {
 		id: $(this).data('id'),
 		state: $(this).prop("checked"),
@@ -24,7 +24,7 @@ $("body").delegate("input[data-do*='switch-stock-state']", "click", function(){
 
 
 // Открытие модального окна редактирования склада
-$("body").delegate("a[data-do*='edit-stock']", "click", function(){
+$("body").delegate("[data-do*='edit-stock']", "click", function(){
 
 	// Определяем значения переменных
 	id                = $(this).data('id');
@@ -49,7 +49,7 @@ $("body").delegate("a[data-do*='edit-stock']", "click", function(){
 
 
 // Сохранение склада и закрытие модального окна
-$("body").delegate("button[data-do*='edit-stock-save']", "click", function(){
+$("body").delegate("[data-do*='edit-stock-save']", "click", function(){
 
 	// Определяем значения переменных
 	id                = $('#edit-stock-id').val();
@@ -101,7 +101,7 @@ $("body").delegate("button[data-do*='edit-stock-save']", "click", function(){
 
 
 // Закрытие модального окна без сохранения изменений
-$("body").delegate("button[data-do*='edit-stock-cancel']", "click", function(){
+$("body").delegate("[data-do*='edit-stock-cancel']", "click", function(){
 	$('#EditStockModal').foundation('reveal', 'close');
 	return false;
 });
