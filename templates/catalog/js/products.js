@@ -163,22 +163,6 @@ $("body").delegate("button[data-do*='filter-items-cancel']", "click", function()
 });
 
 
-// Поиск по верхней строке поиска
-$('#top-search-input').keypress(function (e) {
-	var key = e.which;
-	if(key == 13) {
-		$('#top-search-button').click();
-		return false;
-	}
-});
-$("body").delegate("#top-search-button", "click", function(){
-	if ($.trim($('#top-search-input').val()) != ''){
-		location.href = '/catalog/products/search/' + $.trim($('#top-search-input').val()) + '/';
-	}
-	return false;
-});
-
-
 // Синхронизация полей поиска (только сверху вниз)
 $("body").delegate('#top-search-input', "change", function(){
 	$('#filter-items-search-input').val($('#top-search-input').val())

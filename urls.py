@@ -33,6 +33,13 @@ urlpatterns = patterns('',
 	url(r'^vendor/(?P<alias>[a-zA-Z0-9_-]+)/$', views.vendor, name='vendor'),
 
 
+	# Distributor
+	# ex: /catalog/distributors/
+	url(r'^distributors/$', views.distributors, name='distributors'),
+	# ex: /catalog/distributor/ocs/
+	url(r'^distributor/(?P<alias>[a-zA-Z0-9_-]+)/$', views.distributor, name='distributor'),
+
+
 	# Stock
 	# ex: /catalog/stocks/
 	url(r'^stocks/$', views.stocks, name='stocks'),
@@ -73,31 +80,99 @@ urlpatterns = patterns('',
 
 
 	# AJAX
-	url(r'^ajax/add-vendor/$', views.ajaxAddVendor, name='ajaxAddVendor'),
-	url(r'^ajax/add-category/$', views.ajaxAddCategory, name='ajaxAddCategory'),
 
-	url(r'^ajax/switch-vendor-state/$', views.ajaxSwitchVendorState, name='ajaxSwitchVendorState'),
-	url(r'^ajax/switch-category-state/$', views.ajaxSwitchCategoryState, name='ajaxSwitchCategoryState'),
+	# Connector
+	# TODO
+
+
+	# Distributor
+	url(r'^ajax/get-distributor/$', views.ajaxGetDistributor, name='ajaxGetDistributor'),
+	url(r'^ajax/save-distributor/$', views.ajaxSaveDistributor, name='ajaxSaveDistributor'),
+	url(r'^ajax/switch-distributor-state/$', views.ajaxSwitchDistributorState, name='ajaxSwitchDistributorState'),
+
+
+	# Updater
+	url(r'^ajax/save-updater/$', views.ajaxSaveUpdater, name='ajaxSaveUpdater'),
 	url(r'^ajax/switch-updater-state/$', views.ajaxSwitchUpdaterState, name='ajaxSwitchUpdaterState'),
-	url(r'^ajax/switch-price-type-state/$', views.ajaxSwitchPriceTypeState, name='ajaxSwitchPriceTypeState'),
+
+
+	# Stock
+	url(r'^ajax/save-stock/$', views.ajaxSaveStock, name='ajaxSaveStock'),
 	url(r'^ajax/switch-stock-state/$', views.ajaxSwitchStockState, name='ajaxSwitchStockState'),
 
-	url(r'^ajax/link-vendor-synonym/$', views.ajaxLinkVendorSynonym, name='ajaxLinkVendorSynonym'),
-	url(r'^ajax/link-vendor-same-synonym/$', views.ajaxLinkVendorSameSynonym, name='ajaxLinkVendorSameSynonym'),
-	url(r'^ajax/link-category-synonym/$', views.ajaxLinkCategorySynonym, name='ajaxLinkCategorySynonym'),
 
-	url(r'^ajax/save-updater/$', views.ajaxSaveUpdater, name='ajaxSaveUpdater'),
+	# Category
+	# TODO REFACTORY
+	url(r'^ajax/add-category/$', views.ajaxAddCategory, name='ajaxAddCategory'),
 	url(r'^ajax/save-category/$', views.ajaxSaveCategory, name='ajaxSaveCategory'),
-	url(r'^ajax/save-vendor/$', views.ajaxSaveVendor, name='ajaxSaveVendor'),
-	url(r'^ajax/save-price-type/$', views.ajaxSavePriceType, name='ajaxSavePriceType'),
-	url(r'^ajax/save-product/$', views.ajaxSaveProduct, name='ajaxSaveProduct'),
-	url(r'^ajax/save-stock/$', views.ajaxSaveStock, name='ajaxSaveStock'),
-
+	url(r'^ajax/switch-category-state/$', views.ajaxSwitchCategoryState, name='ajaxSwitchCategoryState'),
 	url(r'^ajax/trash-category/$', views.ajaxTrashCategory, name='ajaxTrashCategory'),
-	url(r'^ajax/trash-category-synonym/$', views.ajaxTrashCategorySynonym, name='ajaxTrashCategorySynonym'),
 
+
+	# Vendor
+	# TODO REFACTORY
+	url(r'^ajax/add-vendor/$', views.ajaxAddVendor, name='ajaxAddVendor'),
+	url(r'^ajax/save-vendor/$', views.ajaxSaveVendor, name='ajaxSaveVendor'),
+	url(r'^ajax/switch-vendor-state/$', views.ajaxSwitchVendorState, name='ajaxSwitchVendorState'),
+
+
+	# Unit
+	# TODO
+
+
+	# Price Type
+	url(r'^ajax/save-price-type/$', views.ajaxSavePriceType, name='ajaxSavePriceType'),
+	url(r'^ajax/switch-price-type-state/$', views.ajaxSwitchPriceTypeState, name='ajaxSwitchPriceTypeState'),
+
+
+	# Currency
+	# TODO
+
+
+	# Price
+	# TODO
+
+
+	# Quantity
+	# TODO
+
+
+	# Product
 	url(r'^ajax/get-product/$', views.ajaxGetProduct, name='ajaxGetProduct'),
+	url(r'^ajax/save-product/$', views.ajaxSaveProduct, name='ajaxSaveProduct'),
 
+
+	# Party
 	url(r'^ajax/get-parties/$', views.ajaxGetParties, name='ajaxGetParties'),
 
+
+	# Party Hystory
+	# TODO
+
+
+	# Price Hystory
+	# TODO
+
+
+	# Quantity Hystory
+	# TODO
+
+
+	# Parameter Type
+
+
+	# Parameter Type to Category
+
+
+	# Parameter
+
+
+	# Category Synonym
+	url(r'^ajax/link-category-synonym/$', views.ajaxLinkCategorySynonym, name='ajaxLinkCategorySynonym'),
+	url(r'^ajax/trash-category-synonym/$', views.ajaxTrashCategorySynonym, name='ajaxTrashCategorySynonym'),
+
+
+	# Vendor Synonym
+	url(r'^ajax/link-vendor-synonym/$', views.ajaxLinkVendorSynonym, name='ajaxLinkVendorSynonym'),
+	url(r'^ajax/link-vendor-same-synonym/$', views.ajaxLinkVendorSameSynonym, name='ajaxLinkVendorSameSynonym'),
 )

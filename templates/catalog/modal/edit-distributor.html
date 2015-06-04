@@ -1,0 +1,27 @@
+<div id="modal-edit-distributor" class="reveal-modal large" data-reveal>
+
+	<input id="edit-distributor-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-distributor-name" type="text" value="">
+	</label>
+
+	<label>Псевдоним (служебное поле)
+		<input id="edit-distributor-alias" type="text" value="">
+	</label>
+
+	<label>Описание
+		<textarea id="edit-distributor-description"></textarea>
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-distributor-state" type="checkbox">
+			<label for="edit-distributor-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-distributor-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-distributor-cancel" class="secondary">Отмена</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>

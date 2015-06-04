@@ -1,0 +1,58 @@
+{% extends "main.html" %}
+{% block title %}Anodos: Поставщики{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.change_distributor %}
+
+
+<!-- Таблица со списком поставщиков -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Статус</th>
+		</tr>
+		{% for distributor in distributors %}
+		<tr>
+			<td>{{ forloop.counter }}</td>
+			<td><a data-do="open-edit-distributor" data-id="{{ distributor.id }}" data-distributor-name="{{ distributor.id }}">{{ distributor.name }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="distributor-{{ distributor.id }}-state" data-do="switch-distributor-state" data-id="{{ distributor.id }}" data-distributor-state="{{ distributor.id }}" type="checkbox"{% if distributor.state %} checked{% endif %}>
+					<label for="distributor-{{ distributor.id }}-state"></label>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% include "catalog/modal/edit-distributor.html" %}
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block js-content %}
+<script>
+
+{% include "catalog/js/edit-distributor.js" %}
+
+{% include "catalog/js/search-on-stocks.js" %}
+
+</script>
+{% endblock %}

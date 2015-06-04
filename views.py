@@ -198,32 +198,62 @@ def vendor(request, alias):
 	return render(request, 'catalog/vendor.html', locals())
 
 
-# TODO Список складов
-def stocks(request):
+# Список поставщиков
+def distributors(request):
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Импортируем
+	from catalog.models import Distributor
+
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.change_distributor'):
+
+		# Получаем список
+		distributors = Distributor.objects.all().order_by('name')
+
+	return render(request, 'catalog/distributors.html', locals())
+
+
+# Поставщик
+def distributor(request, alias):
+
+	# Импортируем
+	from catalog.models import Distributor
+
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.change_distributor'):
+
+		# Получаем объект
+		distributor = Distributor.objects.get(alias = alias)
+
+	return render(request, 'catalog/distributor.html', locals())
+
+
+# Список складов
+def stocks(request):
 
 	# Импортируем
 	from catalog.models import Stock
 
-	# Получаем список
-	stocks = Stock.objects.all().order_by('alias')
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.change_stock'):
+
+		# Получаем список
+		stocks = Stock.objects.all().order_by('alias')
 
 	return render(request, 'catalog/stocks.html', locals())
 
 
-# TODO Склад
+# Склад
 def stock(request, alias):
-
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from catalog.models import Stock
 
-	# Получаем список
-	stock = Stock.objects.get(alias=alias)
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.change_stock'):
+
+		# Получаем список
+		stock = Stock.objects.get(alias=alias)
 
 	return render(request, 'catalog/stock.html', locals())
 
@@ -484,6 +514,146 @@ def priceType(request, alias):
 
 
 ##  AJAX  ##
+
+
+# Distributor
+
+
+def ajaxGetDistributor(request):
+	"AJAX-представление: Получение данных поставщика."
+
+	# Импортируем
+	import json
+	from catalog.models import Distributor
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_distributor'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Получаем объект
+	try:
+		distributor = Distributor.objects.get(id = request.POST.get('distributor_id'))
+
+		result = {
+			'status':                  'success',
+			'message':                 'Данные дистрибьютора получены.',
+			'distributor_id':          distributor.id,
+			'distributor_name':        distributor.name,
+			'distributor_alias':       distributor.alias,
+			'distributor_description': distributor.description,
+			'distributor_state':       distributor.state}
+
+	except Distributor.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: поставщик отсутствует в базе.'}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxSaveDistributor(request):
+	"AJAX-представление: Сохранение данных поставщика."
+
+	# Импортируем
+	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import Distributor
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status = 400)
+
+	# Проверяем права доступа
+	try:
+		distributor = Distributor.objects.get(id = request.POST.get('distributor_id'))
+		if not request.user.has_perm('catalog.change_distributor'):
+			return HttpResponse(status = 403)
+	except Distributor.DoesNotExist:
+		distributor = Distributor()
+		if not request.user.has_perm('catalog.add_distributor'):
+			return HttpResponse(status = 403)
+		distributor.created = timezone.now()
+
+	# name
+	if not request.POST.get('distributor_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование поставщика.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	distributor.name   = request.POST.get('distributor_name').strip()[:100]
+
+	# alias
+	if request.POST.get('distributor_alias').strip():
+		distributor.alias = unidecode.unidecode(request.POST.get('distributor_alias')).strip()[:100]
+	else:
+		distributor.alias = unidecode.unidecode(request.POST.get('distributor_name')).strip()[:100]
+
+	# description
+	if request.POST.get('distributor_description').strip():
+		distributor.description = request.POST.get('distributor_description').strip()
+	else:
+		distributor.description = ''
+
+	# state
+	if request.POST.get('distributor_state') == 'true':
+		distributor.state = True
+	else:
+		distributor.state = False
+
+	# modified
+	distributor.modified = timezone.now()
+
+	# Сохраняем
+	distributor.save()
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Поставщик {} сохранён.'.format(distributor.name)}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Switch Distributor State
+def ajaxSwitchDistributorState(request):
+
+	# Импортируем
+	from catalog.models import Distributor
+	from datetime import datetime
+	import json
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_distributor'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('distributor_id') or not request.POST.get('distributor_state'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			distributor = Distributor.objects.get(id=request.POST.get('distributor_id'))
+			if request.POST.get('distributor_state') == 'true':
+				distributor.state = True
+			else:
+				distributor.state = False
+			distributor.save()
+			result = {'status': 'success', 'message': 'Статус поставщика {} изменен на {}.'.format(distributor.name, distributor.state)}
+		except Distributor.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Поставщик с идентификатором {} отсутствует в базе.'.format(request.POST.get('distributor_id'))}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 # Add Vendor

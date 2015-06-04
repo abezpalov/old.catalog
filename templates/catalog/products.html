@@ -2,17 +2,7 @@
 {% block title %}Anodos: Каталог товаров и услуг{% endblock %}
 
 {% block search %}
-<li class="divider"></li>
-<li class="has-form">
-	<div class="row collapse">
-		<div class="large-10 small-9 columns">
-			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="{% if search %}{{ search }}{% endif %}">
-		</div>
-		<div class="large-2 small-3 columns">
-			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
-		</div>
-	</div>
-</li>
+{% include "catalog/search-on-stocks.html" %}
 {% endblock %}
 
 {% block content %}
@@ -197,7 +187,12 @@
 {% endblock %}
 
 {% block js-content %}
+
 <script>
+
 {% include "catalog/js/products.js" %}
+
+{% include "catalog/js/search-on-stocks.js" %}
+
 </script>
 {% endblock %}
