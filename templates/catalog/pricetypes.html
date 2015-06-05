@@ -1,9 +1,15 @@
 {% extends "main.html" %}
 {% block title %}Anodos: Типы цен и наценки{% endblock %}
-{% block content %}
-{% if perms.catalog.change_product %}
 
-<!-- Таблица со списком производителей -->
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.change_pricetype %}
+
+<!-- Таблица со списком типов цен -->
 <div class="row collapse">
 	<table>
 		<tr>
@@ -12,52 +18,44 @@
 			<th>Статус</th>
 			<th>Модификатор</th>
 		</tr>
-		{% for item in price_types %}
+		{% for price_type in price_types %}
 		<tr>
 			<td>{{ forloop.counter }}</td>
-			<td><a id="price-type-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}" data-multiplier="{{ item.multiplier }}">{{ item.name }}</a></td>
+			<td><a data-do="open-edit-price-type" data-id="{{ price_type.id }}" data-price-type-name="{{ price_type.id }}">{{ price_type.name }}</a></td>
 			<td>
 				<div class="switch small">
-					<input id="price-type-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
-					<label for="price-type-state-{{ item.id }}"></label>
+					<input id="price-type-{{ price_type.id }}-state" data-do="switch-price-type-state" data-id="{{ price_type.id }}" data-price-type-state="{{ price_type.id }}" type="checkbox"{% if price_type.state %} checked{% endif %}>
+					<label for="price-type-{{ price_type.id }}-state"></label>
 				</div>
 			</td>
-			<td id="price-type-multiplier-{{ item.id }}" >{{ item.multiplier }}</td>
+			<td data-price-type-multiplier="{{ price_type.id }}" >{{ price_type.multiplier }}</td>
 		</tr>
 		{% endfor %}
 	</table>
 </div>
 
-<!-- Модальное окно редактирования элемента -->
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<fieldset>
-		<legend>Редактировать тип цены и наценку</legend>
-		<input id="edit-item-id" type="hidden">
-		<label>Наименование
-			<input id="edit-item-name" type="text">
-		</label>
-		<label>Псевдоним
-			<input id="edit-item-alias" type="text">
-		</label>
-		<label>Модификатор
-			<input id="edit-item-multiplier" type="text">
-		</label>
-	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
-</div>
+{% include "catalog/modal/edit-price-type.html" %}
+
 {% else %}
+
 <div class="row collapse">
 	<div class="small-12 columns">
 		<p class="panel">Недостаточно прав для данной функциональности.</p>
 	</div>
 </div>
+
 {% endif %}
+
 {% endblock %}
+
 {% block js-content %}
-{% if perms.catalog.change_product %}
+
 <script>
-{% include "catalog/js/pricetypes.js" %}
+
+{% include "catalog/js/edit-price-type.js" %}
+
+{% include "catalog/js/search-on-stocks.js" %}
+
 </script>
-{% endif %}
+
 {% endblock %}

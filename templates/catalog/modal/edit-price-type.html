@@ -1,0 +1,27 @@
+<div id="modal-edit-price-type" class="reveal-modal large" data-reveal>
+
+	<input id="edit-price-type-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-price-type-name" type="text" value="">
+	</label>
+
+	<label>Псевдоним (служебное поле)
+		<input id="edit-price-type-alias" type="text" value="">
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-price-type-state" type="checkbox">
+			<label for="edit-price-type-state"></label>
+		</div>
+	</label>
+
+	<label>Модификатор
+		<input id="edit-price-type-multiplier" type="text">
+	</label>
+
+	<button data-do="edit-price-type-save"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-price-type-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>

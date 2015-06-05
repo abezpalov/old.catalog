@@ -36,7 +36,7 @@ $("body").delegate("[data-do*='open-edit-distributor']", "click", function(){
 					onClose : function() { return false; },
 					onOpen : function() { return false; }
 				});
-			notification.show();
+				notification.show();
 			}
 		}
 	}, "json");
@@ -73,10 +73,19 @@ $("body").delegate("[data-do*='edit-distributor-save']", "click", function(){
 			});
 			notification.show();
 
-			// Закрываем окно
 			if ('success' == data.status){
+
+				// Обновлем информацию на странице
 				$("[data-distributor-name*='" + $('#edit-distributor-id').val() + "']").text($('#edit-distributor-name').val());
 				$("[data-distributor-state*='" + $('#edit-distributor-id').val() + "']").prop('checked', $('#edit-distributor-state').prop('checked'));
+
+				// Заполняем значение полей
+				$('#edit-distributor-id').val('0');
+				$('#edit-distributor-name').val('');
+				$('#edit-distributor-alias').val('');
+				$('#edit-distributor-state').prop('checked', false);
+
+				// Закрываем окно
 				$('#modal-edit-distributor').foundation('reveal', 'close');
 			}
 		}
@@ -97,13 +106,13 @@ $("body").delegate("[data-do*='edit-distributor-cancel']", "click", function(){
 
 	// Закрываем окно
 	$('#modal-edit-distributor').foundation('reveal', 'close');
+
 	return false;
 });
 
-
 {% endif %}
 
-{% if perms.catalog.delete_distributors %}
+{% if perms.catalog.delete_distributor %}
 
 
 // Открытие модального окна удаления поставщика
@@ -114,6 +123,7 @@ $("body").delegate("[data-do*='open-distributor-trash']", "click", function(){
 
 	// Открываем окно
 	$('#modal-trash-distributor').foundation('reveal', 'open');
+
 	return false;
 });
 
@@ -123,7 +133,7 @@ $("body").delegate("[data-do*='trash-distributor']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/trash-distributor/", {
-		distributor_id: $('#trash-article-id').val(),
+		distributor_id: $('#trash-distributor-id').val(),
 		csrfmiddlewaretoken: '{{ csrf_token }}'
 	},
 	function(data) {
@@ -149,6 +159,7 @@ $("body").delegate("[data-do*='trash-distributor']", "click", function(){
 			setTimeout(function () {location.reload();}, 3000);
 		}
 	}, "json");
+
 	return false;
 });
 
@@ -188,6 +199,7 @@ $("body").delegate("[data-do*='switch-distributor-state']", "click", function(){
 			}
 		}
 	}, "json");
+
 	return true;
 });
 
