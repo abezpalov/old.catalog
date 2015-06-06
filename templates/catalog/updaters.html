@@ -1,7 +1,13 @@
 {% extends "main.html" %}
 {% block title %}Anodos: Загрузчики{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
 {% block content %}
-{% if perms.catalog.change_product %}
+
+{% if perms.catalog.change_updater %}
 
 <!-- Таблица со списком загрузчиков -->
 <div class="row collapse">
@@ -13,56 +19,47 @@
 			<th>Статус</th>
 			<th>Последнее обновление</th>
 		</tr>
-		{% for item in updaters %}
+		{% for updater in updaters %}
 		<tr>
 			<td>{{ forloop.counter }}</td>
-			<td><a id="updater-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}" data-login="{{ item.login }}" data-password="{{ item.password }}">{{ item.name }}</a></td>
-			<td><a href="/catalog/distributor/{{ item.distributor.alias }}/">{{ item.distributor.name }}</a></td>
+			<td><a data-do="open-edit-updater" data-id="{{ updater.id }}" data-updater-name="{{ updater.id }}">{{ updater.name }}</a></td>
+			<td><a data-do="open-edit-distributor" data-id="{{ updater.distributor.id }}" data-distributor-name="{{ updater.distributor.id }}">{{ updater.distributor.name }}</a></td>
 			<td>
 				<div class="switch small">
-					<input id="updater-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
-					<label for="updater-state-{{ item.id }}"></label>
+					<input id="updater-{{ updater.id }}-state" data-do="switch-updater-state" data-id="{{ updater.id }}" data-updater-state="{{ updater.id }}" type="checkbox"{% if updater.state %} checked{% endif %}>
+					<label for="updater-{{ updater.id }}-state"></label>
 				</div>
 			</td>
-			<td>{{ item.updated|date:"d.m.Y H.i" }}</td>
+			<td>{{ updater.updated|date:"d.m.Y H.i" }}</td>
 		</tr>
 		{% endfor %}
 	</table>
 </div>
 
-<!-- Модальное окно редактирования элемента -->
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<fieldset>
-		<legend>Редактировать тип цены и наценку</legend>
-		<input id="edit-item-id" type="hidden">
-		<label>Наименование
-			<input id="edit-item-name" type="text">
-		</label>
-		<label>Псевдоним
-			<input id="edit-item-alias" type="text">
-		</label>
-		<label>Логин
-			<input id="edit-item-login" type="text">
-		</label>
-		<label>Пароль
-			<input id="edit-item-password" type="text">
-		</label>
-	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
-</div>
+{% include "catalog/modal/edit-updater.html" %}
+{% include "catalog/modal/edit-distributor.html" %}
+
 {% else %}
+
 <div class="row collapse">
 	<div class="small-12 columns">
 		<p class="panel">Недостаточно прав для данной функциональности.</p>
 	</div>
 </div>
+
 {% endif %}
+
 {% endblock %}
+
 {% block js-content %}
-{% if perms.catalog.change_product %}
 <script>
-{% include "catalog/js/updaters.js" %}
+
+{% include "catalog/js/edit-updater.js" %}
+
+{% include "catalog/js/edit-distributor.js" %}
+
+{% include "catalog/js/search-on-stocks.js" %}
+
 </script>
-{% endif %}
+
 {% endblock %}

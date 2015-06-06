@@ -1,0 +1,41 @@
+<div id="EditItemModal" class="reveal-modal large" data-reveal>
+	<h2>Редактировать продукт</h2>
+	<fieldset>
+		<input id="edit-item-id" type="hidden">
+		<label>Наименование
+			<input id="edit-item-name" type="text">
+		</label>
+		<label>Артикул
+			<input id="edit-item-article" type="text">
+		</label>
+		<label>Производитель
+			<select id="edit-item-vendor">
+				{% for vendor in vendors %}
+				<option value="{{ vendor.id }}">{{ vendor.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+		<label>Категория
+			<select id="edit-item-category">
+				<option value="null" selected> - Не определена - </option>
+				{% for category in categories %}
+				<option value="{{ category.id }}">{{ category.name }}</option>
+				{% endfor %}
+			</select>
+		<label>Описание
+			<textarea id="edit-item-description" type="text"></textarea>
+		</label>
+		<label>Дубль
+			<input id="edit-item-double" type="text">
+		</label>
+		<label>Статус
+			<div class="switch small">
+				<input id="edit-item-state" type="checkbox">
+				<label for="edit-item-state"></label>
+			</div>
+		</label>
+	</fieldset>
+	<button data-do="edit-item-save">Сохранить</button>
+	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>

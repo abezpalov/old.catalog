@@ -186,14 +186,14 @@ def ajaxSwitchDistributorState(request):
 def updaters(request):
 	"Представление: список загрузчиков."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import Updater
 
-	# Получаем список
-	updaters = Updater.objects.all().order_by('name')
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.change_updater'):
+
+		# Получаем список
+		updaters = Updater.objects.all().order_by('name')
 
 	return render(request, 'catalog/updaters.html', locals())
 
@@ -211,6 +211,42 @@ def updater(request, alias):
 	updater = Updater.objects.get(alias=alias)
 
 	return render(request, 'catalog/updater.html', locals())
+
+
+def ajaxGetUpdater(request):
+	"AJAX-представление: Get Updater."
+
+	# Импортируем
+	import json
+	from catalog.models import Updater
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_updater'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Получаем объект
+	try:
+		updater = Updater.objects.get(id = request.POST.get('updater_id'))
+
+		result = {
+			'status':           'success',
+			'message':          'Данные загрузчика получены.',
+			'updater_id':       updater.id,
+			'updater_name':     updater.name,
+			'updater_alias':    updater.alias,
+			'updater_login':    updater.login,
+			'updater_password': updater.password,
+			'updater_state':    updater.state}
+
+	except Updater.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: загрузчик отсутствует в базе.'}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 def ajaxSaveUpdater(request):
@@ -246,35 +282,109 @@ def ajaxSaveUpdater(request):
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
+def ajaxSaveUpdater(request):
+	"AJAX-представление: Save Updater."
+
+	# Импортируем
+	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import Updater
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status = 400)
+
+	# Проверяем права доступа
+	try:
+		updater = Updater.objects.get(id = request.POST.get('updater_id'))
+		if not request.user.has_perm('catalog.change_updater'):
+			return HttpResponse(status = 403)
+	except Updater.DoesNotExist:
+		updater = Updater()
+		if not request.user.has_perm('catalog.add_updater'):
+			return HttpResponse(status = 403)
+		updater.created = timezone.now()
+
+	# name
+	if not request.POST.get('updater_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование загрузчика.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	updater.name   = request.POST.get('updater_name').strip()[:100]
+
+	# alias
+	if request.POST.get('updater_alias').strip():
+		updater.alias = unidecode.unidecode(request.POST.get('updater_alias')).strip()[:100]
+	else:
+		updater.alias = unidecode.unidecode(request.POST.get('updater_name')).strip()[:100]
+
+	# login
+	if request.POST.get('updater_login').strip():
+		updater.login = request.POST.get('updater_login').strip()
+	else:
+		updater.login = ''
+
+	# password
+	if request.POST.get('updater_password').strip():
+		updater.password = request.POST.get('updater_password').strip()
+	else:
+		updater.password = ''
+
+	# state
+	if request.POST.get('updater_state') == 'true':
+		updater.state = True
+	else:
+		updater.state = False
+
+	# modified
+	updater.modified = timezone.now()
+
+	# Сохраняем
+	updater.save()
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Загрузчик {} сохранён.'.format(updater.name)}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
 def ajaxSwitchUpdaterState(request):
 	"AJAX-представление: Switch Updater State."
 
 	# Импортируем
-	from catalog.models import Updater
-	from datetime import datetime
 	import json
+	from datetime import datetime
+	from catalog.models import Updater
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_updater'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
 	# Проверяем корректность вводных данных
-	if not request.POST.get('id') or not request.POST.get('state'):
+	if not request.POST.get('updater_id') or not request.POST.get('updater_state'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 		try:
-			updater = Updater.objects.get(id=request.POST.get('id'))
-			if request.POST.get('state') == 'true':
-				updater.state = True;
+			updater = Updater.objects.get(id=request.POST.get('updater_id'))
+			if request.POST.get('updater_state') == 'true':
+				updater.state = True
 			else:
-				updater.state = False;
-			updater.save();
-			result = {'status': 'success', 'message': 'Статус загрузчика ' + updater.name + ' изменен на ' + str(updater.state) + '.'}
+				updater.state = False
+			updater.save()
+			result = {'status': 'success', 'message': 'Статус загрузчика {} изменен на {}.'.format(updater.name, updater.state)}
 		except Updater.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором {} отсутствует в базе.'.format(request.POST.get('updater_id'))}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
@@ -313,46 +423,109 @@ def stock(request, alias):
 	return render(request, 'catalog/stock.html', locals())
 
 
+def ajaxGetStock(request):
+	"AJAX-представление: Get Stock."
+
+	# Импортируем
+	import json
+	from catalog.models import Stock
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_stock'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Получаем объект
+	try:
+		stock = Stock.objects.get(id = request.POST.get('stock_id'))
+
+		result = {
+			'status':                  'success',
+			'message':                 'Данные загрузчика получены.',
+			'stock_id':                stock.id,
+			'stock_name':              stock.name,
+			'stock_alias':             stock.alias,
+			'stock_delivery_time_min': stock.delivery_time_min,
+			'stock_delivery_time_max': stock.delivery_time_max,
+			'stock_state':             stock.state}
+
+	except Stock.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: склад отсутствует в базе.'}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
 def ajaxSaveStock(request):
 	"AJAX-представление: Save Stock."
 
 	# Импортируем
-	from catalog.models import Stock
-	from django.utils import timezone
 	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import Stock
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
+		return HttpResponse(status = 400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	try:
+		stock = Stock.objects.get(id = request.POST.get('stock_id'))
+		if not request.user.has_perm('catalog.change_stock'):
+			return HttpResponse(status = 403)
+	except Stock.DoesNotExist:
+		stock = Stock()
+		if not request.user.has_perm('catalog.add_stock'):
+			return HttpResponse(status = 403)
+		stock.created = timezone.now()
 
-	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') or not request.POST.get('state') or not request.POST.get('delivery_time_min') or not request.POST.get('delivery_time_max'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	# name
+	if not request.POST.get('stock_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование склада.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	stock.name   = request.POST.get('stock_name').strip()[:100]
+
+	# alias
+	if request.POST.get('stock_alias').strip():
+		stock.alias = unidecode.unidecode(request.POST.get('stock_alias')).strip()[:100]
 	else:
-		try:
-			stock       = Stock.objects.get(id=request.POST.get('id'))
-			stock.name  = request.POST.get('name')
-			stock.alias = request.POST.get('alias')
-			if 'true' == request.POST.get('state'):
-				stock.state = True
-			else:
-				stock.state = False
-			stock.delivery_time_min = int(request.POST.get('delivery_time_min'))
-			stock.delivery_time_max = int(request.POST.get('delivery_time_max'))
-			stock.edited = True
-			stock.modified = timezone.now()
-			stock.save()
-			result = {
-				'status': 'success',
-				'message': 'Изменения склада {} сохранены.'.format(stock.name)}
-		except Stock.DoesNotExist:
-			result = {
-				'status': 'alert',
-				'message': 'Склад с идентификатором {} отсутствует в базе.'.format(request.POST.get('id'))}
+		stock.alias = unidecode.unidecode(request.POST.get('stock_name')).strip()[:100]
+
+	# delivery_time_min
+	if request.POST.get('stock_delivery_time_min').strip():
+		stock.delivery_time_min = request.POST.get('stock_delivery_time_min').strip()
+	else:
+		stock.delivery_time_min = ''
+
+	# delivery_time_max
+	if request.POST.get('stock_delivery_time_max').strip():
+		stock.delivery_time_max = request.POST.get('stock_delivery_time_max').strip()
+	else:
+		stock.delivery_time_max = ''
+
+	# state
+	if request.POST.get('stock_state') == 'true':
+		stock.state = True
+	else:
+		stock.state = False
+
+	# modified
+	stock.modified = timezone.now()
+
+	# Сохраняем
+	stock.save()
 
 	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Склад {} сохранён.'.format(stock.name)}
+
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
@@ -360,31 +533,35 @@ def ajaxSwitchStockState(request):
 	"AJAX-представление: Switch Stock State."
 
 	# Импортируем
-	from catalog.models import Stock
-	from datetime import datetime
 	import json
+	from datetime import datetime
+	from catalog.models import Stock
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_stock'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
 	# Проверяем корректность вводных данных
-	if not request.POST.get('id') or not request.POST.get('state'):
+	if not request.POST.get('stock_id') or not request.POST.get('stock_state'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 		try:
-			stock = Stock.objects.get(id=request.POST.get('id'))
-			if request.POST.get('state') == 'true':
-				stock.state = True;
+			stock = Stock.objects.get(id=request.POST.get('stock_id'))
+			if request.POST.get('stock_state') == 'true':
+				stock.state = True
 			else:
-				stock.state = False;
-			stock.save();
-			result = {'status': 'success', 'message': 'Статус склада ' + stock.name + ' изменен на ' + str(stock.state) + '.'}
+				stock.state = False
+			stock.save()
+			result = {'status': 'success', 'message': 'Статус склада {} изменен на {}.'.format(stock.name, stock.state)}
 		except Stock.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Склад с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+			result = {'status': 'alert', 'message': 'Склад с идентификатором {} отсутствует в базе.'.format(request.POST.get('stock_id'))}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

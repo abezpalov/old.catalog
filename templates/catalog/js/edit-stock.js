@@ -1,112 +1,214 @@
-{% if perms.project.change_stock %}
+{% if perms.catalog.change_stock %}
 
 
-// Открытие модального окна редактирования склада
+// Открытие окна редактирования склада (существующий)
 $("body").delegate("[data-do*='open-edit-stock']", "click", function(){
 
-	// Определяем значения переменных
-	id                = $(this).data('id');
-	name              = $(this).text();
-	alias             = $(this).data('alias');
-	state             = $('#stock-'+id+'-state').prop('checked');
-	delivery_time_min = $('#stock-'+id+'-delivery-time-min').text();
-	delivery_time_max = $('#stock-'+id+'-delivery-time-max').text();
+	// Получаем информацию о складе
+	$.post("/catalog/ajax/get-stock/", {
+		stock_id: $(this).data('id'),
+		csrfmiddlewaretoken: '{{ csrf_token }}'
+	},
+	function(data) {
+		if (null != data.status) {
+			if ('success' == data.status){
 
-	// Заполняем значение полей модального окна
-	$('#edit-stock-id').val(id);
-	$('#edit-stock-name').val(name);
-	$('#edit-stock-alias').val(alias);
-	$('#edit-stock-state').prop('checked', state);
-	$('#edit-stock-delivery-time-min').val(delivery_time_min);
-	$('#edit-stock-delivery-time-max').val(delivery_time_max);
+				// Заполняем значение полей
+				$('#edit-stock-id').val(data.stock_id);
+				$('#edit-stock-name').val(data.stock_name);
+				$('#edit-stock-alias').val(data.stock_alias);
+				$('#edit-stock-delivery-time-min').val(data.stock_delivery_time_min);
+				$('#edit-stock-delivery-time-max').val(data.stock_delivery_time_max);
+				$('#edit-stock-state').prop('checked', data.stock_state);
 
-	// Открываем модальное окно
-	$('#EditStockModal').foundation('reveal', 'open');
+				// Открываем окно
+				$('#modal-edit-stock').foundation('reveal', 'open');
+
+			} else {
+
+				// Показываем сообщение с ошибкой
+				var notification = new NotificationFx({
+					wrapper : document.body,
+					message : '<p>' + data.message + '</p>',
+					layout : 'growl',
+					effect : 'genie',
+					type : data.status,
+					ttl : 3000,
+					onClose : function() { return false; },
+					onOpen : function() { return false; }
+				});
+				notification.show();
+			}
+		}
+	}, "json");
+
 	return false;
 });
 
 
-// Сохранение склада и закрытие модального окна
+// Сохранение склада
 $("body").delegate("[data-do*='edit-stock-save']", "click", function(){
 
-	// Определяем значения переменных
-	id                = $('#edit-stock-id').val();
-	name              = $('#edit-stock-name').val();
-	alias             = $('#edit-stock-alias').val();
-	state             = $('#edit-stock-state').prop('checked');
-	delivery_time_min = $('#edit-stock-delivery-time-min').val();
-	delivery_time_max = $('#edit-stock-delivery-time-max').val();
-
-	// Отправляем AJAX-запрос
+	// Отправляем запрос
 	$.post("/catalog/ajax/save-stock/", {
-		id:                  id,
-		name:                name,
-		alias:               alias,
-		state:               state,
-		delivery_time_min:   $('#edit-stock-delivery-time-min').val(),
-		delivery_time_max:   $('#edit-stock-delivery-time-max').val(),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+		stock_id:                $('#edit-stock-id').val(),
+		stock_name:              $('#edit-stock-name').val(),
+		stock_alias:             $('#edit-stock-alias').val(),
+		stock_delivery_time_min: $('#edit-stock-delivery-time-min').val(),
+		stock_delivery_time_max: $('#edit-stock-delivery-time-max').val(),
+		stock_state:             $('#edit-stock-state').prop('checked'),
+		csrfmiddlewaretoken:     '{{ csrf_token }}'
 	},
-
-	// Обрабатываем результат
 	function(data) {
 		if (null != data.status) {
+
+			// Показываем сообщение
 			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
+				wrapper: document.body,
+				message: '<p>' + data.message + '</p>',
+				layout:  'growl',
+				effect:  'genie',
+				type:    data.status,
+				ttl:     3000,
+				onClose: function() { return false; },
+				onOpen:  function() { return false; }
 			});
 			notification.show();
+
+			if ('success' == data.status){
+
+				// Обновлем информацию на странице
+				$("[data-stock-name*='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-name').val());
+				$("[data-stock-delivery-time-min*='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-delivery-time-min').val());
+				$("[data-stock-delivery-time-max*='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-delivery-time-max').val());
+				$("[data-stock-state*='" + $('#edit-stock-id').val() + "']").prop('checked', $('#edit-stock-state').prop('checked'));
+
+				// Заполняем значение полей
+				$('#edit-stock-id').val('0');
+				$('#edit-stock-name').val('');
+				$('#edit-stock-alias').val('');
+				$('#edit-stock-delivery-time-min').val('');
+				$('#edit-stock-delivery-time-max').val('');
+				$('#edit-stock-state').prop('checked', false);
+
+				// Закрываем окно
+				$('#modal-edit-stock').foundation('reveal', 'close');
+			}
 		}
 	}, "json");
 
-	// Обновляем информацию в таблице
-	$('#stock-'+id).data('alias', alias);
-	$('#stock-'+id).text(name);
-	$('#stock-'+id+'-state').prop('checked', state);
-	$('#stock-'+id+'-delivery-time-min').text(delivery_time_min);
-	$('#stock-'+id+'-delivery-time-max').text(delivery_time_max);
-
-	// Закрываем модальное окно
-	$('#EditStockModal').foundation('reveal', 'close');
 	return false;
 });
 
 
-// Закрытие модального окна без сохранения изменений
+// Отмена редактирования склада
 $("body").delegate("[data-do*='edit-stock-cancel']", "click", function(){
-	$('#EditStockModal').foundation('reveal', 'close');
+
+	// Заполняем значение полей
+	$('#edit-stock-id').val('0');
+	$('#edit-stock-name').val('');
+	$('#edit-stock-alias').val('');
+	$('#edit-stock-delivery-time-min').val('');
+	$('#edit-stock-delivery-time-max').val('');
+	$('#edit-stock-state').prop('checked', false);
+
+	// Закрываем окно
+	$('#modal-edit-stock').foundation('reveal', 'close');
+
 	return false;
 });
 
-$("body").delegate("[data-do*='switch-stock-state']", "click", function(){
-	$.post("/catalog/ajax/switch-stock-state/", {
-		id: $(this).data('id'),
-		state: $(this).prop("checked"),
+{% endif %}
+
+{% if perms.catalog.delete_stock %}
+
+
+// Открытие модального окна удаления склада
+$("body").delegate("[data-do*='open-stock-trash']", "click", function(){
+
+	// Заполняем значение полей
+	$('#trash-stock-id').val($(this).data('id'));
+
+	// Открываем окно
+	$('#modal-trash-stock').foundation('reveal', 'open');
+
+	return false;
+});
+
+
+// Удаление склада
+$("body").delegate("[data-do*='trash-stock']", "click", function(){
+
+	// Отправляем запрос
+	$.post("/catalog/ajax/trash-stock/", {
+		stock_id:            $('#trash-stock-id').val(),
 		csrfmiddlewaretoken: '{{ csrf_token }}'
 	},
 	function(data) {
 		if (null != data.status) {
+
+			// Показываем сообщение
 			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
+				wrapper: document.body,
+				message: '<p>' + data.message + '</p>',
+				layout:  'growl',
+				effect:  'genie',
+				type:     data.status,
+				ttl:      3000,
+				onClose:  function() { return false; },
+				onOpen:   function() { return false; }
 			});
 			notification.show();
+
+			// Закрываем окно
+			$('#modal-trash-stock').foundation('reveal', 'close');
+
+			// Обновляем страницу
+			setTimeout(function () {location.reload();}, 3000);
 		}
 	}, "json");
+
+	return false;
+});
+
+{% endif %}
+
+{% if perms.catalog.change_stock %}
+
+
+// Смена статуса склада
+$("body").delegate("[data-do*='switch-stock-state']", "click", function(){
+
+	// Отправляем запрос
+	$.post("/catalog/ajax/switch-stock-state/", {
+		stock_id:            $(this).data('id'),
+		stock_state:         $(this).prop('checked'),
+		csrfmiddlewaretoken: '{{ csrf_token }}'
+	},
+	function(data) {
+		if (null != data.status) {
+
+			// Показываем сообщение
+			var notification = new NotificationFx({
+				wrapper: document.body,
+				message: '<p>' + data.message + '</p>',
+				layout:  'growl',
+				effect:  'genie',
+				type:    data.status,
+				ttl:     3000,
+				onClose: function() { return false; },
+				onOpen:  function() { return false; }
+			});
+			notification.show();
+
+			// Проверем успешность запроса
+			if ('success' != data.status){
+				setTimeout(function () {location.reload();}, 3000);
+			}
+		}
+	}, "json");
+
 	return true;
 });
-
 
 {% endif %}

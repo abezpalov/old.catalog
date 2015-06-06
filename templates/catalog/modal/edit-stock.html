@@ -1,0 +1,31 @@
+<div id="modal-edit-stock" class="reveal-modal large" data-reveal>
+
+	<input id="edit-stock-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-stock-name" type="text">
+	</label>
+
+	<label>Псевдоним
+		<input id="edit-stock-alias" type="text">
+	</label>
+
+	<label>Минимальный срок поставки
+		<input id="edit-stock-delivery-time-min" type="text">
+	</label>
+
+	<label>Максимальный срок поставки
+		<input id="edit-stock-delivery-time-max" type="text">
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-stock-state" type="checkbox">
+			<label for="edit-stock-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-stock-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-stock-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>

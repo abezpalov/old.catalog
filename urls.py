@@ -26,6 +26,7 @@ urlpatterns = patterns('',
 	# ex: /catalog/updater/ocs/
 	url(r'^updater/(?P<alias>[a-zA-Z0-9_-]+)/$', views.updater, name='updater'),
 	# AJAX
+	url(r'^ajax/get-updater/$', views.ajaxGetUpdater, name='ajaxGetUpdater'),
 	url(r'^ajax/save-updater/$', views.ajaxSaveUpdater, name='ajaxSaveUpdater'),
 	url(r'^ajax/switch-updater-state/$', views.ajaxSwitchUpdaterState, name='ajaxSwitchUpdaterState'),
 
@@ -36,6 +37,7 @@ urlpatterns = patterns('',
 	# ex: /catalog/stock/ocs-stock-samara/
 	url(r'^stock/(?P<alias>[a-zA-Z0-9_-]+)/$', views.stock, name='stock'),
 	# AJAX
+	url(r'^ajax/get-stock/$', views.ajaxGetStock, name='ajaxGetStock'),
 	url(r'^ajax/save-stock/$', views.ajaxSaveStock, name='ajaxSaveStock'),
 	url(r'^ajax/switch-stock-state/$', views.ajaxSwitchStockState, name='ajaxSwitchStockState'),
 

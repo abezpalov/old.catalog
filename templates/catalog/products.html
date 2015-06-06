@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block content %}
+
 <!-- Панель вызова фильтра вывода -->
 <div class="row collapse">
 	<ul class="button-group even-3">
@@ -32,8 +33,8 @@
 		{% endifchanged %}
 		<tr data-id="{{ product.id }}">
 			<td>{{ product.n }}</td>
-			<td>{{ product.article }}</td>
-			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/" data-do="edit-item" data-id="{{ product.id }}">{{ product.name }}</a></td>
+			<td data-product-article="{{ product.id }}">{{ product.article }}</td>
+			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/" data-do="open-edit-product" data-id="{{ product.id }}" data-product-name="{{ product.id }}">{{ product.name }}</a></td>
 			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
 			<td class="text-right" style="white-space: nowrap;"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</a></td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_stock %}{% if product.quantity.on_stock == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_stock }}{% endif %}{% endif %}</td>
@@ -61,121 +62,12 @@
 	{% endif %}
 </div>
 
-<!-- Модальное окно фильтра -->
-<div id="FilterItemsModal" class="reveal-modal large" data-reveal>
-
-	<dl class="tabs" data-tab>
-		<dd id="CategoryPanelDD" class="active"><a href="#CategoryPanel"><i class="fa fa-folder-open-o"></i> Категория</a></dd>
-		<dd id="VendorPanelDD"><a href="#VendorPanel"><i class="fa fa-building"></i> Производитель</a></dd>
-		<dd id="SearchPanelDD"><a href="#SearchPanel"><i class="fa fa-search"></i> Дополнительно</a></dd>
-	</dl>
-	<div class="tabs-content">
-		<div class="content active" id="CategoryPanel">
-			<p><span>Категория: </span><span id="filter-items-selected-category" data-id="{% if category != None %}{{ category.id }}{% endif %}">{% if category != None %}{{ category.name }}{% else %}Все категории{% endif %}</span>.</p>
-			<ul class="inline-list">
-				<li>
-					<div class="switch tiny">
-						<input id="filter-items-selected-childs" type="checkbox"{% if childs != 'n' %} checked{% endif %}>
-						<label for="filter-items-selected-childs"></label>
-					</div>
-				</li>
-				<li>
-					<p>Включить дочерние категории.</p>
-				</li>
-			</ul>
-			{% autoescape off %}{{ categories_ul }}{% endautoescape %}
-		</div>
-		<div class="content" id="VendorPanel">
-
-			<!-- Фильтр производителей -->
-			<fieldset>
-				<legend>Производитель</legend>
-
-				<div class="row">
-					<div class="large-12 columns">
-						<p><b><span>Текущий: </span><span id="filter-items-selected-vendor" data-alias="{% if vendor != None %}{{ vendor.alias }}{% endif %}">{% if vendor != None %}{{ vendor.name }}{% else %}Все производители{% endif %}</span>.</b></p>
-					</div>
-				</div>
-
-				<div class="row">
-					<div class="large-12 columns">
-						<label>Фильтр списка
-							<input id="filter-items-filter-vendors" data-do="filter-items-filter-vendors" type="text" placeholder="Fuj_">
-						</label>
-					</div>
-				</div>
-
-				<div class="row">
-					<div class="large-12 columns">
-						<a data-do="filter-items-select-vendor" data-alias="">Все производители</a>
-					</div>
-				</div>
-				<hr/>
-				<div class="row">
-					{% for vendor in vendors %}
-					<div class="large-3 medium-6 small-12 columns" data-is="vendor-selector">
-					<a href="/catalog/products/{{ vendor.alias }}/" data-do="filter-items-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
-					</div>
-					{% endfor %}
-				</div>
-
-			</fieldset>
-		</div>
-		<div class="content" id="SearchPanel">
-			<label>Поисковый запрос
-				<input id="filter-items-search-input" type="text" placeholder="Артикул, наименование или их часть..." value="{% if search %}{{ search }}{% endif %}">
-			</label>
-		</div>
-	</div>
-
-	<button data-do="filter-items-run">Применить</button>
-	<button data-do="filter-items-cancel" class="secondary">Отмена</button>
-	<a class="close-reveal-modal">&#215;</a>
-</div>
+{% include "catalog/modal/filter-products.html" %}
 
 {% if perms.catalog.change_product %}
-<!-- Модальное окно редактирования продукта -->
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<h2>Редактировать продукт</h2>
-	<fieldset>
-		<input id="edit-item-id" type="hidden">
-		<label>Наименование
-			<input id="edit-item-name" type="text">
-		</label>
-		<label>Артикул
-			<input id="edit-item-article" type="text">
-		</label>
-		<label>Производитель
-			<select id="edit-item-vendor">
-				{% for vendor in vendors %}
-				<option value="{{ vendor.id }}">{{ vendor.name }}</option>
-				{% endfor %}
-			</select>
-		</label>
-		<label>Категория
-			<select id="edit-item-category">
-				<option value="null" selected> - Не определена - </option>
-				{% for category in categories %}
-				<option value="{{ category.id }}">{{ category.name }}</option>
-				{% endfor %}
-			</select>
-		<label>Описание
-			<textarea id="edit-item-description" type="text"></textarea>
-		</label>
-		<label>Дубль
-			<input id="edit-item-double" type="text">
-		</label>
-		<label>Статус
-			<div class="switch small">
-				<input id="edit-item-state" type="checkbox">
-				<label for="edit-item-state"></label>
-			</div>
-		</label>
-	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
-</div>
+
+{% include "catalog/modal/edit-product.html" %}
+
 {% endif %}
 
 <!-- Модальное окно просмотра партий  -->
@@ -191,6 +83,8 @@
 <script>
 
 {% include "catalog/js/products.js" %}
+
+{% include "catalog/js/edit-product.js" %}
 
 {% include "catalog/js/search-on-stocks.js" %}
 

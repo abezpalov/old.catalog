@@ -1,4 +1,4 @@
-{% if perms.catalog.change_distributors %}
+{% if perms.catalog.change_distributor %}
 
 
 // Открытие окна редактирования поставщика (существующий)
@@ -48,7 +48,7 @@ $("body").delegate("[data-do*='open-edit-distributor']", "click", function(){
 // Сохранение поставщика
 $("body").delegate("[data-do*='edit-distributor-save']", "click", function(){
 
-	// Получаем информацию о поставщике
+	// Отправляем запрос
 	$.post("/catalog/ajax/save-distributor/", {
 		distributor_id:          $('#edit-distributor-id').val(),
 		distributor_name:        $('#edit-distributor-name').val(),

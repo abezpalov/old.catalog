@@ -1,0 +1,31 @@
+<div id="modal-edit-updater" class="reveal-modal large" data-reveal>
+
+	<input id="edit-updater-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-updater-name" type="text">
+	</label>
+
+	<label>Псевдоним
+		<input id="edit-updater-alias" type="text">
+	</label>
+
+	<label>Логин
+		<input id="edit-updater-login" type="text">
+	</label>
+
+	<label>Пароль
+		<input id="edit-updater-password" type="text">
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-updater-state" type="checkbox">
+			<label for="edit-updater-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-updater-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-updater-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
