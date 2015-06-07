@@ -1,16 +1,17 @@
 {% extends "main.html" %}
 {% block title %}Anodos: Производители{% endblock %}
-{% block content %}
-{% if perms.catalog.change_product %}
 
-<!-- Форма добавления нового производителя -->
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.change_vendor or perms.catalog.add_vendor %}
+
+<!-- Панель кнопок -->
 <div class="row collapse">
-	<div class="small-10 columns">
-		<input id="new-item-name" type="text" placeholder="Имя нового производителя">
-	</div>
-	<div class="small-2 columns">
-		<button data-do="add-item" class="postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></button>
-	</div>
+	<button data-do="open-new-vendor" class="secondary expand"><i class="fa fa-pencil"></i> Добавить производителя</button>
 </div>
 
 <!-- Таблица со списком производителей -->
@@ -21,14 +22,14 @@
 			<th>Наименование</th>
 			<th>Статус</th>
 		</tr>
-		{% for item in items %}
+		{% for vendor in vendors %}
 		<tr>
 			<td>{{ forloop.counter }}</td>
-			<td><a id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}">{{ item.name }}</a></td>
+			<td><a data-do="open-edit-vendor" data-id="{{ vendor.id }}" data-vendor-name="{{ vendor.id }}">{{ vendor.name }}</a></td>
 			<td>
 				<div class="switch small">
-					<input id="item-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
-					<label for="item-state-{{ item.id }}"></label>
+					<input id="vendor-{{ vendor.id }}-state" data-id="{{ vendor.id }}" data-do="switch-vendor-state" data-vendor-state="{{vendor.id }}" type="checkbox"{% if vendor.state %} checked{% endif %}>
+					<label for="vendor-{{ vendor.id }}-state"></label>
 				</div>
 			</td>
 		</tr>
@@ -36,33 +37,22 @@
 	</table>
 </div>
 
-<!-- Модальное окно редактирования элемента -->
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<fieldset>
-		<legend>Редактировать производителя</legend>
-		<input id="edit-item-id" type="hidden">
-		<label>Наименование
-			<input id="edit-item-name" type="text">
-		</label>
-		<label>Псевдоним
-			<input id="edit-item-alias" type="text">
-		</label>
-	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
-</div>
 {% else %}
+
 <div class="row collapse">
 	<div class="small-12 columns">
 		<p class="panel">Недостаточно прав для данной функциональности.</p>
 	</div>
 </div>
+
 {% endif %}
+
+{% include "catalog/modal/edit-vendor.html" %}
 {% endblock %}
+
 {% block js-content %}
-{% if perms.catalog.change_product %}
 <script>
-{% include "catalog/js/vendors.js" %}
+{% include "catalog/js/edit-vendor.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
 </script>
-{% endif %}
 {% endblock %}

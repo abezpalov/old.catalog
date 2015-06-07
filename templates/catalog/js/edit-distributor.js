@@ -83,6 +83,7 @@ $("body").delegate("[data-do*='edit-distributor-save']", "click", function(){
 				$('#edit-distributor-id').val('0');
 				$('#edit-distributor-name').val('');
 				$('#edit-distributor-alias').val('');
+				$('#edit-distributor-description').val('');
 				$('#edit-distributor-state').prop('checked', false);
 
 				// Закрываем окно
@@ -102,6 +103,7 @@ $("body").delegate("[data-do*='edit-distributor-cancel']", "click", function(){
 	$('#edit-distributor-id').val('0');
 	$('#edit-distributor-name').val('');
 	$('#edit-distributor-alias').val('');
+	$('#edit-distributor-description').val('');
 	$('#edit-distributor-state').prop('checked', false);
 
 	// Закрываем окно

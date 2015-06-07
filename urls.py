@@ -61,8 +61,7 @@ urlpatterns = patterns('',
 	# ex: /catalog/vendor/fujitsu/
 	url(r'^vendor/(?P<alias>[a-zA-Z0-9_-]+)/$', views.vendor, name='vendor'),
 	# AJAX
-	# TODO REFACTORY
-	url(r'^ajax/add-vendor/$', views.ajaxAddVendor, name='ajaxAddVendor'),
+	url(r'^ajax/get-vendor/$', views.ajaxGetVendor, name='ajaxGetVendor'),
 	url(r'^ajax/save-vendor/$', views.ajaxSaveVendor, name='ajaxSaveVendor'),
 	url(r'^ajax/switch-vendor-state/$', views.ajaxSwitchVendorState, name='ajaxSwitchVendorState'),
 

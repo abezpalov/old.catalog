@@ -890,41 +890,42 @@ def vendor(request, alias):
 	return render(request, 'catalog/vendor.html', locals())
 
 
-def ajaxAddVendor(request):
-	"AJAX-представление: Add Vendor."
+def ajaxGetVendor(request):
+	"AJAX-представление: Get Vendor."
 
 	# Импортируем
 	import json
-	import unidecode
-	from datetime import datetime
 	from catalog.models import Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_vendor'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
-	# Проверяем на пустую строку
-	if (request.POST.get('name').strip() == ''):
-		result = {'status': 'warning', 'message': 'Пожалуй, такого имени быть не может.'}
-	else:
-		# Добавляем производителя
-		try:
-			vendor = Vendor.objects.get(name=request.POST.get('name').strip())
-			result = {'status': 'warning', 'message': 'Производитель ' + request.POST.get('name').strip() + ' уже существует.'}
-		except Vendor.DoesNotExist:
-			name = request.POST.get('name').strip()
-			alias = unidecode.unidecode(name.lower())
-			alias = alias.replace(' ', '-')
-			alias = alias.replace('&', 'and')
-			alias = alias.replace('\'', '')
-			vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())
-			vendor.save()
-			result = {'status': 'success', 'message': 'Производитель ' + name + ' добавлен.', 'vendorId': vendor.id, 'vendorName': vendor.name, 'vendorAlias': vendor.alias}
+	# Получаем объект
+	try:
+		vendor = Vendor.objects.get(id = request.POST.get('vendor_id'))
 
-	# Возвращаем ответ
+		result = {
+			'status':             'success',
+			'message':            'Данные производителя получены.',
+			'vendor_id':          vendor.id,
+			'vendor_name':        vendor.name,
+			'vendor_alias':       vendor.alias,
+			'vendor_description': vendor.description,
+			'vendor_state':       vendor.state}
+
+	except Vendor.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: производитель отсутствует в базе.'}
+
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
@@ -934,34 +935,61 @@ def ajaxSaveVendor(request):
 	# Импортируем
 	import json
 	import unidecode
-	from datetime import datetime
+	from django.utils import timezone
 	from catalog.models import Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
+		return HttpResponse(status = 400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	try:
+		vendor = Vendor.objects.get(id = request.POST.get('vendor_id'))
+		if not request.user.has_perm('catalog.change_vendor'):
+			return HttpResponse(status = 403)
+	except Vendor.DoesNotExist:
+		vendor = Vendor()
+		if not request.user.has_perm('catalog.add_vendor'):
+			return HttpResponse(status = 403)
+		vendor.created = timezone.now()
 
-	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') :
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	# name
+	if not request.POST.get('vendor_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование производителя.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	vendor.name = request.POST.get('vendor_name').strip()[:100]
+
+	# alias
+	if request.POST.get('vendor_alias').strip():
+		vendor.alias = unidecode.unidecode(request.POST.get('vendor_alias')).strip()[:100]
 	else:
-		try:
-			vendor = Vendor.objects.get(id=request.POST.get('id'))
-			vendor.name = request.POST.get('name')
-			vendor.alias = request.POST.get('alias')
-			vendor.alias = unidecode.unidecode(vendor.alias.lower())
-			vendor.alias = vendor.alias.replace(' ', '-')
-			vendor.alias = vendor.alias.replace('&', 'and')
-			vendor.alias = vendor.alias.replace('\'', '')
-			if request.POST.get('description'): vendor.description = request.POST.get('description')
-			vendor.save()
-			result = {'status': 'success', 'message': 'Изменения производителя ' + vendor.name + ' сохранены.'}
-		except Vendor.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+		vendor.alias = unidecode.unidecode(request.POST.get('vendor_name')).strip()[:100]
+
+	# description
+	if request.POST.get('vendor_description').strip():
+		vendor.description = request.POST.get('vendor_description').strip()
+	else:
+		vendor.description = ''
+
+	# state
+	if request.POST.get('vendor_state') == 'true':
+		vendor.state = True
+	else:
+		vendor.state = False
+
+	# modified
+	vendor.modified = timezone.now()
+
+	# Сохраняем
+	vendor.save()
 
 	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Производитель {} сохранён.'.format(vendor.name)}
+
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
@@ -969,31 +997,35 @@ def ajaxSwitchVendorState(request):
 	"AJAX-представление: Switch Vendor State."
 
 	# Импортируем
-	from catalog.models import Vendor
-	from datetime import datetime
 	import json
+	from datetime import datetime
+	from catalog.models import Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_vendor'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
 	# Проверяем корректность вводных данных
-	if not request.POST.get('id') or not request.POST.get('state'):
+	if not request.POST.get('vendor_id') or not request.POST.get('vendor_state'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 		try:
-			vendor = Vendor.objects.get(id=request.POST.get('id'))
-			if request.POST.get('state') == 'true':
-				vendor.state = True;
+			vendor = Vendor.objects.get(id = request.POST.get('vendor_id'))
+			if request.POST.get('vendor_state') == 'true':
+				vendor.state = True
 			else:
-				vendor.state = False;
-			vendor.save();
-			result = {'status': 'success', 'message': 'Статус производителя ' + vendor.name + ' изменен на ' + str(vendor.state) + '.'}
+				vendor.state = False
+			vendor.save()
+			result = {'status': 'success', 'message': 'Статус производителя {} изменен на {}.'.format(vendor.name, vendor.state)}
 		except Vendor.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+			result = {'status': 'alert', 'message': 'Производитель с идентификатором {} отсутствует в базе.'.format(request.POST.get('vendor_id'))}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

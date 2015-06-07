@@ -1,0 +1,29 @@
+{% if perms.catalog.change_vendor or perms.catalog.add_vendor %}
+<div id="modal-edit-vendor" class="reveal-modal large" data-reveal>
+
+	<input id="edit-vendor-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-vendor-name" type="text" value="">
+	</label>
+
+	<label>Псевдоним (служебное поле)
+		<input id="edit-vendor-alias" type="text" value="">
+	</label>
+
+	<label>Описание
+		<textarea id="edit-vendor-description"></textarea>
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-vendor-state" type="checkbox">
+			<label for="edit-vendor-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-vendor-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-vendor-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}

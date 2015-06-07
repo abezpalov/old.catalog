@@ -35,7 +35,7 @@
 			<td>{{ product.n }}</td>
 			<td data-product-article="{{ product.id }}">{{ product.article }}</td>
 			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/" data-do="open-edit-product" data-id="{{ product.id }}" data-product-name="{{ product.id }}">{{ product.name }}</a></td>
-			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/">{{ product.vendor.name }}</a></td>
+			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/" data-do="open-edit-vendor" data-id="{{ product.vendor.id }}" data-vendor-name="{{ product.vendor.id }}">{{ product.vendor.name }}</a></td>
 			<td class="text-right" style="white-space: nowrap;"><a data-do="view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</a></td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_stock %}{% if product.quantity.on_stock == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_stock }}{% endif %}{% endif %}</td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_transit %}{% if product.quantity.on_transit == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_transit }}{% endif %}{% endif %}</td>
@@ -64,6 +64,7 @@
 
 {% include "catalog/modal/filter-products.html" %}
 {% include "catalog/modal/edit-product.html" %}
+{% include "catalog/modal/edit-vendor.html" %}
 {% include "catalog/modal/view-parties.html" %}
 {% endblock %}
 
@@ -71,6 +72,7 @@
 <script>
 {% include "catalog/js/filter-products.js" %}
 {% include "catalog/js/edit-product.js" %}
+{% include "catalog/js/edit-vendor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}
