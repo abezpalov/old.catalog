@@ -50,6 +50,10 @@ def ajaxGetDistributor(request):
 	import json
 	from catalog.models import Distributor
 
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
 	# Проверяем права доступа
 	if not request.user.has_perm('catalog.change_distributor'):
 		result = {
@@ -219,6 +223,10 @@ def ajaxGetUpdater(request):
 	# Импортируем
 	import json
 	from catalog.models import Updater
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
 
 	# Проверяем права доступа
 	if not request.user.has_perm('catalog.change_updater'):
@@ -430,6 +438,10 @@ def ajaxGetStock(request):
 	import json
 	from catalog.models import Stock
 
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
 	# Проверяем права доступа
 	if not request.user.has_perm('catalog.change_stock'):
 		result = {
@@ -635,7 +647,7 @@ def getCategoryHTMLTree(root, parent=None, first=None):
 			i.text = ''
 			i.attrib['class'] = 'fa fa-circle-thin'
 			a = etree.SubElement(li, "a")
-			a.attrib['data-do'] = 'filter-items-select-category'
+			a.attrib['data-do'] = 'filter-products-select-category'
 			a.attrib['data-id'] = ''
 			a.attrib['class'] = 'tm-li-category-name'
 			a.text = 'Все категории'
@@ -657,7 +669,7 @@ def getCategoryHTMLTree(root, parent=None, first=None):
 				i.text = ''
 				i.attrib['class'] = 'fa fa-circle-thin'
 			a = etree.SubElement(li, "a")
-			a.attrib['data-do'] = 'filter-items-select-category'
+			a.attrib['data-do'] = 'filter-products-select-category'
 			a.attrib['data-id'] = str(category.id)
 			a.attrib['class'] = 'tm-li-category-name'
 			a.text = category.name
@@ -858,7 +870,7 @@ def vendors(request):
 	from catalog.models import Vendor
 
 	# Получаем список
-	items = Vendor.objects.all().order_by('name')
+	vendors = Vendor.objects.all().order_by('name')
 
 	return render(request, 'catalog/vendors.html', locals())
 
@@ -1032,6 +1044,10 @@ def ajaxGetPriceType(request):
 	# Импортируем
 	import json
 	from catalog.models import PriceType
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
 
 	# Проверяем права доступа
 	if not request.user.has_perm('catalog.change_pricetype'):
@@ -1328,41 +1344,49 @@ def ajaxGetProduct(request):
 	"AJAX-представление: Get Product."
 
 	# Импортируемa
-	from catalog.models import Product
 	import json
+	from catalog.models import Product
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	if not request.POST.get('id'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			product = Product.objects.get(id=request.POST.get('id'))
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_distributor'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
-			if product.category: product_category_id = product.category.id
-			else: product_category_id = 'null'
-			if product.unit: product_unit_id = product.unit.id
-			else: product_unit_id = 0
-			if product.duble: product_duble_id = product.duble.id
-			else: product_duble_id = ''
+	# Получаем объект
+	try:
+		product = Product.objects.get(id = request.POST.get('product_id'))
 
-			result = {
-				'status': 'success',
-				'message': 'Данные продукта получены.',
-				'product_name': product.name,
-				'product_article': product.article,
-				'product_vendor_id': product.vendor.id,
-				'product_category_id': product_category_id,
-				'product_unit_ud': product_unit_id,
-				'product_description': product.description,
-				'product_duble_id': product_duble_id,
-				'product_state': product.state}
-		except Product.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Продукт с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+		if product.category: product_category_id = product.category.id
+		else: product_category_id = '0'
+		if product.unit: product_unit_id = product.unit.id
+		else: product_unit_id = '0'
+		if product.duble: product_duble_id = product.duble.id
+		else: product_duble_id = ''
 
-	# Возвращаем ответ
+		result = {
+			'status':              'success',
+			'message':             'Данные продукта получены.',
+			'product_id':          product.id,
+			'product_name':        product.name,
+			'product_article':     product.article,
+			'product_vendor_id':   product.vendor.id,
+			'product_category_id': product_category_id,
+			'product_unit_id':     product_unit_id,
+			'product_description': product.description,
+			'product_duble_id':    product_duble_id,
+			'product_state':       product.state}
+
+	except Product.DoesNotExist:
+		result = {
+			'status':  'alert',
+			'message': 'Ошибка: товар отсутствует в базе.'}
+
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
@@ -1370,56 +1394,88 @@ def ajaxSaveProduct(request):
 	"AJAX-представление: Save Product."
 
 	# Импортируем
-	from catalog.models import Product
-	from catalog.models import Vendor
-	from catalog.models import Category
-	from django.utils import timezone
 	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import Product, Vendor, Category
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	try:
+		product = Product.objects.get(id = request.POST.get('product_id'))
+		if not request.user.has_perm('catalog.change_product'):
+			return HttpResponse(status = 403)
+	except Product.DoesNotExist:
+		product = Product()
+		if not request.user.has_perm('catalog.add_product'):
+			return HttpResponse(status = 403)
+		product.created = timezone.now()
 
-	if not request.POST.get('id') or not request.POST.get('product_name') or not request.POST.get('product_article') or not request.POST.get('product_vendor_id'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	# name
+	if not request.POST.get('product_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	product.name      = request.POST.get('product_name').strip()[:500]
+	product.full_name = request.POST.get('product_name').strip()
+
+	# article
+	if not request.POST.get('product_article').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует артикул.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	product.name   = request.POST.get('product_name').strip()[:100]
+
+	# vendor
+	try:
+		product.vendor = Vendor.objects.get(id = request.POST.get('product_vendor_id'))
+	except Vendor.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: неверный производитель.'}
+
+	# category
+	try:
+		product.category = Category.objects.get(id = request.POST.get('product_category_id'))
+	except Category.DoesNotExist:
+		product.category = None
+
+	# description
+	if request.POST.get('product_description').strip():
+		product.description = request.POST.get('product_description').strip()
 	else:
-		try:
-			item = Product.objects.get(id=request.POST.get('id'))
-			item.name = request.POST.get('product_name')
-			item.article = request.POST.get('product_article')
-			item.vendor = Vendor.objects.get(id=request.POST.get('product_vendor_id'))
-			if 'null' == request.POST.get('product_category_id'):
-				item.category = None
-			else:
-				item.category = Category.objects.get(id=request.POST.get('product_category_id'))
-			item.description = request.POST.get('product_description')
-			if request.POST.get('product_duble_id'):
-				item.double = Product.objects.get(id=request.POST.get('product_duble_id'))
-			if 'true' == request.POST.get('product_state'):
-				item.state = True
-			else:
-				item.state = False
-			item.edited = True
-			item.modified = timezone.now()
-			item.save()
-			result = {
-				'status': 'success',
-				'message': 'Изменения продукта {} {} сохранены.'.format(item.vendor.name, item.article)}
-		except Product.DoesNotExist:
-			result = {
-				'status': 'alert',
-				'message': 'Продукт с идентификатором {} отсутствует в базе.'.format(request.POST.get('id'))}
-		except Vendor.DoesNotExist:
-			result = {
-				'status': 'alert',
-				'message': 'Производитель с идентификатором {} отсутствует в базе.'.format(request.POST.get('product_vendor_id'))}
-		except Category.DoesNotExist:
-			result = {
-				'status': 'alert',
-				'message': 'Категория с идентификатором {} отсутствует в базе.'.format(request.POST.get('product_category_id'))}
+		product.description = ''
+
+	# duble
+	try:
+		product.duble = Product.objects.get(id = request.POST.get('product_duble_id'))
+	except:
+		product.duble = None
+
+	# state
+	if request.POST.get('product_state') == 'true':
+		product.state = True
+	else:
+		product.state = False
+
+	# edited
+	product.edited = True
+
+	# modified
+	product.modified = timezone.now()
+
+	# Сохраняем
+	product.save()
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Продукт {} {} сохранён.'.format(product.vendor.name, product.article)}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
@@ -1442,11 +1498,11 @@ def ajaxGetParties(request):
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	if not request.POST.get('id'):
+	if not request.POST.get('product_id'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 		try:
-			product = Product.objects.get(id=request.POST.get('id'))
+			product = Product.objects.get(id = request.POST.get('product_id'))
 
 			parties = Party.objects.filter(product=product)
 
@@ -1496,6 +1552,7 @@ def ajaxGetParties(request):
 					items.append(item)
 
 			item = {}
+
 			item['product_id']      = product.id
 			item['product_article'] = product.article
 			item['product_name']    = product.name

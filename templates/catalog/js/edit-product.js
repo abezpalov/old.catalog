@@ -1,50 +1,72 @@
 {% if perms.catalog.change_product %}
 
 
-// Редактирование элемента
-$("body").delegate("a[data-do*='edit-item']", "click", function(){
+// Открытие окна редактирования продукта (существующий)
+$("body").delegate("[data-do*='open-edit-product']", "click", function(){
 
-	// Заполняем значение полей модального окна
-	$('#edit-item-id').val($(this).data('id'));
+	// Получаем информацию о продукте
 	$.post("/catalog/ajax/get-product/", {
-		id: $('#edit-item-id').val(),
+		product_id: $(this).data('id'),
 		csrfmiddlewaretoken: '{{ csrf_token }}'
 	},
 	function(data) {
 		if (null != data.status) {
 			if ('success' == data.status){
-				$('#edit-item-name').val(data.product_name)
-				$('#edit-item-article').val(data.product_article)
-				$('#edit-item-vendor').val(data.product_vendor_id)
-				$('#edit-item-category').val(data.product_category_id)
-				$('#edit-item-description').val(data.product_description)
-				$('#edit-item-double').val(data.product_duble_id)
-				$('#edit-item-state').prop('checked', data.product_state)
+
+				// Заполняем значение полей
+				$('#edit-product-id').val(data.product_id);
+				$('#edit-product-name').val(data.product_name)
+				$('#edit-product-article').val(data.product_article)
+				$('#edit-product-vendor').val(data.product_vendor_id)
+				$('#edit-product-category').val(data.product_category_id)
+				$('#edit-product-description').val(data.product_description)
+				$('#edit-product-double').val(data.product_duble_id)
+				$('#edit-product-state').prop('checked', data.product_state)
+
+				// Открываем окно
+				$('#modal-edit-product').foundation('reveal', 'open');
+
+			} else {
+
+				// Показываем сообщение с ошибкой
+				var notification = new NotificationFx({
+					wrapper: document.body,
+					message: '<p>' + data.message + '</p>',
+					layout:  'growl',
+					effect:  'genie',
+					type:    data.status,
+					ttl:     3000,
+					onClose: function() { return false; },
+					onOpen:  function() { return false; }
+				});
+				notification.show();
 			}
 		}
 	}, "json");
 
-	// Открываем модальное окно
-	$('#EditItemModal').foundation('reveal', 'open');
 	return false;
 });
 
 
-// Сохранение элемента
-$("body").delegate("button[data-do*='edit-item-save']", "click", function(){
+// Сохранение продукта
+$("body").delegate("[data-do*='edit-product-save']", "click", function(){
+
+	// Отправляем запрос
 	$.post("/catalog/ajax/save-product/", {
-		id: $('#edit-item-id').val(),
-		product_name: $('#edit-item-name').val(),
-		product_article: $('#edit-item-article').val(),
-		product_vendor_id: $('#edit-item-vendor').val(),
-		product_category_id: $('#edit-item-category').val(),
-		product_description: $('#edit-item-description').val(),
-		product_duble_id: $('#edit-item-double').val(),
-		product_state: $('#edit-item-state').prop('checked'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+		product_id:          $('#edit-product-id').val(),
+		product_name:        $('#edit-product-name').val(),
+		product_article:     $('#edit-product-article').val(),
+		product_vendor_id:   $('#edit-product-vendor').val(),
+		product_category_id: $('#edit-product-category').val(),
+		product_description: $('#edit-product-description').val(),
+		product_duble_id:    $('#edit-product-double').val(),
+		product_state:       $('#edit-product-state').prop('checked'),
+		csrfmiddlewaretoken:     '{{ csrf_token }}'
 	},
 	function(data) {
 		if (null != data.status) {
+
+			// Показываем сообщение
 			var notification = new NotificationFx({
 				wrapper : document.body,
 				message : '<p>' + data.message + '</p>',
@@ -56,28 +78,73 @@ $("body").delegate("button[data-do*='edit-item-save']", "click", function(){
 				onOpen : function() { return false; }
 			});
 			notification.show();
-			setTimeout(function () {location.reload();}, 3000);
+
+			if ('success' == data.status){
+
+				// Закрываем окно
+				$('#modal-edit-product').foundation('reveal', 'close');
+
+				// Обновляем страницу
+				// TODO Добаботать обновление данных без перезагрузки
+				setTimeout(function () {location.reload();}, 3000);
+			}
 		}
 	}, "json");
-	$('#item-'+$('#edit-item-id').val()).text($('#edit-item-name').val());
-	$('#EditItemModal').foundation('reveal', 'close');
+
 	return false;
 });
 
 
-$("body").delegate("button[data-do*='edit-item-cancel']", "click", function(){
-	$('#EditItemModal').foundation('reveal', 'close');
+// Отмена редактирования продукта
+$("body").delegate("[data-do*='edit-product-cancel']", "click", function(){
+
+	// Заполняем значение полей
+	$('#edit-product-id').val('0');
+	$('#edit-product-name').val('')
+	$('#edit-product-article').val('')
+	$('#edit-product-vendor').val('0')
+	$('#edit-product-category').val('0')
+	$('#edit-product-description').val('')
+	$('#edit-product-double').val('')
+	$('#edit-product-state').prop('checked', false)
+
+	// Закрываем окно
+	$('#modal-edit-product').foundation('reveal', 'close');
+
 	return false;
 });
 
 
-$("body").delegate("button[data-do*='trash-item']", "click", function(){
-	$.post("/catalog/ajax/trash-category-synonym/", {
-		id: $(this).data('id'),
+{% endif %}
+
+{% if perms.catalog.delete_product %}
+
+
+// Открытие модального окна удаления продукта
+$("body").delegate("[data-do*='open-product-trash']", "click", function(){
+
+	// Заполняем значение полей
+	$('#trash-product-id').val($(this).data('id'));
+
+	// Открываем окно
+	$('#modal-trash-product').foundation('reveal', 'open');
+
+	return false;
+});
+
+
+// Удаление продукта
+$("body").delegate("[data-do*='trash-product']", "click", function(){
+
+	// Отправляем запрос
+	$.post("/catalog/ajax/trash-product/", {
+		product_id:          $('#trash-product-id').val(),
 		csrfmiddlewaretoken: '{{ csrf_token }}'
 	},
 	function(data) {
 		if (null != data.status) {
+
+			// Показываем сообщение
 			var notification = new NotificationFx({
 				wrapper : document.body,
 				message : '<p>' + data.message + '</p>',
@@ -89,9 +156,16 @@ $("body").delegate("button[data-do*='trash-item']", "click", function(){
 				onOpen : function() { return false; }
 			});
 			notification.show();
+
+			// Закрываем окно
+			$('#modal-trash-product').foundation('reveal', 'close');
+
+			// Обновляем страницу
 			setTimeout(function () {location.reload();}, 3000);
 		}
 	}, "json");
+
 	return false;
 });
+
 {% endif %}

@@ -1,18 +1,20 @@
-<div id="FilterItemsModal" class="reveal-modal large" data-reveal>
+<div id="modal-filter-products" class="reveal-modal large" data-reveal>
 
 	<dl class="tabs" data-tab>
-		<dd id="CategoryPanelDD" class="active"><a href="#CategoryPanel"><i class="fa fa-folder-open-o"></i> Категория</a></dd>
-		<dd id="VendorPanelDD"><a href="#VendorPanel"><i class="fa fa-building"></i> Производитель</a></dd>
-		<dd id="SearchPanelDD"><a href="#SearchPanel"><i class="fa fa-search"></i> Дополнительно</a></dd>
+		<dd id="dd-panel-catagory" class="active"><a href="#panel-category"><i class="fa fa-folder-open-o"></i> Категория</a></dd>
+		<dd id="dd-panel-vendor"><a href="#panel-vendor"><i class="fa fa-building"></i> Производитель</a></dd>
+		<dd id="dd-panel-search"><a href="#panel-search"><i class="fa fa-search"></i> Дополнительно</a></dd>
 	</dl>
+
 	<div class="tabs-content">
-		<div class="content active" id="CategoryPanel">
-			<p><span>Категория: </span><span id="filter-items-selected-category" data-id="{% if category != None %}{{ category.id }}{% endif %}">{% if category != None %}{{ category.name }}{% else %}Все категории{% endif %}</span>.</p>
+
+		<div class="content active" id="panel-category">
+			<p><span>Категория: </span><span id="filter-products-selected-category" data-id="{% if category != None %}{{ category.id }}{% endif %}">{% if category != None %}{{ category.name }}{% else %}Все категории{% endif %}</span>.</p>
 			<ul class="inline-list">
 				<li>
 					<div class="switch tiny">
-						<input id="filter-items-selected-childs" type="checkbox"{% if childs != 'n' %} checked{% endif %}>
-						<label for="filter-items-selected-childs"></label>
+						<input id="filter-products-selected-childs" type="checkbox"{% if childs != 'n' %} checked{% endif %}>
+						<label for="filter-products-selected-childs"></label>
 					</div>
 				</li>
 				<li>
@@ -21,50 +23,50 @@
 			</ul>
 			{% autoescape off %}{{ categories_ul }}{% endautoescape %}
 		</div>
-		<div class="content" id="VendorPanel">
 
-			<!-- Фильтр производителей -->
+		<div class="content" id="panel-vendor">
 			<fieldset>
 				<legend>Производитель</legend>
 
 				<div class="row">
 					<div class="large-12 columns">
-						<p><b><span>Текущий: </span><span id="filter-items-selected-vendor" data-alias="{% if vendor != None %}{{ vendor.alias }}{% endif %}">{% if vendor != None %}{{ vendor.name }}{% else %}Все производители{% endif %}</span>.</b></p>
+						<p><b><span>Текущий: </span><span id="filter-products-selected-vendor" data-alias="{% if vendor != None %}{{ vendor.alias }}{% endif %}">{% if vendor != None %}{{ vendor.name }}{% else %}Все производители{% endif %}</span>.</b></p>
 					</div>
 				</div>
 
 				<div class="row">
 					<div class="large-12 columns">
 						<label>Фильтр списка
-							<input id="filter-items-filter-vendors" data-do="filter-items-filter-vendors" type="text" placeholder="Fuj_">
+							<input id="filter-products-filter-vendors" data-do="filter-products-filter-vendors" type="text" placeholder="Fuj_">
 						</label>
 					</div>
 				</div>
 
 				<div class="row">
 					<div class="large-12 columns">
-						<a data-do="filter-items-select-vendor" data-alias="">Все производители</a>
+						<a data-do="filter-products-select-vendor" data-alias="">Все производители</a>
 					</div>
 				</div>
 				<hr/>
 				<div class="row">
 					{% for vendor in vendors %}
 					<div class="large-3 medium-6 small-12 columns" data-is="vendor-selector">
-					<a href="/catalog/products/{{ vendor.alias }}/" data-do="filter-items-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
+					<a href="/catalog/products/{{ vendor.alias }}/" data-do="filter-products-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
 					</div>
 					{% endfor %}
 				</div>
-
 			</fieldset>
 		</div>
-		<div class="content" id="SearchPanel">
+
+		<div class="content" id="panel-search">
 			<label>Поисковый запрос
-				<input id="filter-items-search-input" type="text" placeholder="Артикул, наименование или их часть..." value="{% if search %}{{ search }}{% endif %}">
+				<input id="filter-products-search-input" type="text" placeholder="Артикул, наименование или их часть..." value="{% if search %}{{ search }}{% endif %}">
 			</label>
 		</div>
+
 	</div>
 
-	<button data-do="filter-items-run">Применить</button>
-	<button data-do="filter-items-cancel" class="secondary">Отмена</button>
+	<button data-do="filter-products-apply">Применить</button>
+	<button data-do="filter-products-cancel" class="secondary">Отмена</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>

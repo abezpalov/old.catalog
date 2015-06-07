@@ -27,14 +27,14 @@ $("body").delegate("[data-do*='open-edit-distributor']", "click", function(){
 
 				// Показываем сообщение с ошибкой
 				var notification = new NotificationFx({
-					wrapper : document.body,
-					message : '<p>' + data.message + '</p>',
-					layout : 'growl',
-					effect : 'genie',
-					type : data.status,
-					ttl : 3000,
-					onClose : function() { return false; },
-					onOpen : function() { return false; }
+					wrapper: document.body,
+					message: '<p>' + data.message + '</p>',
+					layout:  'growl',
+					effect:  'genie',
+					type:    data.status,
+					ttl:     3000,
+					onClose: function() { return false; },
+					onOpen:  function() { return false; }
 				});
 				notification.show();
 			}

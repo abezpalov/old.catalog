@@ -7,7 +7,7 @@
 
 {% block content %}
 
-{% if perms.catalog.change_updater %}
+{% if perms.catalog.change_updater or perms.catalog.add_updater %}
 
 <!-- Таблица со списком загрузчиков -->
 <div class="row collapse">
@@ -36,9 +36,6 @@
 	</table>
 </div>
 
-{% include "catalog/modal/edit-updater.html" %}
-{% include "catalog/modal/edit-distributor.html" %}
-
 {% else %}
 
 <div class="row collapse">
@@ -49,17 +46,15 @@
 
 {% endif %}
 
+{% include "catalog/modal/edit-updater.html" %}
+{% include "catalog/modal/edit-distributor.html" %}
+
 {% endblock %}
 
 {% block js-content %}
 <script>
-
 {% include "catalog/js/edit-updater.js" %}
-
 {% include "catalog/js/edit-distributor.js" %}
-
 {% include "catalog/js/search-on-stocks.js" %}
-
 </script>
-
 {% endblock %}

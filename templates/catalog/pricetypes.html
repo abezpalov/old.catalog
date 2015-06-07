@@ -7,7 +7,7 @@
 
 {% block content %}
 
-{% if perms.catalog.change_pricetype %}
+{% if perms.catalog.change_pricetype or perms.catalog.add_pricetype %}
 
 <!-- Таблица со списком типов цен -->
 <div class="row collapse">
@@ -34,8 +34,6 @@
 	</table>
 </div>
 
-{% include "catalog/modal/edit-price-type.html" %}
-
 {% else %}
 
 <div class="row collapse">
@@ -46,16 +44,12 @@
 
 {% endif %}
 
+{% include "catalog/modal/edit-price-type.html" %}
 {% endblock %}
 
 {% block js-content %}
-
 <script>
-
 {% include "catalog/js/edit-price-type.js" %}
-
 {% include "catalog/js/search-on-stocks.js" %}
-
 </script>
-
 {% endblock %}

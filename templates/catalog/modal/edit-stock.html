@@ -1,3 +1,4 @@
+{% if perms.catalog.change_stock or perms.catalog.add_stock %}
 <div id="modal-edit-stock" class="reveal-modal large" data-reveal>
 
 	<input id="edit-stock-id" type="hidden" value="0">
@@ -29,3 +30,4 @@
 	<button data-do="edit-stock-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
+{% endif %}

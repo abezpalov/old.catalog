@@ -1,41 +1,55 @@
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<h2>Редактировать продукт</h2>
+{% if perms.catalog.change_product or perms.catalog.add_product %}
+<div id="modal-edit-product" class="reveal-modal large" data-reveal>
+
+	<h2>Редактирование продукта</h2>
+
 	<fieldset>
-		<input id="edit-item-id" type="hidden">
+
+		<input id="edit-product-id" type="hidden" value="0">
+
 		<label>Наименование
-			<input id="edit-item-name" type="text">
+			<input id="edit-product-name" type="text" value="">
 		</label>
+
 		<label>Артикул
-			<input id="edit-item-article" type="text">
+			<input id="edit-product-article" type="text" value="">
 		</label>
+
 		<label>Производитель
-			<select id="edit-item-vendor">
+			<select id="edit-product-vendor">
 				{% for vendor in vendors %}
 				<option value="{{ vendor.id }}">{{ vendor.name }}</option>
 				{% endfor %}
 			</select>
 		</label>
+
 		<label>Категория
-			<select id="edit-item-category">
-				<option value="null" selected> - Не определена - </option>
+			<select id="edit-product-category">
+				<option value="0" selected> - Не определена - </option>
 				{% for category in categories %}
 				<option value="{{ category.id }}">{{ category.name }}</option>
 				{% endfor %}
 			</select>
+
 		<label>Описание
-			<textarea id="edit-item-description" type="text"></textarea>
+			<textarea id="edit-product-description" type="text"></textarea>
 		</label>
+
 		<label>Дубль
-			<input id="edit-item-double" type="text">
+			<input id="edit-product-double" type="text">
 		</label>
+
 		<label>Статус
 			<div class="switch small">
-				<input id="edit-item-state" type="checkbox">
-				<label for="edit-item-state"></label>
+				<input id="edit-product-state" type="checkbox">
+				<label for="edit-product-state"></label>
 			</div>
 		</label>
+
 	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
+
+	<button data-do="edit-product-save">Сохранить</button>
+	<button data-do="edit-product-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
+{% endif %}

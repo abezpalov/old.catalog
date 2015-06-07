@@ -1,38 +1,38 @@
 // Открыть окно фильтра на закладке категорий
-$("body").delegate("[data-do*='open-filter-items-category']", "click", function(){
-	$('#FilterItemsModal').foundation('reveal', 'open');
-	$('#CategoryPanelDD').addClass('active');
-	$('#VendorPanelDD').removeClass('active');
-	$('#SearchPanelDD').removeClass('active');
-	$('#CategoryPanel').addClass('active');
-	$('#VendorPanel').removeClass('active');
-	$('#SearchPanel').removeClass('active');
+$("body").delegate("[data-do*='open-filter-products-category']", "click", function(){
+	$('#modal-filter-products').foundation('reveal', 'open');
+	$('#dd-panel-category').addClass('active');
+	$('#dd-panel-vendor').removeClass('active');
+	$('#dd-panel-search').removeClass('active');
+	$('#panel-category').addClass('active');
+	$('#panel-vendor').removeClass('active');
+	$('#panel-search').removeClass('active');
 	return false;
 });
 
 
 // Открыть окно фильтра на закладке производителей
-$("body").delegate("[data-do*='open-filter-items-vendor']", "click", function(){
-	$('#FilterItemsModal').foundation('reveal', 'open');
-	$('#CategoryPanelDD').removeClass('active');
-	$('#VendorPanelDD').addClass('active');
-	$('#SearchPanelDD').removeClass('active');
-	$('#CategoryPanel').removeClass('active');
-	$('#VendorPanel').addClass('active');
-	$('#SearchPanel').removeClass('active');
+$("body").delegate("[data-do*='open-filter-products-vendor']", "click", function(){
+	$('#modal-filter-products').foundation('reveal', 'open');
+	$('#dd-panel-category').removeClass('active');
+	$('#dd-panel-vendor').addClass('active');
+	$('#dd-panel-search').removeClass('active');
+	$('#panel-category').removeClass('active');
+	$('#panel-vendor').addClass('active');
+	$('#panel-search').removeClass('active');
 	return false;
 });
 
 
 // Открыть окно фильтра на закладке дополнительных параметров поиска
-$("body").delegate("[data-do*='open-filter-items-search']", "click", function(){
-	$('#FilterItemsModal').foundation('reveal', 'open');
-	$('#CategoryPanelDD').removeClass('active');
-	$('#VendorPanelDD').removeClass('active');
-	$('#SearchPanelDD').addClass('active');
-	$('#CategoryPanel').removeClass('active');
-	$('#VendorPanel').removeClass('active');
-	$('#SearchPanel').addClass('active');
+$("body").delegate("[data-do*='open-filter-products-search']", "click", function(){
+	$('#modal-filter-products').foundation('reveal', 'open');
+	$('#dd-panel-category').removeClass('active');
+	$('#dd-panel-vendor').removeClass('active');
+	$('#dd-panel-search').addClass('active');
+	$('#panel-category').removeClass('active');
+	$('#panel-vendor').removeClass('active');
+	$('#panel-search').addClass('active');
 	return false;
 });
 
@@ -57,34 +57,34 @@ $("body").delegate("[data-do*='switch-li-status']", "click", function(){
 
 
 // Выбор категории
-$("body").delegate("[data-do*='filter-items-select-category']", "click", function(){
-	$('#filter-items-selected-category').data('id', $(this).data('id'));
-	$('#filter-items-selected-category').text($(this).text());
+$("body").delegate("[data-do*='filter-products-select-category']", "click", function(){
+	$('#filter-products-selected-category').data('id', $(this).data('id'));
+	$('#filter-products-selected-category').text($(this).text());
 	if ($(this).data('id') == ''){
-		$('#filter-items-category').addClass('secondary');
+		$('#filter-products-category').addClass('secondary');
 	} else {
-		$('#filter-items-category').removeClass('secondary');
+		$('#filter-products-category').removeClass('secondary');
 	}
 	return false;
 });
 
 
 // Выбор производителя
-$("body").delegate("[data-do*='filter-items-select-vendor']", "click", function(){
-	$('#filter-items-selected-vendor').data('alias', $(this).data('alias'));
-	$('#filter-items-selected-vendor').text($(this).text());
+$("body").delegate("[data-do*='filter-products-select-vendor']", "click", function(){
+	$('#filter-products-selected-vendor').data('alias', $(this).data('alias'));
+	$('#filter-products-selected-vendor').text($(this).text());
 	if ($(this).data('alias') == ''){
-		$('#filter-items-vendor').addClass('secondary');
+		$('#filter-products-vendor').addClass('secondary');
 	} else {
-		$('#filter-items-vendor').removeClass('secondary');
+		$('#filter-products-vendor').removeClass('secondary');
 	}
 	return false;
 });
 
 
 // Фильтр списка производителей
-$("body").delegate("[data-do*='filter-items-filter-vendors']", "keypress", function(e){
-	var filter_text = $.trim($('#filter-items-filter-vendors').val().toLowerCase());
+$("body").delegate("[data-do*='filter-products-filter-vendors']", "keypress", function(e){
+	var filter_text = $.trim($('#filter-products-filter-vendors').val().toLowerCase());
 	var key = e.which;
 	if(key == 13) {
 		// Скрываем всех, кто не соответствует запросу
@@ -105,23 +105,23 @@ $("body").delegate("[data-do*='filter-items-filter-vendors']", "keypress", funct
 
 
 // Введена строка поиска
-$("body").delegate("#filter-items-search-input", "change", function(){
-	if ($('#filter-items-search-input').val() == ''){
-		$('#filter-items-search').addClass('secondary');
+$("body").delegate("#filter-products-search-input", "change", function(){
+	if ($('#filter-products-search-input').val() == ''){
+		$('#filter-products-search').addClass('secondary');
 	} else {
-		$('#filter-items-search').removeClass('secondary');
+		$('#filter-products-search').removeClass('secondary');
 	}
 });
 
 
 // Применение параметров фильтра
-$("body").delegate("[data-do*='filter-items-run']", "click", function(){
+$("body").delegate("[data-do*='filter-products-apply']", "click", function(){
 
 	// Инициализируем переменные
-	ct = $('#filter-items-selected-category').data('id');
-	ch = $('#filter-items-selected-childs').prop('checked');
-	vn = $('#filter-items-selected-vendor').data('alias');
-	sr = $.trim($('#filter-items-search-input').val());
+	ct = $('#filter-products-selected-category').data('id');
+	ch = $('#filter-products-selected-childs').prop('checked');
+	vn = $('#filter-products-selected-vendor').data('alias');
+	sr = $.trim($('#filter-products-search-input').val());
 
 	// Формируем URL
 	url = '/catalog/products/'
@@ -150,39 +150,39 @@ $("body").delegate("[data-do*='filter-items-run']", "click", function(){
 	if (ct == '' && vn == '' && sr == '') {
 		alert ('Определите хотя бы одно условие выборки.');
 	} else {
-		$('#FilterItemsModal').foundation('reveal', 'close');
+		$('#modal-filter-products').foundation('reveal', 'close');
 		location.href = url;
 	}
 });
 
 
 // Отмена применения параметров фильтра
-$("body").delegate("[data-do*='filter-items-cancel']", "click", function(){
-	$('#FilterItemsModal').foundation('reveal', 'close');
+$("body").delegate("[data-do*='filter-products-cancel']", "click", function(){
+	$('#modal-filter-products').foundation('reveal', 'close');
 	return false;
 });
 
 
 // Синхронизация полей поиска (только сверху вниз)
 $("body").delegate('#top-search-input', "change", function(){
-	$('#filter-items-search-input').val($('#top-search-input').val())
-	if ($('#filter-items-search-input').val() == ''){
-		$('#filter-items-search').addClass('secondary');
+	$('#filter-products-search-input').val($('#top-search-input').val())
+	if ($('#filter-products-search-input').val() == ''){
+		$('#filter-products-search').addClass('secondary');
 	} else {
-		$('#filter-items-search').removeClass('secondary');
+		$('#filter-products-search').removeClass('secondary');
 	}
 });
 
 
 // Просмотр партий
-$("body").delegate("a[data-do*='view-parties']", "click", function(){
+$("body").delegate("[data-do*='open-view-parties']", "click", function(){
 
 	// Очищаем содержимое
-	$('#ViewPartiesModalContent').html('')
+	$('#modal-view-parties-content').html('')
 
 	// Запрашиваем партии на сервере
 	$.post("/catalog/ajax/get-parties/", {
-		id: $(this).data('id'),
+		product_id:          $(this).data('id'),
 		csrfmiddlewaretoken: '{{ csrf_token }}'
 	},
 	function(data) {

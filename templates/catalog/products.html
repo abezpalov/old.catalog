@@ -10,9 +10,9 @@
 <!-- Панель вызова фильтра вывода -->
 <div class="row collapse">
 	<ul class="button-group even-3">
-		<li><button id="filter-items-category" data-do="open-filter-items-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
-		<li><button id="filter-items-vendor" data-do="open-filter-items-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
-		<li><button id="filter-items-search" data-do="open-filter-items-search"{% if not search %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительно</button></li>
+		<li><button id="filter-products-category" data-do="open-filter-products-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
+		<li><button id="filter-products-vendor" data-do="open-filter-products-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
+		<li><button id="filter-products-search" data-do="open-filter-products-search"{% if not search %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительно</button></li>
 	</ul>
 </div>
 
@@ -63,30 +63,14 @@
 </div>
 
 {% include "catalog/modal/filter-products.html" %}
-
-{% if perms.catalog.change_product %}
-
 {% include "catalog/modal/edit-product.html" %}
-
-{% endif %}
-
-<!-- Модальное окно просмотра партий  -->
-<div id="ViewPartiesModal" class="reveal-modal" data-reveal>
-	<h2>Партии продукта</h2>
-	<div id="ViewPartiesModalContent"></div>
-	<a class="close-reveal-modal">&#215;</a>
-</div>
+{% include "catalog/modal/view-parties.html" %}
 {% endblock %}
 
 {% block js-content %}
-
 <script>
-
-{% include "catalog/js/products.js" %}
-
+{% include "catalog/js/filter-products.js" %}
 {% include "catalog/js/edit-product.js" %}
-
 {% include "catalog/js/search-on-stocks.js" %}
-
 </script>
 {% endblock %}

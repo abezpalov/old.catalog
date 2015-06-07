@@ -7,7 +7,7 @@
 
 {% block content %}
 
-{% if perms.catalog.change_stock %}
+{% if perms.catalog.change_stock or perms.catalog.add_stock %}
 
 <!-- Таблица со списком складов -->
 <div class="row collapse">
@@ -40,9 +40,6 @@
 	</table>
 </div>
 
-{% include "catalog/modal/edit-stock.html" %}
-{% include "catalog/modal/edit-distributor.html" %}
-
 {% else %}
 
 <div class="row collapse">
@@ -53,17 +50,15 @@
 
 {% endif %}
 
+{% include "catalog/modal/edit-stock.html" %}
+{% include "catalog/modal/edit-distributor.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-
 {% include "catalog/js/edit-stock.js" %}
-
 {% include "catalog/js/edit-distributor.js" %}
-
 {% include "catalog/js/search-on-stocks.js" %}
-
 </script>
 
 {% endblock %}
