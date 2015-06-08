@@ -216,7 +216,7 @@ $("body").delegate("[data-do*='open-view-parties']", "click", function(){
 				} else {
 					html_data = head + '<div class="panel">Товар отсутствует.</div>';
 				}
-				$('#ViewPartiesModalContent').html(html_data);
+				$('#modal-view-parties-content').html(html_data);
 			} else {
 				var notification = new NotificationFx({
 					wrapper: document.body,
