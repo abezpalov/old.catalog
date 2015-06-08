@@ -695,7 +695,6 @@ class VendorSynonymManager(models.Manager):
 			vendorSynonym.save()
 		return vendorSynonym
 
-
 # Vendor Synonym
 class VendorSynonym(models.Model):
 	name = models.CharField(max_length=1024)
