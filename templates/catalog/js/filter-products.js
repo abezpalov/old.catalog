@@ -234,6 +234,6 @@ $("body").delegate("[data-do*='open-view-parties']", "click", function(){
 	}, "json");
 
 	// Открываем модальное окно
-	$('#ViewPartiesModal').foundation('reveal', 'open');
+	$('#modal-view-parties').foundation('reveal', 'open');
 	return false;
 });
