@@ -585,19 +585,19 @@ def ajaxSwitchStockState(request):
 def categories(request):
 	"Представление: список категорий."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import Category
 
-	# Получаем дерево категорий
-	categories = []
-	categories = getCategoryTree(categories)
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.add_category') or request.user.has_perm('catalog.change_category'):
 
-	# Корректируем имена с учетом вложеннот
-	for category in categories:
-		category.name = '— ' * category.level + category.name
+		# Получаем дерево категорий
+		categories = []
+		categories = getCategoryTree(categories)
+
+		# Корректируем имена с учетом вложеннот
+		for category in categories:
+			category.name = '— ' * category.level + category.name
 
 
 	return render(request, 'catalog/categories.html', locals())
@@ -605,9 +605,6 @@ def categories(request):
 
 def getCategoryTree(tree, parent=None):
 	"Функция: дерево категорий (используется рекурсия)."
-
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from catalog.models import Category
@@ -626,9 +623,6 @@ def getCategoryTree(tree, parent=None):
 
 def getCategoryHTMLTree(root, parent=None, first=None):
 	"Функция: дерево категорий (используется рекурсия)."
-
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from lxml import etree
@@ -694,71 +688,52 @@ def category(request, category_id):
 	return render(request, 'catalog/category.html', context)
 
 
-def ajaxAddCategory(request):
-	"AJAX-представление: Add Category."
+def ajaxGetCategory(request):
+	"AJAX-представление: Get Category."
 
 	# Импортируем
-	from catalog.models import Category
-	from django.db.models import Max
-	from datetime import datetime
 	import json
+	from catalog.models import Category
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_category'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
-	# Проверяем на пустые значения
-	if (request.POST.get('name').strip() == '') or (request.POST.get('parent').strip() == ''):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
+	# Получаем объект
+	try:
+		c = Category.objects.get(id = request.POST.get('category_id'))
 
-		name = request.POST.get('name').strip()
-
-		alias = name.lower()
-		alias = alias.replace(' ', '-')
-
-		if (request.POST.get('parent').strip() == 'null'):
-			parent = None
-			level = 0
+		category           = {}
+		category['id']     = c.id
+		category['name']   = c.name
+		category['alias']  = c.alias
+		category['parent'] = {}
+		if c.parent:
+			category['parent']['id']   = c.parent.id
+			category['parent']['name'] = c.parent.name
 		else:
-			try:
-				parent = Category.objects.get(id=request.POST.get('parent').strip())
-				level = parent.level + 1
-			except Category.DoesNotExist: # Указанная родительская категория не существует
-				return HttpResponse(status=406)
+			category['parent']['id']   = None
+			category['parent']['name'] = None
+		category['description'] = c.description
+		category['state']       = c.state
 
-		category = Category(name=name, alias=alias, parent=parent, level=level, order=-1, path='', created=datetime.now(), modified=datetime.now())
-		category.save()
+		result = {
+			'status':   'success',
+			'message':  'Данные загрузчика получены.',
+			'category': category}
 
-		if (parent == None):
-			category.path = '/' + str(category.id) + '/'
-		else:
-			category.path = parent.path + str(category.id) + '/'
+	except Category.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: категория отсутствует в базе.'}
 
-		category.order = Category.objects.filter(parent=category.parent).aggregate(Max('order'))['order__max'] + 1
-
-		category.save()
-
-		if (parent == None):
-			parentId = 'none'
-		else:
-			parentId = parent.id
-
-		result = {'status': 'success', 'message': 'Категория ' + name + ' добавлена.', 'categoryId': category.id, 'categoryName': category.name, 'categoryAlias': category.alias, 'parentId': parentId}
-
-	# Получаем дерево категорий
-	categories = []
-	categories = getCategoryTree(categories)
-
-	# Проводим общую нумерацию категорий
-	for order, category in enumerate(categories):
-		category.order = order
-		category.save()
-
-	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
@@ -766,58 +741,128 @@ def ajaxSaveCategory(request):
 	"AJAX-представление: Save Category."
 
 	# Импортируем
-	from catalog.models import Category
-	from datetime import datetime
 	import json
+	import unidecode
+	from django.db.models import Max
+	from django.utils import timezone
+	from catalog.models import Category
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
+		return HttpResponse(status = 400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	try:
+		category = Category.objects.get(id = request.POST.get('category_id'))
+		if not request.user.has_perm('catalog.change_category'):
+			return HttpResponse(status = 403)
+		else:
+			# Получаем дерево дочерних категорий
+			childs = []
+			childs = getCategoryTree(childs, category)
+	except Category.DoesNotExist:
+		category = Category()
+		if not request.user.has_perm('catalog.add_category'):
+			return HttpResponse(status = 403)
+		else:
+			childs = []
+			category.created = timezone.now()
 
-	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') :
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	# name
+	if not request.POST.get('category_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование категории.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	category.name   = request.POST.get('category_name').strip()[:100]
+
+	# alias
+	if request.POST.get('category_alias').strip():
+		category.alias = unidecode.unidecode(request.POST.get('category_alias')).strip()[:100]
 	else:
-		try:
-			category = Category.objects.get(id=request.POST.get('id'))
-			category.name = request.POST.get('name')
-			category.alias = request.POST.get('alias')
-			if request.POST.get('description'): category.description = request.POST.get('description')
-			category.save()
-			result = {'status': 'success', 'message': 'Изменения категории ' + category.name + ' сохранены.'}
-		except Category.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+		category.alias = unidecode.unidecode(request.POST.get('category_name')).strip()[:100]
+
+	# description
+
+
+	# parent, level
+	try:
+		category.parent = Category.objects.get(id = request.POST.get('category_parent_id'))
+		category.level = category.parent.level + 1
+		if category.parent in childs:
+			result = {
+				'status': 'alert',
+				'message': 'Ошибка: попытка переноса категории в саму себя.'}
+			return HttpResponse(json.dumps(result), 'application/javascript')
+	except Category.DoesNotExist:
+		category.parent = None
+		category.level = 0
+
+	# order
+	category.order = Category.objects.filter(parent=category.parent).aggregate(Max('order'))['order__max']
+	if category.order is None:
+		category.order = 0
+	else:
+		category.order += 1
+
+
+	# path
+	if category.parent:
+		category.path = "{}{}/".format(category.parent.path, category.id)
+	else:
+		category.path = "/{}/".format(category.id)
+
+	# state
+	if request.POST.get('category_state') == 'true':
+		category.state = True
+	else:
+		category.state = False
+
+	# modified
+	category.modified = timezone.now()
+
+	# Сохраняем
+	category.save()
 
 	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Категория {} сохранена.'.format(category.name)}
+
+	# Проводим общую нумерацию категорий
+	categories = []
+	categories = getCategoryTree(categories)
+	for order, category in enumerate(categories):
+		category.order = order
+		category.save()
+
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
-def ajaxTrashCategory(request):
-	"AJAX-представление: Trash Category."
+def ajaxDeleteCategory(request):
+	"AJAX-представление: Delete Category."
 
 	# Импортируем
-	from catalog.models import Category
-	from datetime import datetime
 	import json
+	from catalog.models import Category
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.delete_category'):
+		return HttpResponse(status = 403)
 
-	if not request.POST.get('id'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			category = Category.objects.get(id=request.POST.get('id'))
-			category.delete()
-			result = {'status': 'success', 'message': 'Категория удалена.'}
-		except Category.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+	# Получаем категорию
+	try:
+		category = Category.objects.get(id = request.POST.get('category_id'))
+		category.delete()
+		result = {'status': 'success', 'message': 'Категория удалена.'}
+	except Category.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: категория отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
@@ -827,31 +872,35 @@ def ajaxSwitchCategoryState(request):
 	"AJAX-представление: Switch Category State."
 
 	# Импортируем
-	from catalog.models import Category
-	from datetime import datetime
 	import json
+	from datetime import datetime
+	from catalog.models import Category
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_category'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
 	# Проверяем корректность вводных данных
-	if not request.POST.get('id') or not request.POST.get('state'):
+	if not request.POST.get('category_id') or not request.POST.get('category_state'):
 		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
 	else:
 		try:
-			category = Category.objects.get(id=request.POST.get('id'))
-			if request.POST.get('state') == 'true':
-				category.state = True;
+			category = Category.objects.get(id=request.POST.get('category_id'))
+			if request.POST.get('category_state') == 'true':
+				category.state = True
 			else:
-				category.state = False;
-			category.save();
-			result = {'status': 'success', 'message': 'Статус категории ' + category.name + ' изменен на ' + str(category.state) + '.'}
+				category.state = False
+			category.save()
+			result = {'status': 'success', 'message': 'Статус категории {} изменен на {}.'.format(category.name, category.state)}
 		except Category.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+			result = {'status': 'alert', 'message': 'Категория с идентификатором {} отсутствует в базе.'.format(request.POST.get('category_id'))}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

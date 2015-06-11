@@ -1,0 +1,55 @@
+{% if perms.catalog.change_category or perms.catalog.add_category %}
+<div id="modal-edit-category" class="reveal-modal large" data-reveal>
+
+	<h2 id="modal-edit-category-header">&ndsp;</h2>
+
+	<input id="edit-category-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-category-name" type="text" value="">
+	</label>
+
+	<label>Псевдоним (служебное поле)
+		<input id="edit-category-alias" type="text" value="">
+	</label>
+
+	<label>Родительская категория
+		<select id="edit-category-parent">
+			<option value="0" selected>Корневая категория</option>
+			{% for parent in categories %}
+			<option value="{{ parent.id }}">{{ parent.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
+	<label>Описание
+		<textarea id="edit-category-description"></textarea>
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-category-state" type="checkbox">
+			<label for="edit-category-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-category-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-category-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}
+
+{% if perms.catalog.delete_category %}
+<div id="modal-delete-category" class="reveal-modal" data-reveal>
+
+	<h2>Удалить категорию?</h2>
+
+	<input id="delete-category-id" type="hidden" value="0">
+
+	<p id="delete-category-name"></p>
+
+	<button data-do="delete-category-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-category-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}

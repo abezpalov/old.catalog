@@ -48,11 +48,10 @@ urlpatterns = patterns('',
 	# ex: /catalog/category/98/
 	url(r'^category/(?P<category_id>[0-9]+)/$', views.category, name='category'),
 	# AJAX
-	# TODO REFACTORY
-	url(r'^ajax/add-category/$', views.ajaxAddCategory, name='ajaxAddCategory'),
+	url(r'^ajax/get-category/$', views.ajaxGetCategory, name='ajaxGetCategory'),
 	url(r'^ajax/save-category/$', views.ajaxSaveCategory, name='ajaxSaveCategory'),
 	url(r'^ajax/switch-category-state/$', views.ajaxSwitchCategoryState, name='ajaxSwitchCategoryState'),
-	url(r'^ajax/trash-category/$', views.ajaxTrashCategory, name='ajaxTrashCategory'),
+	url(r'^ajax/delete-category/$', views.ajaxDeleteCategory, name='ajaxDeleteCategory'),
 
 
 	# Vendor

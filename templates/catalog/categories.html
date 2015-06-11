@@ -2,39 +2,21 @@
 {% block title %}Anodos: Категории{% endblock %}
 
 {% block search %}
-<li class="divider"></li>
-<li class="has-form">
-	<div class="row collapse">
-		<div class="large-10 small-9 columns">
-			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="">
-		</div>
-		<div class="large-2 small-3 columns">
-			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
-		</div>
-	</div>
-</li>
+{% include "catalog/search-on-stocks.html" %}
 {% endblock %}
 
 {% block content %}
-{% if perms.catalog.change_product %}
 
-<!-- Форма добавления новой категории -->
+{% if perms.catalog.add_category %}
+
+<!-- Панель кнопок -->
 <div class="row collapse">
-	<div class="small-5 columns">
-		<input id="new-item-name" type="text" placeholder="Имя новой категории">
-	</div>
-	<div class="small-5 columns">
-		<select id="new-item-parent">
-			<option value="null" selected>Корневая категория</option>
-			{% for parent in categories %}
-			<option value="{{ parent.id }}">{{ parent.name }}</option>
-			{% endfor %}
-		</select>
-	</div>
-	<div class="small-2 columns">
-		<button data-do="add-item" class="postfix"><i class="fa fa-plus"><span class="hide-for-small-only">&nbsp;Добавить</span></i></button>
-	</div>
+	<button data-do="open-new-category" class="secondary expand"><i class="fa fa-pencil"></i> Добавить категорию</button>
 </div>
+
+{% endif %}
+
+{% if perms.catalog.change_category or perms.catalog.add_category %}
 
 <!-- Таблица со списком категорий -->
 <div class="row collapse">
@@ -42,68 +24,44 @@
 		<tr>
 			<th class="text-center">#</th>
 			<th>Наименование</th>
-			<th>Статус</th>
-			<th class="hide-for-small-only">Управление</th>
+			<th colspan="2">Статус</th>
 		</tr>
-		{% for item in categories %}
-		<tr>
+		{% for category in categories %}
+		<tr data-category="{{ category.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-alias="{{ item.alias }}">{{ item.name }}</a></td>
+			<td><a data-do="open-edit-category" data-id="{{ category.id }}" data-category-name="{{ category.id }}">{{ category.name }}</a></td>
 			<td>
 				<div class="switch small">
-					<input id="item-state-{{ item.id }}" data-id="{{ item.id }}" data-do="switch-item-state" type="checkbox"{% if item.state %} checked{% endif %}>
-					<label for="item-state-{{ item.id }}"></label>
+					<input id="category-{{ category.id }}-state" data-do="switch-category-state" data-id="{{ category.id }}" data-category-state="{{ category.id }}" type="checkbox"{% if category.state %} checked{% endif %}>
+					<label for="category-{{ category.id }}-state"></label>
 				</div>
 			</td>
-			<td class="hide-for-small-only">
-				<div class="row">
-					<div class="small-10 columns">
-						<select>
-							<option value="null">Корневая категория</option>
-							{% for parent in categories %}
-							<option value="{{ parent.id }}"{% if item.parent.id == parent.id %} selected{% endif %}>{{ parent.name }}</option>
-							{% endfor %}
-						</select>
-					</div>
-					<div class="small-2 columns">
-						<button class="tiny alert" data-do="trash-item" data-id="{{ item.id }}">
-							<i class="fa fa-trash"></i>
-						</button>
-					</div>
-				</div>
+			<td>
+				<button class="tiny secondary" data-do="open-delete-category" data-id="{{ category.id }}">
+					<i class="fa fa-trash"></i>
+				</button>
 			</td>
 		</tr>
 		{% endfor %}
 	</table>
 </div>
 
-<!-- Модальное окно редактирования элемента -->
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<fieldset>
-		<legend>Редактировать категорию</legend>
-		<input id="edit-item-id" type="hidden">
-		<label>Наименование
-			<input id="edit-item-name" type="text">
-		</label>
-		<label>Псевдоним
-			<input id="edit-item-alias" type="text">
-		</label>
-	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
-</div>
 {% else %}
+
 <div class="row collapse">
 	<div class="small-12 columns">
 		<p class="panel">Недостаточно прав для данной функциональности.</p>
 	</div>
 </div>
+
 {% endif %}
+
+{% include "catalog/modal/edit-category.html" %}
 {% endblock %}
+
 {% block js-content %}
-{% if perms.catalog.change_product %}
 <script>
-{% include "catalog/js/categories.js" %}
+{% include "catalog/js/edit-category.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
 </script>
-{% endif %}
 {% endblock %}

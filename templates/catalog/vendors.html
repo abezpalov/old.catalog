@@ -7,12 +7,16 @@
 
 {% block content %}
 
-{% if perms.catalog.change_vendor or perms.catalog.add_vendor %}
+{% if perms.catalog.add_vendor %}
 
 <!-- Панель кнопок -->
 <div class="row collapse">
 	<button data-do="open-new-vendor" class="secondary expand"><i class="fa fa-pencil"></i> Добавить производителя</button>
 </div>
+
+{% endif %}
+
+{% if perms.catalog.change_vendor or perms.catalog.add_vendor %}
 
 <!-- Таблица со списком производителей -->
 <div class="row collapse">
@@ -23,7 +27,7 @@
 			<th>Статус</th>
 		</tr>
 		{% for vendor in vendors %}
-		<tr>
+		<tr data-vendor="{{ vendor.id }}">
 			<td>{{ forloop.counter }}</td>
 			<td><a data-do="open-edit-vendor" data-id="{{ vendor.id }}" data-vendor-name="{{ vendor.id }}">{{ vendor.name }}</a></td>
 			<td>
