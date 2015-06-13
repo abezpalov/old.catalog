@@ -1,38 +1,38 @@
 // Открыть окно фильтра на закладке категорий
 $("body").delegate("[data-do*='open-filter-products-category']", "click", function(){
-	$('#modal-filter-products').foundation('reveal', 'open');
 	$('#dd-panel-category').addClass('active');
 	$('#dd-panel-vendor').removeClass('active');
 	$('#dd-panel-search').removeClass('active');
 	$('#panel-category').addClass('active');
 	$('#panel-vendor').removeClass('active');
 	$('#panel-search').removeClass('active');
+	$('#modal-filter-products').foundation('reveal', 'open');
 	return false;
 });
 
 
 // Открыть окно фильтра на закладке производителей
 $("body").delegate("[data-do*='open-filter-products-vendor']", "click", function(){
-	$('#modal-filter-products').foundation('reveal', 'open');
 	$('#dd-panel-category').removeClass('active');
 	$('#dd-panel-vendor').addClass('active');
 	$('#dd-panel-search').removeClass('active');
 	$('#panel-category').removeClass('active');
 	$('#panel-vendor').addClass('active');
 	$('#panel-search').removeClass('active');
+	$('#modal-filter-products').foundation('reveal', 'open');
 	return false;
 });
 
 
 // Открыть окно фильтра на закладке дополнительных параметров поиска
 $("body").delegate("[data-do*='open-filter-products-search']", "click", function(){
-	$('#modal-filter-products').foundation('reveal', 'open');
 	$('#dd-panel-category').removeClass('active');
 	$('#dd-panel-vendor').removeClass('active');
 	$('#dd-panel-search').addClass('active');
 	$('#panel-category').removeClass('active');
 	$('#panel-vendor').removeClass('active');
 	$('#panel-search').addClass('active');
+	$('#modal-filter-products').foundation('reveal', 'open');
 	return false;
 });
 
