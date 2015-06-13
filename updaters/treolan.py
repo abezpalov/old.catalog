@@ -1,18 +1,6 @@
 import requests
 import lxml.html
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+from catalog.models import *
 
 
 class Runner:
@@ -54,10 +42,10 @@ class Runner:
 		Party.objects.clear(stock = self.transit)
 
 		# Единица измерения
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
+		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
 
 		# Тип цены
-		self.dp = PriceType.objects.take(alias='DP', name='Диллерская цена')
+		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
 
 		# Валюты
 		self.rub = Currency.objects.take(
@@ -72,8 +60,6 @@ class Runner:
 			full_name = 'US Dollar',
 			rate      = 60,
 			quantity  = 1)
-
-		# Удаляем неактуальные партии
 
 		# Используемые ссылки
 		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
@@ -115,7 +101,10 @@ class Runner:
 
 		# Авторизуемся
 		try:
-			payload = {'UserName': self.updater.login, 'Password': self.updater.password, 'RememberMe': 'false'}
+			payload = {
+				'UserName':   self.updater.login,
+				'Password':   self.updater.password,
+				'RememberMe': 'false'}
 			r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:

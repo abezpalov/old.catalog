@@ -1,0 +1,59 @@
+{% extends "main.html" %}
+{% block title %}Anodos: Валюты{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_currency or perms.catalog.change_currency or perms.catalog.delete_currency %}
+
+<!-- Таблица со списком типов цен -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Псевдоним</th>
+			<th>Статус</th>
+			<th>Курс</th>
+			<th>Количество</th>
+		</tr>
+		{% for currency in currencies %}
+		<tr>
+			<td>{{ forloop.counter }}</td>
+			<td><a data-do="open-edit-currency" data-id="{{ currency.id }}" data-currency-full-name="{{ currency.id }}">{{ currency.full_name }}</a></td>
+			<td><a data-do="open-edit-currency" data-id="{{ currency.id }}" data-currency-alias="{{ currency.id }}">{{ currency.alias }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="currency-{{ currency.id }}-state" data-do="switch-currency-state" data-id="{{ currency.id }}" data-currency-state="{{ currency.id }}" type="checkbox"{% if currency.state %} checked{% endif %}>
+					<label for="currency-{{ currency.id }}-state"></label>
+				</div>
+			</td>
+			<td data-currency-rate="{{ currency.id }}" >{{ currency.rate }}</td>
+			<td data-currency-quantity="{{ currency.id }}" >{{ currency.quantity }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/edit-currency.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/edit-currency.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

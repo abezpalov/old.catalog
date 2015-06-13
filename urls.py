@@ -81,7 +81,12 @@ urlpatterns = patterns('',
 
 
 	# Currency
-	# TODO
+	# ex: /catalog/currencies/
+	url(r'^currencies/$', views.currencies, name='currencies'),
+	# AJAX
+	url(r'^ajax/get-currency/$', views.ajaxGetCurrency, name='ajaxGetCurrency'),
+	url(r'^ajax/save-currency/$', views.ajaxSaveCurrency, name='ajaxSaveCurrency'),
+	url(r'^ajax/switch-currency-state/$', views.ajaxSwitchCurrencyState, name='ajaxSwitchCurrencyState'),
 
 
 	# Price

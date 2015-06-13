@@ -76,6 +76,7 @@ class Updater(models.Model):
 	class Meta:
 		ordering = ['name']
 
+
 # Stock manager
 class StockManager(models.Manager):
 
@@ -86,6 +87,7 @@ class StockManager(models.Manager):
 			stock = Stock(alias=alias, name=name, delivery_time_min = delivery_time_min, delivery_time_max = delivery_time_max, distributor=distributor, created=timezone.now(), modified=timezone.now())
 			stock.save()
 		return stock
+
 
 # Stock
 class Stock(models.Model):
@@ -105,6 +107,76 @@ class Stock(models.Model):
 	class Meta:
 		ordering = ['name']
 
+
+# Category manager
+class CategoryManager(models.Manager):
+
+	def getCategoryTree(self, tree, parent=None):
+		"Функция: дерево категорий (используется рекурсия)."
+
+		# Получаем список дочерних категорий
+		categories = self.filter(parent=parent).order_by('order')
+
+		# Проходим по списку категорий с рекурсивным погружением
+		for category in categories:
+			tree.append(category)
+			tree = self.getCategoryTree(tree, category)
+
+		# Возвращаем результат
+		return tree
+
+
+	def getCategoryHTMLTree(self, root, parent=None, first=None):
+		"Функция: дерево категорий (используется рекурсия)."
+
+		# Импортируем
+		from lxml import etree
+
+		# Получаем список дочерних категорий
+		categories = self.filter(parent=parent).filter(state=True).order_by('order')
+
+		# Проходим по списку категорий с рекурсивным погружением
+		if len(categories):
+			ul = etree.SubElement(root, "ul")
+			ul.attrib['class'] = 'no-bullet'
+			if first:
+				li = etree.SubElement(ul, "li")
+				i = etree.SubElement(li, "i")
+				i.text = ''
+				i.attrib['class'] = 'fa fa-circle-thin'
+				a = etree.SubElement(li, "a")
+				a.attrib['data-do'] = 'filter-products-select-category'
+				a.attrib['data-id'] = ''
+				a.attrib['class'] = 'tm-li-category-name'
+				a.text = 'Все категории'
+
+			for category in categories:
+				li = etree.SubElement(ul, "li")
+
+				# Если есть дочерние
+				childs = self.filter(parent=category).filter(state=True).order_by('order')
+				if len(childs):
+					li.attrib['class'] = 'closed'
+					i = etree.SubElement(li, "i")
+					i.attrib['data-do'] = 'switch-li-status'
+					i.attrib['data-state'] = 'closed'
+					i.text = ''
+					i.attrib['class'] = 'fa fa-plus-square-o'
+				else:
+					i = etree.SubElement(li, "i")
+					i.text = ''
+					i.attrib['class'] = 'fa fa-circle-thin'
+				a = etree.SubElement(li, "a")
+				a.attrib['data-do'] = 'filter-products-select-category'
+				a.attrib['data-id'] = str(category.id)
+				a.attrib['class'] = 'tm-li-category-name'
+				a.text = category.name
+				self.getCategoryHTMLTree(li, category)
+
+		# Возвращаем результат
+		return root
+
+
 # Category
 class Category(models.Model):
 	name = models.CharField(max_length=100)
@@ -117,6 +189,7 @@ class Category(models.Model):
 	state = models.BooleanField(default=True)
 	created = models.DateTimeField()
 	modified = models.DateTimeField()
+	objects = CategoryManager()
 
 	def __str__(self):
 		return self.name

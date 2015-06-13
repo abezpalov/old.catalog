@@ -20,7 +20,9 @@ def distributors(request):
 	from catalog.models import Distributor
 
 	# Проверяем права доступа
-	if request.user.has_perm('catalog.change_distributor'):
+	if request.user.has_perm('catalog.add_distributor')\
+	or request.user.has_perm('catalog.change_distributor')\
+	or request.user.has_perm('catalog.delete_distributor'):
 
 		# Получаем список
 		distributors = Distributor.objects.all().order_by('name')
@@ -35,7 +37,9 @@ def distributor(request, alias):
 	from catalog.models import Distributor
 
 	# Проверяем права доступа
-	if request.user.has_perm('catalog.change_distributor'):
+	if request.user.has_perm('catalog.add_distributor')\
+	or request.user.has_perm('catalog.change_distributor')\
+	or request.user.has_perm('catalog.delete_distributor'):
 
 		# Получаем объект
 		distributor = Distributor.objects.get(alias = alias)
@@ -194,7 +198,9 @@ def updaters(request):
 	from catalog.models import Updater
 
 	# Проверяем права доступа
-	if request.user.has_perm('catalog.change_updater'):
+	if request.user.has_perm('catalog.add_updater')\
+	or request.user.has_perm('catalog.change_updater')\
+	or request.user.has_perm('catalog.delete_updater'):
 
 		# Получаем список
 		updaters = Updater.objects.all().order_by('name')
@@ -205,14 +211,16 @@ def updaters(request):
 def updater(request, alias):
 	"Представление: загрузчик."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.add_updater')\
+	or request.user.has_perm('catalog.change_updater')\
+	or request.user.has_perm('catalog.delete_updater'):
 
-	# Импортируем
-	from catalog.models import Updater
+		# Импортируем
+		from catalog.models import Updater
 
-	# Получаем объект
-	updater = Updater.objects.get(alias=alias)
+		# Получаем объект
+		updater = Updater.objects.get(alias=alias)
 
 	return render(request, 'catalog/updater.html', locals())
 
@@ -254,39 +262,6 @@ def ajaxGetUpdater(request):
 			'status': 'alert',
 			'message': 'Ошибка: загрузчик отсутствует в базе.'}
 
-	return HttpResponse(json.dumps(result), 'application/javascript')
-
-
-def ajaxSaveUpdater(request):
-	"AJAX-представление: Save Updater."
-
-	# Импортируем
-	from catalog.models import Updater
-	from datetime import datetime
-	import json
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
-
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
-	if not request.POST.get('id') or not request.POST.get('name') or not request.POST.get('alias') :
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			updater = Updater.objects.get(id=request.POST.get('id'))
-			updater.name = request.POST.get('name')
-			updater.alias = request.POST.get('alias')
-			updater.login = request.POST.get('login')
-			updater.password = request.POST.get('password')
-			updater.save()
-			result = {'status': 'success', 'message': 'Изменения загрузчика ' + updater.name + ' сохранены.'}
-		except Updater.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
-
-	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
@@ -408,7 +383,9 @@ def stocks(request):
 	from catalog.models import Stock
 
 	# Проверяем права доступа
-	if request.user.has_perm('catalog.change_stock'):
+	if request.user.has_perm('catalog.add_stock')\
+	or request.user.has_perm('catalog.change_stock')\
+	or request.user.has_perm('catalog.delete_stock'):
 
 		# Получаем список
 		stocks = Stock.objects.all().order_by('alias')
@@ -423,7 +400,9 @@ def stock(request, alias):
 	from catalog.models import Stock
 
 	# Проверяем права доступа
-	if request.user.has_perm('catalog.change_stock'):
+	if request.user.has_perm('catalog.add_stock')\
+	or request.user.has_perm('catalog.change_stock')\
+	or request.user.has_perm('catalog.delete_stock'):
 
 		# Получаем список
 		stock = Stock.objects.get(alias=alias)
@@ -588,104 +567,27 @@ def categories(request):
 	# Импортируем
 	from catalog.models import Category
 
-	# Проверяем права доступа
-	if request.user.has_perm('catalog.add_category') or request.user.has_perm('catalog.change_category'):
+	# Получаем дерево категорий
+	categories = []
+	categories = Category.objects.getCategoryTree(categories)
 
-		# Получаем дерево категорий
-		categories = []
-		categories = getCategoryTree(categories)
-
-		# Корректируем имена с учетом вложеннот
-		for category in categories:
-			category.name = '— ' * category.level + category.name
-
+	# Корректируем имена с учетом вложеннот
+	for category in categories:
+		category.name = '— ' * category.level + category.name
 
 	return render(request, 'catalog/categories.html', locals())
-
-
-def getCategoryTree(tree, parent=None):
-	"Функция: дерево категорий (используется рекурсия)."
-
-	# Импортируем
-	from catalog.models import Category
-
-	# Получаем список дочерних категорий
-	categories = Category.objects.filter(parent=parent).order_by('order')
-
-	# Проходим по списку категорий с рекурсивным погружением
-	for category in categories:
-		tree.append(category)
-		tree = getCategoryTree(tree, category)
-
-	# Возвращаем результат
-	return tree
-
-
-def getCategoryHTMLTree(root, parent=None, first=None):
-	"Функция: дерево категорий (используется рекурсия)."
-
-	# Импортируем
-	from lxml import etree
-	from catalog.models import Category
-
-	# Получаем список дочерних категорий
-	categories = Category.objects.filter(parent=parent).filter(state=True).order_by('order')
-
-	# Проходим по списку категорий с рекурсивным погружением
-	if len(categories):
-		ul = etree.SubElement(root, "ul")
-		ul.attrib['class'] = 'no-bullet'
-		if first:
-			li = etree.SubElement(ul, "li")
-			i = etree.SubElement(li, "i")
-			i.text = ''
-			i.attrib['class'] = 'fa fa-circle-thin'
-			a = etree.SubElement(li, "a")
-			a.attrib['data-do'] = 'filter-products-select-category'
-			a.attrib['data-id'] = ''
-			a.attrib['class'] = 'tm-li-category-name'
-			a.text = 'Все категории'
-
-		for category in categories:
-			li = etree.SubElement(ul, "li")
-
-			# Если есть дочерние
-			childs = Category.objects.filter(parent=category).filter(state=True).order_by('order')
-			if len(childs):
-				li.attrib['class'] = 'closed'
-				i = etree.SubElement(li, "i")
-				i.attrib['data-do'] = 'switch-li-status'
-				i.attrib['data-state'] = 'closed'
-				i.text = ''
-				i.attrib['class'] = 'fa fa-plus-square-o'
-			else:
-				i = etree.SubElement(li, "i")
-				i.text = ''
-				i.attrib['class'] = 'fa fa-circle-thin'
-			a = etree.SubElement(li, "a")
-			a.attrib['data-do'] = 'filter-products-select-category'
-			a.attrib['data-id'] = str(category.id)
-			a.attrib['class'] = 'tm-li-category-name'
-			a.text = category.name
-			getCategoryHTMLTree(li, category)
-
-	# Возвращаем результат
-	return root
 
 
 def category(request, category_id):
 	"Представление: категория."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import Category
 
-	# Получаем список
-	category = Category.objects.get(id=category_id)
-	context = {'category': category}
-	return render(request, 'catalog/category.html', context)
+	# Получаем объект
+	category = Category.objects.get(id = category_id)
+
+	return render(request, 'catalog/category.html', locals())
 
 
 def ajaxGetCategory(request):
@@ -759,7 +661,7 @@ def ajaxSaveCategory(request):
 		else:
 			# Получаем дерево дочерних категорий
 			childs = []
-			childs = getCategoryTree(childs, category)
+			childs = Category.objects.getCategoryTree(childs, category)
 	except Category.DoesNotExist:
 		category = Category()
 		if not request.user.has_perm('catalog.add_category'):
@@ -783,7 +685,10 @@ def ajaxSaveCategory(request):
 		category.alias = unidecode.unidecode(request.POST.get('category_name')).strip()[:100]
 
 	# description
-
+	if request.POST.get('category_description').strip():
+		category.description = request.POST.get('category_description').strip()
+	else:
+		category.description = ''
 
 	# parent, level
 	try:
@@ -804,7 +709,6 @@ def ajaxSaveCategory(request):
 		category.order = 0
 	else:
 		category.order += 1
-
 
 	# path
 	if category.parent:
@@ -831,7 +735,7 @@ def ajaxSaveCategory(request):
 
 	# Проводим общую нумерацию категорий
 	categories = []
-	categories = getCategoryTree(categories)
+	categories = Category.objects.getCategoryTree(categories)
 	for order, category in enumerate(categories):
 		category.order = order
 		category.save()
@@ -912,9 +816,6 @@ def ajaxSwitchCategoryState(request):
 def vendors(request):
 	"Представление: список производителей."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import Vendor
 
@@ -927,13 +828,10 @@ def vendors(request):
 def vendor(request, alias):
 	"Представление: производитель."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import Vendor
 
-	# Получаем список
+	# Получаем объект
 	vendor = Vendor.objects.get(alias=alias)
 
 	return render(request, 'catalog/vendor.html', locals())
@@ -1092,14 +990,16 @@ def ajaxSwitchVendorState(request):
 def priceTypes(request):
 	"Представление: список типов цен."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import PriceType
 
-	# Получаем список
-	price_types = PriceType.objects.all().order_by('name')
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.add_pricetype')\
+	or request.user.has_perm('catalog.change_pricetype')\
+	or request.user.has_perm('catalog.delete_pricetype'):
+
+		# Получаем список
+		price_types = PriceType.objects.all().order_by('name')
 
 	return render(request, 'catalog/pricetypes.html', locals())
 
@@ -1107,14 +1007,16 @@ def priceTypes(request):
 def priceType(request, alias):
 	"Представление: тип цены."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import PriceType
 
-	# Получаем список
-	price_type = Vendor.objects.get(alias=alias)
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.add_pricetype')\
+	or request.user.has_perm('catalog.change_pricetype')\
+	or request.user.has_perm('catalog.delete_pricetype'):
+
+		# Получаем объект
+		price_type = Vendor.objects.get(alias=alias)
 
 	return render(request, 'catalog/pricetype.html', locals())
 
@@ -1269,7 +1171,201 @@ def ajaxSwitchPriceTypeState(request):
 # Currency
 
 
-# TODO
+def currencies(request):
+	"Представление: список валют."
+
+	# Импортируем
+	from catalog.models import Currency
+
+	# Получаем список
+	currencies = Currency.objects.all().order_by('name')
+
+	return render(request, 'catalog/currencies.html', locals())
+
+
+def currency(request, alias):
+	"Представление: тип цены."
+
+	# Импортируем
+	from catalog.models import Currency
+
+	# Получаем объект
+	currency = Currency.objects.get(alias=alias)
+
+	return render(request, 'catalog/currency.html', locals())
+
+
+def ajaxGetCurrency(request):
+	"AJAX-представление: Get Currency."
+
+	# Импортируем
+	import json
+	from catalog.models import Currency
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_currency')\
+	or not request.user.has_perm('catalog.delete_currency'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Получаем объект
+	try:
+		c = Currency.objects.get(id = request.POST.get('currency_id'))
+
+		currency              = {}
+		currency['id']        = c.id
+		currency['name']      = c.name
+		currency['full_name'] = c.full_name
+		currency['alias']     = c.alias
+		currency['rate']      = str(c.rate)
+		currency['quantity']  = str(c.quantity)
+		currency['state']     = c.state
+
+		result = {
+			'status':   'success',
+			'message':  'Данные валюты получены.',
+			'currency': currency}
+
+	except Currency.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: валюта отсутствует в базе.'}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxSaveCurrency(request):
+	"AJAX-представление: Save Currency."
+
+	# Импортируем
+	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import Currency
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	try:
+		currency = Currency.objects.get(id = request.POST.get('currency_id'))
+		if not request.user.has_perm('catalog.change_currency'):
+			return HttpResponse(status = 403)
+	except Currency.DoesNotExist:
+		currency = Currency()
+		if not request.user.has_perm('catalog.add_currency'):
+			return HttpResponse(status = 403)
+		currency.created = timezone.now()
+
+	# name
+	if not request.POST.get('currency_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	currency.name   = request.POST.get('currency_name').strip()[:100]
+
+	# full name
+	if not request.POST.get('currency_full_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует полное наименование.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	currency.full_name   = request.POST.get('currency_full_name').strip()[:100]
+
+	# alias
+	if request.POST.get('currency_alias').strip():
+		currency.alias = unidecode.unidecode(request.POST.get('currency_alias')).strip()[:100]
+	else:
+		currency.alias = unidecode.unidecode(request.POST.get('currency_full_name')).strip()[:100]
+
+	# rate
+	try:
+		rate = request.POST.get('currency_rate').strip()
+		rate = rate.replace(',', '.')
+		rate = rate.replace(' ', '')
+		currency.rate = float(rate)
+	except:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: недопустимое значение курса валюты.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# quantity
+	try:
+		quantity = request.POST.get('currency_quantity').strip()
+		quantity = quantity.replace(',', '.')
+		quantity = quantity.replace(' ', '')
+		currency.quantity = float(quantity)
+	except:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: недопустимое значение количества валюты.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# state
+	if request.POST.get('currency_state') == 'true':
+		currency.state = True
+	else:
+		currency.state = False
+
+	# modified
+	currency.modified = timezone.now()
+
+	# Сохраняем
+	currency.save()
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Валюта {} сохранена.'.format(currency.full_name)}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxSwitchCurrencyState(request):
+	"AJAX-представление: Switch Currency State."
+
+	# Импортируем
+	import json
+	from datetime import datetime
+	from catalog.models import Currency
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_currency'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('currency_id') or not request.POST.get('currency_state'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			currency = Currency.objects.get(id = request.POST.get('currency_id'))
+			if request.POST.get('currency_state') == 'true':
+				currency.state = True
+			else:
+				currency.state = False
+			currency.save()
+			result = {'status': 'success', 'message': 'Статус валюты {} изменен на {}.'.format(currency.name, currency.state)}
+		except Currency.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Валюта с идентификатором {} отсутствует в базе.'.format(request.POST.get('currency_id'))}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 # Price
@@ -1308,14 +1404,14 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 	pages = []
 
 	# Получаем список всех имеющихся категорий
-	categories = getCategoryTree(categories)
+	categories = Category.objects.getCategoryTree(categories)
 
 	# Корректируем имена категорий с учетом вложенноти
 	for c in categories:
 		c.name = '— ' * c.level + c.name
 
 	root = etree.Element("div")
-	getCategoryHTMLTree(root, None, True)
+	Category.objects.getCategoryHTMLTree(root, None, True)
 	categories_ul = etree.tostring(root)
 
 	# Получаем список всех имеющихся производителей
@@ -1325,7 +1421,7 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 	if category and childs == 'y': # Указанная категория и все потомки
 		category = Category.objects.get(id=category)
 		product_categories.append(category)
-		product_categories = getCategoryTree(product_categories, category)
+		product_categories = Category.objects.getCategoryTree(product_categories, category)
 	elif category and childs == 'n': # Только указанная категория
 		category = Category.objects.get(id=category)
 		product_categories.append(category)
@@ -1730,7 +1826,7 @@ def categorysynonyms(request, updater_selected='all', distributor_selected='all'
 	updaters = Updater.objects.all().order_by('name')
 	distributors = Distributor.objects.all().order_by('name')
 	categories = []
-	categories = getCategoryTree(categories)
+	categories = Category.objects.getCategoryTree(categories)
 
 	# Корректируем имена категорий с учетом вложенноти
 	for category in categories:
