@@ -11,38 +11,54 @@ class Runner:
 	def __init__(self):
 
 		# Дистрибьютор
-		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
+		self.distributor = Distributor.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
 		# Загрузчик
-		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
+		self.updater = Updater.objects.take(
+			alias       = self.alias,
+			name        = self.name,
+			distributor = self.distributor)
 
 		# Производитель
-		self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
+		self.vendor = Vendor.objects.take(
+			alias = self.alias,
+			name = self.name)
 
 		# Завод
 		self.factory = Stock.objects.take(
-			alias = self.alias + '-factory',
-			name = self.name + ': на заказ',
+			alias             = self.alias + '-factory',
+			name              = self.name + ': на заказ',
 			delivery_time_min = 40,
 			delivery_time_max = 60,
-			distributor = self.distributor)
+			distributor       = self.distributor)
 		Party.objects.clear(stock = self.factory)
 
 		# Единица измерения
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+		self.default_unit = Unit.objects.take(
+			alias = 'pcs',
+			name  = 'шт.')
 
 		# Тип цены
-		self.rdp = PriceType.objects.take(alias = 'RDP-Fujitsu', name = 'Рекомендованная диллерская цена Fujitsu')
+		self.rdp = PriceType.objects.take(
+			alias = 'RDP-Fujitsu',
+			name  = 'Рекомендованная диллерская цена Fujitsu')
 
 		# Валюта
-		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'US Dollar', rate = 60, quantity = 1)
+		self.usd = Currency.objects.take(
+			alias     = 'USD',
+			name      = '$',
+			full_name = 'US Dollar',
+			rate      = 60,
+			quantity  = 1)
 
 		# Используемые ссылки
 		self.url = {
 			'start': 'https://globalpartners.ts.fujitsu.com/com/Pages/Default.aspx',
 			'login': 'https://globalpartners.ts.fujitsu.com/CookieAuth.dll?Logon',
 			'links': 'https://globalpartners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
-			'search': '/sites/CPP/ru/config-tools/20151/База',
+			'search': '/sites/CPP/ru/config-tools/2015',
 			'prefix': 'https://globalpartners.ts.fujitsu.com'}
 
 
