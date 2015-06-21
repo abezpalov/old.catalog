@@ -6,7 +6,7 @@ $(document).ready(function(){
 		return true;
 	});
 
-	$("body").delegate("button[data-do*='link-vendor-same-synonym']", "click", function(){
+	$("body").delegate("button[data-do='link-vendor-same-synonym']", "click", function(){
 		$.post("/catalog/ajax/link-vendor-same-synonym/", {
 			synonym: $(this).data('id'),
 			csrfmiddlewaretoken: '{{ csrf_token }}'
@@ -30,7 +30,7 @@ $(document).ready(function(){
 		return false;
 	});
 
-	$("body").delegate("a[data-do*='edit-item']", "click", function(){
+	$("body").delegate("a[data-do='edit-item']", "click", function(){
 
 		// Заполняем значение полей модального окна
 		$('#edit-item-id').val($(this).data('id'));
@@ -42,7 +42,7 @@ $(document).ready(function(){
 		return false;
 	});
 
-	$("body").delegate("button[data-do*='edit-item-save']", "click", function(){
+	$("body").delegate("button[data-do='edit-item-save']", "click", function(){
 		$.post("/catalog/ajax/link-vendor-synonym/", {
 			synonym: $('#edit-item-id').val(),
 			vendor: $('#edit-item-vendor').val(),
@@ -69,7 +69,7 @@ $(document).ready(function(){
 		return false;
 	});
 
-	$("body").delegate("button[data-do*='edit-item-cancel']", "click", function(){
+	$("body").delegate("button[data-do='edit-item-cancel']", "click", function(){
 		$('#EditItemModal').foundation('reveal', 'close');
 		return false;
 	});

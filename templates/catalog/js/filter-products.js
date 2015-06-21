@@ -12,7 +12,7 @@ $("body").delegate("[data-do*='open-filter-products-category']", "click", functi
 
 
 // Открыть окно фильтра на закладке производителей
-$("body").delegate("[data-do*='open-filter-products-vendor']", "click", function(){
+$("body").delegate("[data-do='open-filter-products-vendor']", "click", function(){
 	$('#dd-panel-category').removeClass('active');
 	$('#dd-panel-vendor').addClass('active');
 	$('#dd-panel-search').removeClass('active');
@@ -25,7 +25,7 @@ $("body").delegate("[data-do*='open-filter-products-vendor']", "click", function
 
 
 // Открыть окно фильтра на закладке дополнительных параметров поиска
-$("body").delegate("[data-do*='open-filter-products-search']", "click", function(){
+$("body").delegate("[data-do='open-filter-products-search']", "click", function(){
 	$('#dd-panel-category').removeClass('active');
 	$('#dd-panel-vendor').removeClass('active');
 	$('#dd-panel-search').addClass('active');
@@ -38,7 +38,7 @@ $("body").delegate("[data-do*='open-filter-products-search']", "click", function
 
 
 // Открытие/закрытие ветви категорий
-$("body").delegate("[data-do*='switch-li-status']", "click", function(){
+$("body").delegate("[data-do='switch-li-status']", "click", function(){
 	if ($(this).data('state') == 'closed') {
 		$(this).parent("li").removeClass('closed');
 		$(this).parent("li").addClass('opened');
@@ -57,7 +57,7 @@ $("body").delegate("[data-do*='switch-li-status']", "click", function(){
 
 
 // Выбор категории
-$("body").delegate("[data-do*='filter-products-select-category']", "click", function(){
+$("body").delegate("[data-do='filter-products-select-category']", "click", function(){
 	$('#filter-products-selected-category').data('id', $(this).data('id'));
 	$('#filter-products-selected-category').text($(this).text());
 	if ($(this).data('id') == ''){
@@ -70,7 +70,7 @@ $("body").delegate("[data-do*='filter-products-select-category']", "click", func
 
 
 // Выбор производителя
-$("body").delegate("[data-do*='filter-products-select-vendor']", "click", function(){
+$("body").delegate("[data-do='filter-products-select-vendor']", "click", function(){
 	$('#filter-products-selected-vendor').data('alias', $(this).data('alias'));
 	$('#filter-products-selected-vendor').text($(this).text());
 	if ($(this).data('alias') == ''){
@@ -83,13 +83,13 @@ $("body").delegate("[data-do*='filter-products-select-vendor']", "click", functi
 
 
 // Фильтр списка производителей
-$("body").delegate("[data-do*='filter-products-filter-vendors']", "keypress", function(e){
+$("body").delegate("[data-do='filter-products-filter-vendors']", "keypress", function(e){
 	var filter_text = $.trim($('#filter-products-filter-vendors').val().toLowerCase());
 	var key = e.which;
 	if(key == 13) {
 		// Скрываем всех, кто не соответствует запросу
 		if (filter_text != ''){
-			$("div[data-is*='vendor-selector']").each(function(i, e){
+			$("div[data-is='vendor-selector']").each(function(i, e){
 				if ($(e).text().toLowerCase().search(filter_text) == -1) {
 					$(e).addClass('hidden');
 				} else {
@@ -97,7 +97,7 @@ $("body").delegate("[data-do*='filter-products-filter-vendors']", "keypress", fu
 				}
 			});
 		} else {
-			$("div[data-is*='vendor-selector']").removeClass('hidden');
+			$("div[data-is='vendor-selector']").removeClass('hidden');
 		}
 		return false;
 	}
@@ -115,7 +115,7 @@ $("body").delegate("#filter-products-search-input", "change", function(){
 
 
 // Применение параметров фильтра
-$("body").delegate("[data-do*='filter-products-apply']", "click", function(){
+$("body").delegate("[data-do='filter-products-apply']", "click", function(){
 
 	// Инициализируем переменные
 	ct = $('#filter-products-selected-category').data('id');
@@ -157,7 +157,7 @@ $("body").delegate("[data-do*='filter-products-apply']", "click", function(){
 
 
 // Отмена применения параметров фильтра
-$("body").delegate("[data-do*='filter-products-cancel']", "click", function(){
+$("body").delegate("[data-do='filter-products-cancel']", "click", function(){
 	$('#modal-filter-products').foundation('reveal', 'close');
 	return false;
 });

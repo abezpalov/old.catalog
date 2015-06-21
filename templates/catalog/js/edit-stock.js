@@ -2,7 +2,7 @@
 
 
 // Открытие окна редактирования склада (существующий)
-$("body").delegate("[data-do*='open-edit-stock']", "click", function(){
+$("body").delegate("[data-do='open-edit-stock']", "click", function(){
 
 	// Получаем информацию о складе
 	$.post("/catalog/ajax/get-stock/", {
@@ -14,6 +14,7 @@ $("body").delegate("[data-do*='open-edit-stock']", "click", function(){
 			if ('success' == data.status){
 
 				// Заполняем значение полей
+				$('#modal-edit-stock-header').text('Редактировать склад');
 				$('#edit-stock-id').val(data.stock_id);
 				$('#edit-stock-name').val(data.stock_name);
 				$('#edit-stock-alias').val(data.stock_alias);
@@ -47,7 +48,7 @@ $("body").delegate("[data-do*='open-edit-stock']", "click", function(){
 
 
 // Сохранение склада
-$("body").delegate("[data-do*='edit-stock-save']", "click", function(){
+$("body").delegate("[data-do='edit-stock-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-stock/", {
@@ -78,10 +79,10 @@ $("body").delegate("[data-do*='edit-stock-save']", "click", function(){
 			if ('success' == data.status){
 
 				// Обновлем информацию на странице
-				$("[data-stock-name*='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-name').val());
-				$("[data-stock-delivery-time-min*='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-delivery-time-min').val());
-				$("[data-stock-delivery-time-max*='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-delivery-time-max').val());
-				$("[data-stock-state*='" + $('#edit-stock-id').val() + "']").prop('checked', $('#edit-stock-state').prop('checked'));
+				$("[data-stock-name='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-name').val());
+				$("[data-stock-delivery-time-min='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-delivery-time-min').val());
+				$("[data-stock-delivery-time-max='" + $('#edit-stock-id').val() + "']").text($('#edit-stock-delivery-time-max').val());
+				$("[data-stock-state='" + $('#edit-stock-id').val() + "']").prop('checked', $('#edit-stock-state').prop('checked'));
 
 				// Заполняем значение полей
 				$('#edit-stock-id').val('0');
@@ -102,7 +103,7 @@ $("body").delegate("[data-do*='edit-stock-save']", "click", function(){
 
 
 // Отмена редактирования склада
-$("body").delegate("[data-do*='edit-stock-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-stock-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-stock-id').val('0');
@@ -124,7 +125,7 @@ $("body").delegate("[data-do*='edit-stock-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления склада
-$("body").delegate("[data-do*='open-stock-trash']", "click", function(){
+$("body").delegate("[data-do='open-stock-trash']", "click", function(){
 
 	// Заполняем значение полей
 	$('#trash-stock-id').val($(this).data('id'));
@@ -137,7 +138,7 @@ $("body").delegate("[data-do*='open-stock-trash']", "click", function(){
 
 
 // Удаление склада
-$("body").delegate("[data-do*='trash-stock']", "click", function(){
+$("body").delegate("[data-do='trash-stock']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/trash-stock/", {
@@ -177,7 +178,7 @@ $("body").delegate("[data-do*='trash-stock']", "click", function(){
 
 
 // Смена статуса склада
-$("body").delegate("[data-do*='switch-stock-state']", "click", function(){
+$("body").delegate("[data-do='switch-stock-state']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/switch-stock-state/", {

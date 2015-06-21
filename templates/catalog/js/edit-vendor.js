@@ -1,9 +1,10 @@
 {% if perms.catalog.add_vendor %}
 
 // Открытие окна редактирования производителя (новый)
-$("body").delegate("[data-do*='open-new-vendor']", "click", function(){
+$("body").delegate("[data-do='open-new-vendor']", "click", function(){
 
 	// Заполняем значение полей
+	$('#modal-edit-vendor-header').text('Добавить производителя');
 	$('#edit-vendor-id').val('0');
 	$('#edit-vendor-name').val('');
 	$('#edit-vendor-alias').val('');
@@ -21,7 +22,7 @@ $("body").delegate("[data-do*='open-new-vendor']", "click", function(){
 
 
 // Открытие окна редактирования производителя (существующий)
-$("body").delegate("[data-do*='open-edit-vendor']", "click", function(){
+$("body").delegate("[data-do='open-edit-vendor']", "click", function(){
 
 	// Получаем информацию о производителе
 	$.post("/catalog/ajax/get-vendor/", {
@@ -33,6 +34,7 @@ $("body").delegate("[data-do*='open-edit-vendor']", "click", function(){
 			if ('success' == data.status){
 
 				// Заполняем значение полей
+				$('#modal-edit-vendor-header').text('Редактировать производителя');
 				$('#edit-vendor-id').val(data.vendor_id);
 				$('#edit-vendor-name').val(data.vendor_name);
 				$('#edit-vendor-alias').val(data.vendor_alias);
@@ -65,7 +67,7 @@ $("body").delegate("[data-do*='open-edit-vendor']", "click", function(){
 
 
 // Сохранение производителя
-$("body").delegate("[data-do*='edit-vendor-save']", "click", function(){
+$("body").delegate("[data-do='edit-vendor-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-vendor/", {
@@ -95,8 +97,8 @@ $("body").delegate("[data-do*='edit-vendor-save']", "click", function(){
 			if ('success' == data.status){
 
 				// Обновлем информацию на странице
-				$("[data-vendor-name*='" + $('#edit-vendor-id').val() + "']").text($('#edit-vendor-name').val());
-				$("[data-vendor-state*='" + $('#edit-vendor-id').val() + "']").prop('checked', $('#edit-vendor-state').prop('checked'));
+				$("[data-vendor-name='" + $('#edit-vendor-id').val() + "']").text($('#edit-vendor-name').val());
+				$("[data-vendor-state='" + $('#edit-vendor-id').val() + "']").prop('checked', $('#edit-vendor-state').prop('checked'));
 
 				// Заполняем значение полей
 				$('#edit-vendor-id').val('0');
@@ -116,7 +118,7 @@ $("body").delegate("[data-do*='edit-vendor-save']", "click", function(){
 
 
 // Отмена редактирования производителя
-$("body").delegate("[data-do*='edit-vendor-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-vendor-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-vendor-id').val('0');
@@ -137,7 +139,7 @@ $("body").delegate("[data-do*='edit-vendor-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления производителя
-$("body").delegate("[data-do*='open-vendor-trash']", "click", function(){
+$("body").delegate("[data-do='open-vendor-trash']", "click", function(){
 
 	// Заполняем значение полей
 	$('#trash-vendor-id').val($(this).data('id'));
@@ -150,7 +152,7 @@ $("body").delegate("[data-do*='open-vendor-trash']", "click", function(){
 
 
 // Удаление производителя
-$("body").delegate("[data-do*='trash-vendor']", "click", function(){
+$("body").delegate("[data-do='trash-vendor']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/trash-vendor/", {
@@ -190,7 +192,7 @@ $("body").delegate("[data-do*='trash-vendor']", "click", function(){
 
 
 // Смена статуса производителя
-$("body").delegate("[data-do*='switch-vendor-state']", "click", function(){
+$("body").delegate("[data-do='switch-vendor-state']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/switch-vendor-state/", {

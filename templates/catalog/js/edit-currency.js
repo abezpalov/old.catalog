@@ -1,7 +1,7 @@
 {% if perms.catalog.add_currency %}
 
 // Открытие окна редактирования валюты (новая)
-$("body").delegate("[data-do*='open-new-currency']", "click", function(){
+$("body").delegate("[data-do='open-new-currency']", "click", function(){
 
 	// Заполняем значение полей
 	$('#modal-edit-currency-header').text('Добавить валюту');
@@ -24,7 +24,7 @@ $("body").delegate("[data-do*='open-new-currency']", "click", function(){
 
 
 // Открытие окна редактирования валюты (существующая)
-$("body").delegate("[data-do*='open-edit-currency']", "click", function(){
+$("body").delegate("[data-do='open-edit-currency']", "click", function(){
 
 	// Получаем информацию о категории
 	$.post("/catalog/ajax/get-currency/", {
@@ -71,7 +71,7 @@ $("body").delegate("[data-do*='open-edit-currency']", "click", function(){
 
 
 // Сохранение
-$("body").delegate("[data-do*='edit-currency-save']", "click", function(){
+$("body").delegate("[data-do='edit-currency-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-currency/", {
@@ -103,9 +103,9 @@ $("body").delegate("[data-do*='edit-currency-save']", "click", function(){
 			if ('success' == data.status){
 
 				// Обновлем информацию на странице
-				$("[data-currency-full-name*='" + $('#edit-currency-id').val() + "']").text($('#edit-currency-full-name').val());
-				$("[data-currency-alias*='" + $('#edit-currency-id').val() + "']").text($('#edit-currency-alias').val());
-				$("[data-currency-state*='" + $('#edit-currency-id').val() + "']").prop('checked', $('#edit-currency-state').prop('checked'));
+				$("[data-currency-full-name='" + $('#edit-currency-id').val() + "']").text($('#edit-currency-full-name').val());
+				$("[data-currency-alias='" + $('#edit-currency-id').val() + "']").text($('#edit-currency-alias').val());
+				$("[data-currency-state='" + $('#edit-currency-id').val() + "']").prop('checked', $('#edit-currency-state').prop('checked'));
 
 				// Заполняем значение полей
 				$('#edit-currency-id').val('0');
@@ -127,7 +127,7 @@ $("body").delegate("[data-do*='edit-currency-save']", "click", function(){
 
 
 // Отмена редактирования категории
-$("body").delegate("[data-do*='edit-currency-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-currency-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-currency-id').val('0');
@@ -150,7 +150,7 @@ $("body").delegate("[data-do*='edit-currency-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления категории
-$("body").delegate("[data-do*='open-delete-currency']", "click", function(){
+$("body").delegate("[data-do='open-delete-currency']", "click", function(){
 
 	// Получаем информацию о категории
 	$.post("/catalog/ajax/get-currency/", {
@@ -191,7 +191,7 @@ $("body").delegate("[data-do*='open-delete-currency']", "click", function(){
 
 
 // Удаление производителя
-$("body").delegate("[data-do*='delete-currency-apply']", "click", function(){
+$("body").delegate("[data-do='delete-currency-apply']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/delete-currency/", {
@@ -231,7 +231,7 @@ $("body").delegate("[data-do*='delete-currency-apply']", "click", function(){
 
 
 // Смена статуса производителя
-$("body").delegate("[data-do*='switch-currency-state']", "click", function(){
+$("body").delegate("[data-do='switch-currency-state']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/switch-currency-state/", {

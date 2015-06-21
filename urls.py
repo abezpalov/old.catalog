@@ -130,12 +130,15 @@ urlpatterns = patterns('',
 
 
 	# Parameter Type
+	# TODO
 
 
 	# Parameter Type to Category
+	# TODO
 
 
 	# Parameter
+	# TODO
 
 
 	# Category Synonym
@@ -143,11 +146,10 @@ urlpatterns = patterns('',
 	url(r'^category-synonyms/$', views.categorysynonyms, name='categorysynonyms'),
 	# ex: /catalog/category-synonyms/1/2/none/
 	url(r'^category-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<category_selected>[a-zA-Z0-9_-]+)/$', views.categorysynonyms, name='categorysynonyms'),
-	# ex: /catalog/category-synonym/58/
-	url(r'^category-synonym/(?P<synonym_id>[0-9]+)/$', views.categorysynonym, name='categorysynonym'),
 	# AJAX
-	url(r'^ajax/link-category-synonym/$', views.ajaxLinkCategorySynonym, name='ajaxLinkCategorySynonym'),
-	url(r'^ajax/trash-category-synonym/$', views.ajaxTrashCategorySynonym, name='ajaxTrashCategorySynonym'),
+	url(r'^ajax/get-category-synonym/$', views.ajaxGetCategorySynonym, name='ajaxGetCategorySynonym'),
+	url(r'^ajax/save-category-synonym/$', views.ajaxSaveCategorySynonym, name='ajaxSaveCategorySynonym'),
+	url(r'^ajax/delete-category-synonym/$', views.ajaxDeleteCategorySynonym, name='ajaxDeleteCategorySynonym'),
 
 
 	# Vendor Synonym
@@ -155,10 +157,9 @@ urlpatterns = patterns('',
 	url(r'^vendor-synonyms/$', views.vendorsynonyms, name='vendorsynonyms'),
 	# ex: /catalog/vendor-synonyms/1/2/none/
 	url(r'^vendor-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<vendor_selected>[a-zA-Z0-9_-]+)/$', views.vendorsynonyms, name='vendorsynonyms'),
-	# ex: /catalog/vendor-synonym/58/
-	url(r'^vendor-synonym/(?P<synonym_id>[0-9]+)/$', views.vendorsynonym, name='vendorsynonym'),
 	# AJAX
-	url(r'^ajax/link-vendor-synonym/$', views.ajaxLinkVendorSynonym, name='ajaxLinkVendorSynonym'),
-	url(r'^ajax/link-vendor-same-synonym/$', views.ajaxLinkVendorSameSynonym, name='ajaxLinkVendorSameSynonym'),
-
+#	url(r'^ajax/get-vendor-synonym/$', views.ajaxGetVendorSynonym, name='ajaxGetVendorSynonym'),
+#	url(r'^ajax/save-vendor-synonym/$', views.ajaxSaveVendorSynonym, name='ajaxSaveVendorSynonym'),
+#	url(r'^ajax/link-vendor-synonym/$', views.ajaxLinkVendorSynonym, name='ajaxLinkVendorSynonym'),
+#	url(r'^ajax/delete-vendor-synonym/$', views.ajaxDeleteVendorSynonym, name='ajaxDeleteVendorSynonym'),
 )

@@ -304,7 +304,7 @@ class Currency(models.Model):
 		return self.name
 
 	class Meta:
-		ordering = ['name']
+		ordering = ['alias']
 
 # Price manager
 class PriceManager(models.Manager):
@@ -733,23 +733,32 @@ class Parameter(models.Model):
 # Category Synonym manager
 class CategorySynonymManager(models.Manager):
 
-	def take(self, name, updater=None, distributor=None, category=None):
+	def take(self, name, updater = None, distributor = None, category = None):
 		try:
-			categorySynonym = self.get(name=name, updater=updater, distributor=distributor)
+			categorySynonym = self.get(
+				name        = name,
+				updater     = updater,
+				distributor = distributor)
 		except CategorySynonym.DoesNotExist:
-			categorySynonym = CategorySynonym(name=name, updater=updater, distributor=distributor, category=category, created=timezone.now(), modified=timezone.now())
+			categorySynonym = CategorySynonym(
+				name        = name,
+				updater     = updater,
+				distributor = distributor,
+				category    = category,
+				created     = timezone.now(),
+				modified    = timezone.now())
 			categorySynonym.save()
 		return categorySynonym
 
 # Category Synonym
 class CategorySynonym(models.Model):
-	name = models.CharField(max_length=1024)
-	updater = models.ForeignKey(Updater, null=True, default=None)
-	distributor = models.ForeignKey(Distributor, null=True, default=None)
-	category = models.ForeignKey(Category, null=True, default=None)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = CategorySynonymManager()
+	name        = models.CharField(max_length = 1024)
+	updater     = models.ForeignKey(Updater, null = True, default = None)
+	distributor = models.ForeignKey(Distributor, null = True, default = None)
+	category    = models.ForeignKey(Category, null = True, default = None)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+	objects     = CategorySynonymManager()
 
 	def __str__(self):
 		return self.name
@@ -760,23 +769,32 @@ class CategorySynonym(models.Model):
 # Vendor Synonym manager
 class VendorSynonymManager(models.Manager):
 
-	def take(self, name, updater=None, distributor=None, vendor=None):
+	def take(self, name, updater = None, distributor = None, vendor = None):
 		try:
-			vendorSynonym = self.get(name=name, updater=updater, distributor=distributor)
+			vendorSynonym = self.get(
+				name        = name,
+				updater     = updater,
+				distributor = distributor)
 		except VendorSynonym.DoesNotExist:
-			vendorSynonym = VendorSynonym(name=name, updater=updater, distributor=distributor, vendor=vendor, created=timezone.now(), modified=timezone.now())
+			vendorSynonym = VendorSynonym(
+				name        = name,
+				updater     = updater,
+				distributor = distributor,
+				vendor      = vendor,
+				created     = timezone.now(),
+				modified    = timezone.now())
 			vendorSynonym.save()
 		return vendorSynonym
 
 # Vendor Synonym
 class VendorSynonym(models.Model):
-	name = models.CharField(max_length=1024)
-	updater = models.ForeignKey(Updater, null=True, default=None)
-	distributor = models.ForeignKey(Distributor, null=True, default=None)
-	vendor = models.ForeignKey(Vendor, null=True, default=None)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = VendorSynonymManager()
+	name        = models.CharField(max_length = 1024)
+	updater     = models.ForeignKey(Updater, null = True, default = None)
+	distributor = models.ForeignKey(Distributor, null = True, default = None)
+	vendor      = models.ForeignKey(Vendor, null = True, default = None)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+	objects     = VendorSynonymManager()
 
 	def __str__(self):
 		return self.name

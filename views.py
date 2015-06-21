@@ -1615,6 +1615,7 @@ def ajaxSaveProduct(request):
 		result = {
 			'status': 'alert',
 			'message': 'Ошибка: неверный производитель.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
 	# category
 	try:
@@ -1799,129 +1800,220 @@ def ajaxGetParties(request):
 # Category Synonym
 
 
-def categorysynonyms(request, updater_selected='all', distributor_selected='all', category_selected='all'):
+def categorysynonyms(request, updater_selected = 'all', distributor_selected = 'all', category_selected = 'all'):
 	"Представление: список синонимов категорий."
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
-
 	# Импортируем
 	from catalog.models import CategorySynonym, Category, Updater, Distributor
 
-	# Получаем список объектов синонимов
-	items = CategorySynonym.objects.all().order_by('name')
-	if (updater_selected != 'all'):
-		items = items.filter(updater=updater_selected)
+	# Преобразуем типы данных
+	if updater_selected != 'all':
 		updater_selected = int(updater_selected)
-	if (distributor_selected != 'all'):
-		items = items.filter(distributor=distributor_selected)
+	if distributor_selected != 'all':
 		distributor_selected = int(distributor_selected)
-	if (category_selected != 'all' and category_selected != 'null'):
-		items = items.filter(category=category_selected)
+	if category_selected != 'all':
 		category_selected = int(category_selected)
-	if (category_selected == 'null'):
-		items = items.filter(category=None)
 
-	# Получаем дополнительные списки объектов
-	updaters = Updater.objects.all().order_by('name')
-	distributors = Distributor.objects.all().order_by('name')
-	categories = []
-	categories = Category.objects.getCategoryTree(categories)
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.add_categorysynonym')\
+	or request.user.has_perm('catalog.change_categorysynonym')\
+	or request.user.has_perm('catalog.delete_categorysynonym'):
 
-	# Корректируем имена категорий с учетом вложенноти
-	for category in categories:
-		category.name = '— ' * category.level + category.name
+		# Получаем список объектов синонимов
+		category_synonyms = CategorySynonym.objects.all().order_by('name')
+		if updater_selected and updater_selected != 'all':
+			category_synonyms = category_synonyms.filter(updater = updater_selected)
+		if not updater_selected:
+			category_synonyms = category_synonyms.filter(updater = None)
 
-	context = {
-		'updater_selected': updater_selected,
-		'distributor_selected': distributor_selected,
-		'category_selected': category_selected,
-		'items': items,
-		'updaters': updaters,
-		'distributors': distributors,
-		'categories': categories,
-	}
-	return render(request, 'catalog/categorysynonyms.html', context)
+		if distributor_selected and distributor_selected != 'all':
+			category_synonyms = category_synonyms.filter(distributor = distributor_selected)
+		if not distributor_selected:
+			category_synonyms = category_synonyms.filter(distributor = None)
 
+		if category_selected and category_selected != 'all':
+			category_synonyms = category_synonyms.filter(category = category_selected)
+		if not category_selected:
+			category_synonyms = category_synonyms.filter(category = None)
 
-def categorysynonym(request, synonym_id):
-	"Представление: синоним производителя."
+		# Получаем дополнительные списки объектов
+		updaters = Updater.objects.all().order_by('name')
+		distributors = Distributor.objects.all().order_by('name')
+		categories = []
+		categories = Category.objects.getCategoryTree(categories)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+		# Корректируем имена категорий с учетом вложенноти
+		for category in categories:
+			category.name = '— ' * category.level + category.name
 
-	# Импортируем
-	from catalog.models import CategorySynonym, Category, Updater, Distributor
-
-	# Получаем список
-	synonym = CategorySynonym.objects.get(id=synonym_id)
-	context = {'synonym': synonym}
-	return render(request, 'catalog/categorysynonym.html', context)
+	return render(request, 'catalog/categorysynonyms.html', locals())
 
 
-def ajaxTrashCategorySynonym(request):
-	"AJAX-представление: Trash Category Synonym."
+def ajaxGetCategorySynonym(request):
+	"AJAX-представление: Get Category Synonym."
 
 	# Импортируем
-	from catalog.models import CategorySynonym
-	from datetime import datetime
 	import json
+	from catalog.models import CategorySynonym, Updater, Distributor, Category
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_categorysynonym')\
+	or not request.user.has_perm('catalog.delete_categorysynonym'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
-	if not request.POST.get('id'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			item = CategorySynonym.objects.get(id=request.POST.get('id'))
-			item.delete()
-			result = {'status': 'success', 'message': 'Синоним категории удалён.'}
-		except CategorySynonym.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Синоним категории с идентификатором ' + request.POST.get('id') + ' отсутствует в базе.'}
+	# Получаем объект
+	try:
+		s = CategorySynonym.objects.get(
+			id = request.POST.get('category_synonym_id'))
+
+		category_synonym              = {}
+		category_synonym['id']        = s.id
+		category_synonym['name']      = s.name
+
+		if s.updater:
+			category_synonym['updater']          = {}
+			category_synonym['updater']['id']    = s.updater.id
+			category_synonym['updater']['name']  = s.updater.alias
+			category_synonym['updater']['alias'] = s.updater.name
+		else:
+			category_synonym['updater']          = {}
+			category_synonym['updater']['id']    = 0
+			category_synonym['updater']['name']  = ''
+			category_synonym['updater']['alias'] = ''
+
+		if s.distributor:
+			category_synonym['distributor']          = {}
+			category_synonym['distributor']['id']    = s.distributor.id
+			category_synonym['distributor']['name']  = s.distributor.name
+			category_synonym['distributor']['alias'] = s.distributor.alias
+		else:
+			category_synonym['distributor']          = {}
+			category_synonym['distributor']['id']    = 0
+			category_synonym['distributor']['name']  = ''
+			category_synonym['distributor']['alias'] = ''
+
+		if s.category:
+			category_synonym['category']          = {}
+			category_synonym['category']['id']    = s.category.id
+			category_synonym['category']['name']  = s.category.name
+			category_synonym['category']['alias'] = s.category.alias
+		else:
+			category_synonym['category']          = {}
+			category_synonym['category']['id']    = 0
+			category_synonym['category']['name']  = ''
+			category_synonym['category']['alias'] = ''
+
+		result = {
+			'status':   'success',
+			'message':  'Данные синонима категории получены.',
+			'category_synonym': category_synonym}
+
+	except CategorySynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним категории отсутствует в базе.'}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+def ajaxSaveCategorySynonym(request):
+	"AJAX-представление: Save Category Synonym."
+
+	# Импортируем
+	import json
+	from django.utils import timezone
+	from catalog.models import CategorySynonym, Updater, Distributor, Category
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	try:
+		category_synonym = CategorySynonym.objects.get(
+			id = request.POST.get('category_synonym_id'))
+		if not request.user.has_perm('catalog.change_categorysynonym'):
+			return HttpResponse(status = 403)
+	except CategorySynonym.DoesNotExist:
+		category_synonym = CategorySynonym()
+		if not request.user.has_perm('catalog.add_categorysynonym'):
+			return HttpResponse(status = 403)
+		category_synonym.created = timezone.now()
+
+	# name
+	if not request.POST.get('category_synonym_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	category_synonym.name = request.POST.get('category_synonym_name').strip()[:1024]
+
+	# updater
+	try:
+		category_synonym.updater = Updater.objects.get(
+			id = request.POST.get('category_synonym_updater_id'))
+	except Updater.DoesNotExist:
+		category_synonym.updater = None
+
+	# distributor
+	try:
+		category_synonym.distributor = Distributor.objects.get(
+			id = request.POST.get('category_synonym_distributor_id'))
+	except Distributor.DoesNotExist:
+		category_synonym.distributor = None
+
+	# category
+	try:
+		category_synonym.category = Category.objects.get(
+			id = request.POST.get('category_synonym_category_id'))
+	except Category.DoesNotExist:
+		category_synonym.category = None
+
+	# modified
+	category_synonym.modified = timezone.now()
+
+	# Сохраняем
+	category_synonym.save()
 
 	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Синоним категории {} сохранён.'.format(category_synonym.name)}
+
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
-def ajaxLinkCategorySynonym(request):
-	"AJAX-представление: Link Category Synonym."
+def ajaxDeleteCategorySynonym(request):
+	"AJAX-представление: Delete Category Synonym."
 
 	# Импортируем
-	from catalog.models import CategorySynonym, Category
-	from datetime import datetime
 	import json
+	from catalog.models import CategorySynonym
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.delete_categorysynonym'):
+		return HttpResponse(status = 403)
 
-	if not request.POST.get('category') or not request.POST.get('synonym'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			synonym = CategorySynonym.objects.get(id=request.POST.get('synonym'))
-			if request.POST.get('category') == 'null' or request.POST.get('category') == '':
-				category = None
-				synonym.category = None
-				synonym.save()
-				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' отвязан от категории.'}
-			else:
-				category = Category.objects.get(id=request.POST.get('category'))
-				synonym.category = category
-				synonym.save()
-				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к категории ' + category.name + '.'}
-		except CategorySynonym.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Синоним с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
-		except Category.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Категория с идентификатором ' + request.POST.get('category') + ' отсутствует в базе.'}
+	# Получаем объект
+	try:
+		category_synonym = CategorySynonym.objects.get(
+			id = request.POST.get('category_synonym_id'))
+		category_synonym.delete()
+		result = {'status': 'success', 'message': 'Синоним категории удалён.'}
+	except CategorySynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним категории отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')

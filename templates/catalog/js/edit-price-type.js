@@ -2,7 +2,7 @@
 
 
 // Открытие окна редактирования типа цены (существующий)
-$("body").delegate("[data-do*='open-edit-price-type']", "click", function(){
+$("body").delegate("[data-do='open-edit-price-type']", "click", function(){
 
 	// Получаем информацию о типе цены
 	$.post("/catalog/ajax/get-price-type/", {
@@ -14,6 +14,7 @@ $("body").delegate("[data-do*='open-edit-price-type']", "click", function(){
 			if ('success' == data.status){
 
 				// Заполняем значение полей
+				$('#modal-edit-price-type-header').text('Редактировать тип цены');
 				$('#edit-price-type-id').val(data.price_type_id);
 				$('#edit-price-type-name').val(data.price_type_name);
 				$('#edit-price-type-alias').val(data.price_type_alias);
@@ -46,7 +47,7 @@ $("body").delegate("[data-do*='open-edit-price-type']", "click", function(){
 
 
 // Сохранение типа цены
-$("body").delegate("[data-do*='edit-price-type-save']", "click", function(){
+$("body").delegate("[data-do='edit-price-type-save']", "click", function(){
 
 	// Получаем информацию о типе цены
 	$.post("/catalog/ajax/save-price-type/", {
@@ -76,9 +77,9 @@ $("body").delegate("[data-do*='edit-price-type-save']", "click", function(){
 			if ('success' == data.status){
 
 				// Обновлем информацию на странице
-				$("[data-price-type-name*='" + $('#edit-price-type-id').val() + "']").text($('#edit-price-type-name').val());
-				$("[data-price-type-state*='" + $('#edit-price-type-id').val() + "']").prop('checked', $('#edit-price-type-state').prop('checked'));
-				$("[data-price-type-multiplier*='" + $('#edit-price-type-id').val() + "']").text($('#edit-price-type-multiplier').val());
+				$("[data-price-type-name='" + $('#edit-price-type-id').val() + "']").text($('#edit-price-type-name').val());
+				$("[data-price-type-state='" + $('#edit-price-type-id').val() + "']").prop('checked', $('#edit-price-type-state').prop('checked'));
+				$("[data-price-type-multiplier='" + $('#edit-price-type-id').val() + "']").text($('#edit-price-type-multiplier').val());
 
 				// Заполняем значение полей
 				$('#edit-price-type-id').val('0');
@@ -98,7 +99,7 @@ $("body").delegate("[data-do*='edit-price-type-save']", "click", function(){
 
 
 // Отмена редактирования типа цены
-$("body").delegate("[data-do*='edit-price-type-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-price-type-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-price-type-id').val('0');
@@ -119,7 +120,7 @@ $("body").delegate("[data-do*='edit-price-type-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления типа цены
-$("body").delegate("[data-do*='open-price-type-trash']", "click", function(){
+$("body").delegate("[data-do='open-price-type-trash']", "click", function(){
 
 	// Заполняем значение полей
 	$('#trash-price-type-id').val($(this).data('id'));
@@ -132,7 +133,7 @@ $("body").delegate("[data-do*='open-price-type-trash']", "click", function(){
 
 
 // Удаление типа цены
-$("body").delegate("[data-do*='trash-price-type']", "click", function(){
+$("body").delegate("[data-do='trash-price-type']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/trash-price-type/", {
@@ -172,7 +173,7 @@ $("body").delegate("[data-do*='trash-price-type']", "click", function(){
 
 
 // Смена статуса типа цены
-$("body").delegate("[data-do*='switch-price-type-state']", "click", function(){
+$("body").delegate("[data-do='switch-price-type-state']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/switch-price-type-state/", {

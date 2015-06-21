@@ -1,44 +1,61 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Синонимы категорий{% endblock %}
+{% block title %}Anodos.Catalog: Синонимы категорий{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
 {% block content %}
-{% if perms.catalog.change_product %}
+
+{% if perms.catalog.add_categorysynonym %}
+
+<!-- Панель кнопок -->
+<div class="row collapse">
+	<ul class="button-group even-2">
+		<li><button data-do="open-new-category-synonym" class="secondary expand"><i class="fa fa-pencil"></i> Добавить синоним</button></li>
+		<li><button data-do="open-new-category" class="secondary expand"><i class="fa fa-pencil"></i> Добавить категорию</button></li>
+	</ul>
+</div>
+
+{% endif %}
+
+{% if perms.catalog.add_categorysynonym or perms.catalog.change_categorysynonym %}
 
 <!-- Форма фильтра вывода -->
 <div class="row collapse">
-	<fieldset>
-		<legend>Фильтр отображения</legend>
-		<div class="small-4 columns">
-			<label>Загрузчики
-				<select id="filter-updater" class="do-filter-table">
-					<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
-					{% for updater in updaters %}
-					<option value="{{ updater.id }}"{% if updater.id == updater_selected %} selected{% endif %}>{{ updater.name }}</option>
-					{% endfor %}
-				</select>
-			</label>
-		</div>
-		<div class="small-4 columns">
-			<label>Поставщики
-				<select id="filter-distributor" class="do-filter-table">
-					<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
-					{% for distributor in distributors %}
-					<option value="{{ distributor.id }}"{% if distributor.id == distributor_selected %} selected{% endif %}>{{ distributor.name }}</option>
-					{% endfor %}
-				</select>
-			</label>
-		</div>
-		<div class="small-4 columns">
-			<label>Категория
-				<select id="filter-category" class="do-filter-table">
-					<option value="all"{% if category_selected == 'all' %} selected{% endif %}> - Все категории - </option>
-					<option value="null"{% if category_selected == 'null' %} selected{% endif %}> - Не определена - </option>
-					{% for category in categories %}
-					<option value="{{ category.id }}"{% if category.id == category_selected %} selected{% endif %}>{{ category.name }}</option>
-					{% endfor %}
-				</select>
-			</label>
-		</div>
-	</fieldset>
+	<div class="small-4 columns">
+		<label>Загрузчик
+			<select id="filter-updater" data-do="filter-category-synonyms">
+				<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
+				<option value="0"{% if updater_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for updater in updaters %}
+				<option value="{{ updater.id }}"{% if updater.id == updater_selected %} selected{% endif %}>{{ updater.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+	<div class="small-4 columns">
+		<label>Поставщик
+			<select id="filter-distributor" data-do="filter-category-synonyms">
+				<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
+				<option value="0"{% if distributor_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for distributor in distributors %}
+				<option value="{{ distributor.id }}"{% if distributor.id == distributor_selected %} selected{% endif %}>{{ distributor.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+	<div class="small-4 columns">
+		<label>Категория
+			<select id="filter-category" data-do="filter-category-synonyms">
+				<option value="all"{% if category_selected == 'all' %} selected{% endif %}> - Все категории - </option>
+				<option value="0"{% if category_selected == 0 %} selected{% endif %}> - Не определена (None) - </option>
+				{% for category in categories %}
+				<option value="{{ category.id }}"{% if category.id == category_selected %} selected{% endif %}>{{ category.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
 </div>
 
 <!-- Таблица со списком синонимов -->
@@ -52,52 +69,51 @@
 			<th>Категория</th>
 			<th>Управление</th>
 		</tr>
-		{% for item in items %}
-		<tr>
+		{% for category_synonym in category_synonyms %}
+		<tr data-category-synonym="{{ category_synonym.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a href="/catalog/category-synonym/{{ synonym.id }}/" id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-category="{{ item.category.id }}">{{ item.name }}</a></td>
-			<td class="hide-for-small-only">{{ item.updater }}</td>
-			<td class="hide-for-small-only">{{ item.distributor }}</td>
-			<td class="hide-for-small-only">{{ item.category.name }}</td>
 			<td>
-				<button class="tiny alert" data-do="trash-item" data-id="{{ item.id }}"><i class="fa fa-trash"></i></button>
+				<a data-do="open-edit-category-synonym" data-id="{{ category_synonym.id }}" data-category-synonym-name="category_synonym.id">{{ category_synonym.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-updater" data-id="{{ category_synonym.updater.id }}" data-updater-name="category_synonym.updater.id">{{ category_synonym.updater.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-distributor" data-id="{{ category_synonym.distributor.id }}" data-distributor-name="category_synonym.distributor.id">{{ category_synonym.distributor.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-category" data-id="{{ category_synonym.category.id }}" data-category-name="category_synonym.category.id">{{ category_synonym.category.name }}</a>
+			</td>
+			<td>
+				<button class="tiny alert" data-do="open-delete-category-synonym" data-id="{{ category_synonym.id }}"><i class="fa fa-trash"></i></button>
 			</td>
 		</tr>
 		{% endfor %}
 	</table>
 </div>
 
-<!-- Модальное окно редактирования элемента -->
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<fieldset>
-		<legend>Редактировать синоним категории</legend>
-		<input id="edit-item-id" type="hidden">
-		<label>Наименование
-			<input id="edit-item-name" type="text">
-		</label>
-		<select id="edit-item-category">
-			<option value="null" selected> - Не определена - </option>
-			{% for category in categories %}
-			<option value="{{ category.id }}">{{ category.name }}</option>
-			{% endfor %}
-		</select>
-	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
-</div>
-
 {% else %}
+
 <div class="row collapse">
 	<div class="small-12 columns">
 		<p class="panel">Недостаточно прав для данной функциональности.</p>
 	</div>
 </div>
+
 {% endif %}
+
+{% include "catalog/modal/edit-category-synonym.html" %}
+{% include "catalog/modal/edit-updater.html" %}
+{% include "catalog/modal/edit-distributor.html" %}
+{% include "catalog/modal/edit-category.html" %}
 {% endblock %}
+
 {% block js-content %}
-{% if perms.catalog.change_product %}
 <script>
-{% include "catalog/js/categorysynonyms.js" %}
+{% include "catalog/js/edit-category-synonym.js" %}
+{% include "catalog/js/edit-updater.js" %}
+{% include "catalog/js/edit-distributor.js" %}
+{% include "catalog/js/edit-category.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
 </script>
-{% endif %}
 {% endblock %}

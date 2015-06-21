@@ -2,7 +2,7 @@
 
 
 // Открытие окна редактирования поставщика (существующий)
-$("body").delegate("[data-do*='open-edit-distributor']", "click", function(){
+$("body").delegate("[data-do='open-edit-distributor']", "click", function(){
 
 	// Получаем информацию о поставщике
 	$.post("/catalog/ajax/get-distributor/", {
@@ -14,6 +14,7 @@ $("body").delegate("[data-do*='open-edit-distributor']", "click", function(){
 			if ('success' == data.status){
 
 				// Заполняем значение полей
+				$('#modal-edit-distributor-header').text('Редактировать поставщика');
 				$('#edit-distributor-id').val(data.distributor_id);
 				$('#edit-distributor-name').val(data.distributor_name);
 				$('#edit-distributor-alias').val(data.distributor_alias);
@@ -46,7 +47,7 @@ $("body").delegate("[data-do*='open-edit-distributor']", "click", function(){
 
 
 // Сохранение поставщика
-$("body").delegate("[data-do*='edit-distributor-save']", "click", function(){
+$("body").delegate("[data-do='edit-distributor-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-distributor/", {
@@ -76,8 +77,8 @@ $("body").delegate("[data-do*='edit-distributor-save']", "click", function(){
 			if ('success' == data.status){
 
 				// Обновлем информацию на странице
-				$("[data-distributor-name*='" + $('#edit-distributor-id').val() + "']").text($('#edit-distributor-name').val());
-				$("[data-distributor-state*='" + $('#edit-distributor-id').val() + "']").prop('checked', $('#edit-distributor-state').prop('checked'));
+				$("[data-distributor-name='" + $('#edit-distributor-id').val() + "']").text($('#edit-distributor-name').val());
+				$("[data-distributor-state='" + $('#edit-distributor-id').val() + "']").prop('checked', $('#edit-distributor-state').prop('checked'));
 
 				// Заполняем значение полей
 				$('#edit-distributor-id').val('0');
@@ -97,7 +98,7 @@ $("body").delegate("[data-do*='edit-distributor-save']", "click", function(){
 
 
 // Отмена редактирования поставщика
-$("body").delegate("[data-do*='edit-distributor-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-distributor-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-distributor-id').val('0');
@@ -118,7 +119,7 @@ $("body").delegate("[data-do*='edit-distributor-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления поставщика
-$("body").delegate("[data-do*='open-distributor-trash']", "click", function(){
+$("body").delegate("[data-do='open-distributor-trash']", "click", function(){
 
 	// Заполняем значение полей
 	$('#trash-distributor-id').val($(this).data('id'));
@@ -131,7 +132,7 @@ $("body").delegate("[data-do*='open-distributor-trash']", "click", function(){
 
 
 // Удаление поставщика
-$("body").delegate("[data-do*='trash-distributor']", "click", function(){
+$("body").delegate("[data-do='trash-distributor']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/trash-distributor/", {
@@ -171,7 +172,7 @@ $("body").delegate("[data-do*='trash-distributor']", "click", function(){
 
 
 // Смена статуса поставщика
-$("body").delegate("[data-do*='switch-distributor-state']", "click", function(){
+$("body").delegate("[data-do='switch-distributor-state']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/switch-distributor-state/", {

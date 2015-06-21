@@ -2,7 +2,7 @@
 
 
 // Открытие окна редактирования продукта (существующий)
-$("body").delegate("[data-do*='open-edit-product']", "click", function(){
+$("body").delegate("[data-do='open-edit-product']", "click", function(){
 
 	// Получаем информацию о продукте
 	$.post("/catalog/ajax/get-product/", {
@@ -14,6 +14,7 @@ $("body").delegate("[data-do*='open-edit-product']", "click", function(){
 			if ('success' == data.status){
 
 				// Заполняем значение полей
+				$('#modal-edit-product-header').text('Редактировать продукт');
 				$('#edit-product-id').val(data.product_id);
 				$('#edit-product-name').val(data.product_name)
 				$('#edit-product-article').val(data.product_article)
@@ -49,7 +50,7 @@ $("body").delegate("[data-do*='open-edit-product']", "click", function(){
 
 
 // Сохранение продукта
-$("body").delegate("[data-do*='edit-product-save']", "click", function(){
+$("body").delegate("[data-do='edit-product-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-product/", {
@@ -96,7 +97,7 @@ $("body").delegate("[data-do*='edit-product-save']", "click", function(){
 
 
 // Отмена редактирования продукта
-$("body").delegate("[data-do*='edit-product-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-product-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-product-id').val('0');
@@ -121,7 +122,7 @@ $("body").delegate("[data-do*='edit-product-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления продукта
-$("body").delegate("[data-do*='open-product-trash']", "click", function(){
+$("body").delegate("[data-do='open-product-trash']", "click", function(){
 
 	// Заполняем значение полей
 	$('#trash-product-id').val($(this).data('id'));
@@ -134,7 +135,7 @@ $("body").delegate("[data-do*='open-product-trash']", "click", function(){
 
 
 // Удаление продукта
-$("body").delegate("[data-do*='trash-product']", "click", function(){
+$("body").delegate("[data-do='trash-product']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/trash-product/", {

@@ -1,7 +1,7 @@
 {% if perms.catalog.add_category %}
 
 // Открытие окна редактирования категории (новая)
-$("body").delegate("[data-do*='open-new-category']", "click", function(){
+$("body").delegate("[data-do='open-new-category']", "click", function(){
 
 	// Заполняем значение полей
 	$('#modal-edit-category-header').text('Добавить категорию');
@@ -23,7 +23,7 @@ $("body").delegate("[data-do*='open-new-category']", "click", function(){
 
 
 // Открытие окна редактирования категории (существующая)
-$("body").delegate("[data-do*='open-edit-category']", "click", function(){
+$("body").delegate("[data-do='open-edit-category']", "click", function(){
 
 	// Получаем информацию о категории
 	$.post("/catalog/ajax/get-category/", {
@@ -69,7 +69,7 @@ $("body").delegate("[data-do*='open-edit-category']", "click", function(){
 
 
 // Сохранение категории
-$("body").delegate("[data-do*='edit-category-save']", "click", function(){
+$("body").delegate("[data-do='edit-category-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-category/", {
@@ -100,8 +100,8 @@ $("body").delegate("[data-do*='edit-category-save']", "click", function(){
 			if ('success' == data.status){
 
 				// Обновлем информацию на странице
-				$("[data-category-name*='" + $('#edit-category-id').val() + "']").text($('#edit-category-name').val());
-				$("[data-category-state*='" + $('#edit-category-id').val() + "']").prop('checked', $('#edit-category-state').prop('checked'));
+				$("[data-category-name='" + $('#edit-category-id').val() + "']").text($('#edit-category-name').val());
+				$("[data-category-state='" + $('#edit-category-id').val() + "']").prop('checked', $('#edit-category-state').prop('checked'));
 
 				// Заполняем значение полей
 				$('#edit-category-id').val('0');
@@ -125,7 +125,7 @@ $("body").delegate("[data-do*='edit-category-save']", "click", function(){
 
 
 // Отмена редактирования категории
-$("body").delegate("[data-do*='edit-category-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-category-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-category-id').val('0');
@@ -147,7 +147,7 @@ $("body").delegate("[data-do*='edit-category-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления категории
-$("body").delegate("[data-do*='open-delete-category']", "click", function(){
+$("body").delegate("[data-do='open-delete-category']", "click", function(){
 
 	// Получаем информацию о категории
 	$.post("/catalog/ajax/get-category/", {
@@ -187,8 +187,8 @@ $("body").delegate("[data-do*='open-delete-category']", "click", function(){
 });
 
 
-// Удаление производителя
-$("body").delegate("[data-do*='delete-category-apply']", "click", function(){
+// Удаление категории
+$("body").delegate("[data-do='delete-category-apply']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/delete-category/", {
@@ -228,7 +228,7 @@ $("body").delegate("[data-do*='delete-category-apply']", "click", function(){
 
 
 // Смена статуса производителя
-$("body").delegate("[data-do*='switch-category-state']", "click", function(){
+$("body").delegate("[data-do='switch-category-state']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/switch-category-state/", {

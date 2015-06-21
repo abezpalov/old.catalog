@@ -1,5 +1,5 @@
 // Просмотр партий
-$("body").delegate("[data-do*='open-view-parties']", "click", function(){
+$("body").delegate("[data-do='open-view-parties']", "click", function(){
 
 	// Очищаем содержимое
 	$('#modal-view-parties-content').html('')

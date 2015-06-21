@@ -2,7 +2,7 @@
 
 
 // Открытие окна редактирования загрузчика (существующий)
-$("body").delegate("[data-do*='open-edit-updater']", "click", function(){
+$("body").delegate("[data-do='open-edit-updater']", "click", function(){
 
 	// Получаем информацию о загрузчике
 	$.post("/catalog/ajax/get-updater/", {
@@ -14,6 +14,7 @@ $("body").delegate("[data-do*='open-edit-updater']", "click", function(){
 			if ('success' == data.status){
 
 				// Заполняем значение полей
+				$('#modal-edit-updater-header').text('Редактировать загрузчик');
 				$('#edit-updater-id').val(data.updater_id);
 				$('#edit-updater-name').val(data.updater_name);
 				$('#edit-updater-alias').val(data.updater_alias);
@@ -47,7 +48,7 @@ $("body").delegate("[data-do*='open-edit-updater']", "click", function(){
 
 
 // Сохранение загрузчика
-$("body").delegate("[data-do*='edit-updater-save']", "click", function(){
+$("body").delegate("[data-do='edit-updater-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-updater/", {
@@ -78,8 +79,8 @@ $("body").delegate("[data-do*='edit-updater-save']", "click", function(){
 			if ('success' == data.status){
 
 				// Обновлем информацию на странице
-				$("[data-updater-name*='" + $('#edit-updater-id').val() + "']").text($('#edit-updater-name').val());
-				$("[data-updater-state*='" + $('#edit-updater-id').val() + "']").prop('checked', $('#edit-updater-state').prop('checked'));
+				$("[data-updater-name='" + $('#edit-updater-id').val() + "']").text($('#edit-updater-name').val());
+				$("[data-updater-state='" + $('#edit-updater-id').val() + "']").prop('checked', $('#edit-updater-state').prop('checked'));
 
 				// Заполняем значение полей
 				$('#edit-updater-id').val('0');
@@ -100,7 +101,7 @@ $("body").delegate("[data-do*='edit-updater-save']", "click", function(){
 
 
 // Отмена редактирования загрузчика
-$("body").delegate("[data-do*='edit-updater-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-updater-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-updater-id').val('0');
@@ -122,7 +123,7 @@ $("body").delegate("[data-do*='edit-updater-cancel']", "click", function(){
 
 
 // Открытие модального окна удаления загрузчика
-$("body").delegate("[data-do*='open-updater-trash']", "click", function(){
+$("body").delegate("[data-do='open-updater-trash']", "click", function(){
 
 	// Заполняем значение полей
 	$('#trash-updater-id').val($(this).data('id'));
@@ -135,7 +136,7 @@ $("body").delegate("[data-do*='open-updater-trash']", "click", function(){
 
 
 // Удаление загрузчика
-$("body").delegate("[data-do*='trash-updater']", "click", function(){
+$("body").delegate("[data-do='trash-updater']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/trash-updater/", {
@@ -175,7 +176,7 @@ $("body").delegate("[data-do*='trash-updater']", "click", function(){
 
 
 // Смена статуса загрузчика
-$("body").delegate("[data-do*='switch-updater-state']", "click", function(){
+$("body").delegate("[data-do='switch-updater-state']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/switch-updater-state/", {
