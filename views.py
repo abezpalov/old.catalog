@@ -910,9 +910,9 @@ def ajaxSaveVendor(request):
 
 	# alias
 	if request.POST.get('vendor_alias').strip():
-		vendor.alias = unidecode.unidecode(request.POST.get('vendor_alias')).strip()[:100]
+		vendor.alias = unidecode.unidecode(request.POST.get('vendor_alias')).lower().strip()[:100]
 	else:
-		vendor.alias = unidecode.unidecode(request.POST.get('vendor_name')).strip()[:100]
+		vendor.alias = unidecode.unidecode(request.POST.get('vendor_name')).lower().strip()[:100]
 
 	# description
 	if request.POST.get('vendor_description').strip():
