@@ -158,8 +158,8 @@ urlpatterns = patterns('',
 	# ex: /catalog/vendor-synonyms/1/2/none/
 	url(r'^vendor-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<vendor_selected>[a-zA-Z0-9_-]+)/$', views.vendorsynonyms, name='vendorsynonyms'),
 	# AJAX
-#	url(r'^ajax/get-vendor-synonym/$', views.ajaxGetVendorSynonym, name='ajaxGetVendorSynonym'),
-#	url(r'^ajax/save-vendor-synonym/$', views.ajaxSaveVendorSynonym, name='ajaxSaveVendorSynonym'),
-#	url(r'^ajax/link-vendor-synonym/$', views.ajaxLinkVendorSynonym, name='ajaxLinkVendorSynonym'),
-#	url(r'^ajax/delete-vendor-synonym/$', views.ajaxDeleteVendorSynonym, name='ajaxDeleteVendorSynonym'),
+	url(r'^ajax/get-vendor-synonym/$', views.ajaxGetVendorSynonym, name='ajaxGetVendorSynonym'),
+	url(r'^ajax/save-vendor-synonym/$', views.ajaxSaveVendorSynonym, name='ajaxSaveVendorSynonym'),
+	url(r'^ajax/delete-vendor-synonym/$', views.ajaxDeleteVendorSynonym, name='ajaxDeleteVendorSynonym'),
+	url(r'^ajax/link-vendor-synonym-same-vendor/$', views.ajaxLinkVendorSynonymSameVendor, name='ajaxLinkVendorSynonymSameVendor'),
 )

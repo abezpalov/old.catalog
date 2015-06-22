@@ -1,44 +1,61 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Синонимы производителей{% endblock %}
+{% block title %}Anodos.Catalog: синонимы производителей{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
 {% block content %}
-{% if perms.catalog.change_product %}
+
+{% if perms.catalog.add_vendorsynonym %}
+
+<!-- Панель кнопок -->
+<div class="row collapse">
+	<ul class="button-group even-2">
+		<li><button data-do="open-new-vendor-synonym" class="secondary expand"><i class="fa fa-pencil"></i> Добавить синоним</button></li>
+		<li><button data-do="open-new-vendor" class="secondary expand"><i class="fa fa-pencil"></i> Добавить производителя</button></li>
+	</ul>
+</div>
+
+{% endif %}
+
+{% if perms.catalog.add_vendorsynonym or perms.catalog.change_vendorsynonym %}
 
 <!-- Форма фильтра вывода -->
 <div class="row collapse">
-	<fieldset>
-		<legend>Фильтр отображения</legend>
-		<div class="small-4 columns">
-			<label>Загрузчики
-				<select id="filter-updater" class="do-filter-table">
-					<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
-					{% for updater in updaters %}
-					<option value="{{ updater.id }}">{{ updater.name }}</option>
-					{% endfor %}
-				</select>
-			</label>
-		</div>
-		<div class="small-4 columns">
-			<label>Поставщики
-				<select id="filter-distributor" class="do-filter-table">
-					<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
-					{% for distributor in distributors %}
-					<option value="{{ distributor.id }}">{{ distributor.name }}</option>
-					{% endfor %}
-				</select>
-			</label>
-		</div>
-		<div class="small-4 columns">
-			<label>Производитель
-				<select id="filter-vendor" class="do-filter-table">
-					<option value="all"{% if vendor_selected == 'all' %} selected{% endif %}> - Все производители - </option>
-					<option value="null"{% if vendor_selected == 'null' %} selected{% endif %}> - Не определён - </option>
-					{% for vendor in vendors %}
-					<option value="{{ vendor.id }}">{{ vendor.name }}</option>
-					{% endfor %}
-				</select>
-			</label>
-		</div>
-	</fieldset>
+	<div class="small-4 columns">
+		<label>Загрузчик
+			<select id="filter-updater" data-do="filter-vendor-synonyms">
+				<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
+				<option value="0"{% if updater_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for updater in updaters %}
+				<option value="{{ updater.id }}"{% if updater.id == updater_selected %} selected{% endif %}>{{ updater.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+	<div class="small-4 columns">
+		<label>Поставщик
+			<select id="filter-distributor" data-do="filter-vendor-synonyms">
+				<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
+				<option value="0"{% if distributor_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for distributor in distributors %}
+				<option value="{{ distributor.id }}"{% if distributor.id == distributor_selected %} selected{% endif %}>{{ distributor.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+	<div class="small-4 columns">
+		<label>Производитель
+			<select id="filter-vendor" data-do="filter-vendor-synonyms">
+				<option value="all"{% if vendor_selected == 'all' %} selected{% endif %}> - Все производители - </option>
+				<option value="0"{% if vendor_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for vendor in vendors %}
+				<option value="{{ vendor.id }}"{% if vendor.id == vendor_selected %} selected{% endif %}>{{ vendor.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
 </div>
 
 <!-- Таблица со списком синонимов -->
@@ -52,53 +69,52 @@
 			<th>Производитель</th>
 			<th>Управление</th>
 		</tr>
-		{% for item in items %}
-		<tr>
+		{% for vendor_synonym in vendor_synonyms %}
+		<tr data-vendor-synonym="{{ vendor_synonym.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a href="/catalog/vendor-synonym/{{ item.id }}/" id="item-{{ item.id }}" data-do="edit-item" data-id="{{ item.id }}" data-vendor="{{ item.vendor.id }}">{{ item.name }}</a></td>
-			<td class="hide-for-small-only">{{ item.updater }}</td>
-			<td class="hide-for-small-only">{{ item.distributor }}</td>
-			<td>{{ item.vendor.name }}</td>
 			<td>
-				<button class="tiny" data-do="link-vendor-same-synonym" data-id="{{ item.id }}"><i class="fa fa-link"></i></button>
-				<button class="tiny alert" data-do="trash-item" data-id="{{ item.id }}"><i class="fa fa-trash"></i></button>
+				<a data-do="open-edit-vendor-synonym" data-id="{{ vendor_synonym.id }}" data-vendor-synonym-name="vendor_synonym.id">{{ vendor_synonym.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-updater" data-id="{{ vendor_synonym.updater.id }}" data-updater-name="vendor_synonym.updater.id">{{ vendor_synonym.updater.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-distributor" data-id="{{ vendor_synonym.distributor.id }}" data-distributor-name="vendor_synonym.distributor.id">{{ vendor_synonym.distributor.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-vendor" data-id="{{ vendor_synonym.vendor.id }}" data-vendor-name="vendor_synonym.vendor.id">{{ vendor_synonym.vendor.name }}</a>
+			</td>
+			<td>
+				<button class="tiny" data-do="link-vendor-synonym-same-vendor" data-id="{{ vendor_synonym.id }}"><i class="fa fa-link"></i></button>
+				<button class="tiny alert" data-do="open-delete-vendor-synonym" data-id="{{ vendor_synonym.id }}"><i class="fa fa-trash"></i></button>
 			</td>
 		</tr>
 		{% endfor %}
 	</table>
 </div>
 
-<!-- Модальное окно редактирования элемента -->
-<div id="EditItemModal" class="reveal-modal large" data-reveal>
-	<fieldset>
-		<legend>Редактировать синоним производителя</legend>
-		<input id="edit-item-id" type="hidden">
-		<label>Наименование
-			<input id="edit-item-name" type="text">
-		</label>
-		<select id="edit-item-vendor">
-			<option value="null" selected> - Не определён - </option>
-			{% for vendor in vendors %}
-			<option value="{{ vendor.id }}">{{ vendor.name }}</option>
-			{% endfor %}
-		</select>
-	</fieldset>
-	<button data-do="edit-item-save">Сохранить</button>
-	<button data-do="edit-item-cancel" class="secondary">Отменить</button>
-</div>
-
 {% else %}
+
 <div class="row collapse">
 	<div class="small-12 columns">
 		<p class="panel">Недостаточно прав для данной функциональности.</p>
 	</div>
 </div>
+
 {% endif %}
+
+{% include "catalog/modal/edit-vendor-synonym.html" %}
+{% include "catalog/modal/edit-updater.html" %}
+{% include "catalog/modal/edit-distributor.html" %}
+{% include "catalog/modal/edit-vendor.html" %}
 {% endblock %}
+
 {% block js-content %}
-{% if perms.catalog.change_product %}
 <script>
-{% include "catalog/js/vendorsynonyms.js" %}
+{% include "catalog/js/edit-vendor-synonym.js" %}
+{% include "catalog/js/edit-updater.js" %}
+{% include "catalog/js/edit-distributor.js" %}
+{% include "catalog/js/edit-vendor.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
 </script>
-{% endif %}
 {% endblock %}

@@ -2021,131 +2021,275 @@ def ajaxDeleteCategorySynonym(request):
 
 # Vendor Synonym
 
-
-def vendorsynonyms(request, updater_selected='all', distributor_selected='all', vendor_selected='all'):
+def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'all', vendor_selected = 'all'):
 	"Представление: список синонимов производителей."
-
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
 
 	# Импортируем
 	from catalog.models import VendorSynonym, Vendor, Updater, Distributor
 
-	# Получаем список объектов синонимов
-	synonyms = VendorSynonym.objects.all().order_by('name')
-	if (updater_selected != 'all'):
-		synonyms = synonyms.filter(updater=updater_selected)
+	# Преобразуем типы данных
+	if updater_selected != 'all':
 		updater_selected = int(updater_selected)
-	if (distributor_selected != 'all'):
-		synonyms = synonyms.filter(distributor=distributor_selected)
+	if distributor_selected != 'all':
 		distributor_selected = int(distributor_selected)
-	if (vendor_selected != 'all' and vendor_selected != 'null'):
-		synonyms = synonyms.filter(vendor=vendor_selected)
+	if vendor_selected != 'all':
 		vendor_selected = int(vendor_selected)
-	if (vendor_selected == 'null'):
-		synonyms = synonyms.filter(vendor=None)
 
-	# Получаем дополнительные списки объектов
-	updaters = Updater.objects.all().order_by('name')
-	distributors = Distributor.objects.all().order_by('name')
-	vendors = Vendor.objects.all().order_by('name')
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.add_vendorsynonym')\
+	or request.user.has_perm('catalog.change_vendorsynonym')\
+	or request.user.has_perm('catalog.delete_vendorsynonym'):
+
+		# Получаем список объектов синонимов
+		vendor_synonyms = VendorSynonym.objects.all().order_by('name')
+
+		if updater_selected and updater_selected != 'all':
+			vendor_synonyms = vendor_synonyms.filter(updater = updater_selected)
+		if not updater_selected:
+			vendor_synonyms = vendor_synonyms.filter(updater = None)
+
+		if distributor_selected and distributor_selected != 'all':
+			vendor_synonyms = vendor_synonyms.filter(distributor = distributor_selected)
+		if not distributor_selected:
+			vendor_synonyms = vendor_synonyms.filter(distributor = None)
+
+		if vendor_selected and vendor_selected != 'all':
+			vendor_synonyms = vendor_synonyms.filter(vendor = vendor_selected)
+		if not vendor_selected:
+			vendor_synonyms = vendor_synonyms.filter(vendor = None)
+
+		# Получаем дополнительные списки объектов
+		updaters = Updater.objects.all().order_by('name')
+		distributors = Distributor.objects.all().order_by('name')
+		vendors = Vendor.objects.all().order_by('name')
+
 
 	return render(request, 'catalog/vendorsynonyms.html', locals())
 
 
-def vendorsynonym(request, synonym_id):
-	"Представление: синоним производителя."
-
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+def ajaxGetVendorSynonym(request):
+	"AJAX-представление: Get Vendor Synonym."
 
 	# Импортируем
-	from catalog.models import VendorSynonym, Vendor, Updater, Distributor
-
-	# Получаем список
-	synonym = VendorSynonym.objects.get(id=synonym_id)
-
-	return render(request, 'catalog/vendorsynonym.html', locals())
-
-
-def ajaxLinkVendorSynonym(request):
-	"AJAX-представление: Link Vendor Synonym."
-
-	# Импортируем
-	from catalog.models import VendorSynonym, Vendor
-	from datetime import datetime
 	import json
+	from catalog.models import VendorSynonym, Updater, Distributor, Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_vendorsynonym')\
+	or not request.user.has_perm('catalog.delete_vendorsynonym'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
-	# Проверяем корректность вводных данных
-	if not request.POST.get('vendor') or not request.POST.get('synonym'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			synonym = VendorSynonym.objects.get(id=request.POST.get('synonym'))
-			if request.POST.get('vendor') == 'null':
-				vendor = None
-				synonym.vendor = None
-				synonym.save()
-				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' отвязан от производителя.'}
-			else:
-				vendor = Vendor.objects.get(id=request.POST.get('vendor'))
-				synonym.vendor = vendor
-				synonym.save()
-				result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к производителю ' + vendor.name + '.'}
-		except VendorSynonym.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Синоним с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
-		except Vendor.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Производитель с идентификатором ' + request.POST.get('vendor') + ' отсутствует в базе.'}
+	# Получаем объект
+	try:
+		s = VendorSynonym.objects.get(
+			id = request.POST.get('vendor_synonym_id'))
+
+		vendor_synonym         = {}
+		vendor_synonym['id']   = s.id
+		vendor_synonym['name'] = s.name
+
+		if s.updater:
+			vendor_synonym['updater']          = {}
+			vendor_synonym['updater']['id']    = s.updater.id
+			vendor_synonym['updater']['name']  = s.updater.alias
+			vendor_synonym['updater']['alias'] = s.updater.name
+		else:
+			vendor_synonym['updater']          = {}
+			vendor_synonym['updater']['id']    = 0
+			vendor_synonym['updater']['name']  = ''
+			vendor_synonym['updater']['alias'] = ''
+
+		if s.distributor:
+			vendor_synonym['distributor']          = {}
+			vendor_synonym['distributor']['id']    = s.distributor.id
+			vendor_synonym['distributor']['name']  = s.distributor.name
+			vendor_synonym['distributor']['alias'] = s.distributor.alias
+		else:
+			vendor_synonym['distributor']          = {}
+			vendor_synonym['distributor']['id']    = 0
+			vendor_synonym['distributor']['name']  = ''
+			vendor_synonym['distributor']['alias'] = ''
+
+		if s.vendor:
+			vendor_synonym['vendor']          = {}
+			vendor_synonym['vendor']['id']    = s.vendor.id
+			vendor_synonym['vendor']['name']  = s.vendor.name
+			vendor_synonym['vendor']['alias'] = s.vendor.alias
+		else:
+			vendor_synonym['vendor']          = {}
+			vendor_synonym['vendor']['id']    = 0
+			vendor_synonym['vendor']['name']  = ''
+			vendor_synonym['vendor']['alias'] = ''
+
+		result = {
+			'status':   'success',
+			'message':  'Данные синонима категории получены.',
+			'vendor_synonym': vendor_synonym}
+
+	except VendorSynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним производителя отсутствует в базе.'}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+def ajaxSaveVendorSynonym(request):
+	"AJAX-представление: Save Vendor Synonym."
+
+	# Импортируем
+	import json
+	from django.utils import timezone
+	from catalog.models import VendorSynonym, Updater, Distributor, Vendor
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	try:
+		vendor_synonym = VendorSynonym.objects.get(
+			id = request.POST.get('vendor_synonym_id'))
+		if not request.user.has_perm('catalog.change_vendorsynonym'):
+			return HttpResponse(status = 403)
+	except VendorSynonym.DoesNotExist:
+		vendor_synonym = VendorSynonym()
+		if not request.user.has_perm('catalog.add_vendorsynonym'):
+			return HttpResponse(status = 403)
+		vendor_synonym.created = timezone.now()
+
+	# name
+	if not request.POST.get('vendor_synonym_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	vendor_synonym.name = request.POST.get('vendor_synonym_name').strip()[:1024]
+
+	# updater
+	try:
+		vendor_synonym.updater = Updater.objects.get(
+			id = request.POST.get('vendor_synonym_updater_id'))
+	except Updater.DoesNotExist:
+		vendor_synonym.updater = None
+
+	# distributor
+	try:
+		vendor_synonym.distributor = Distributor.objects.get(
+			id = request.POST.get('vendor_synonym_distributor_id'))
+	except Distributor.DoesNotExist:
+		vendor_synonym.distributor = None
+
+	# vendor
+	try:
+		vendor_synonym.vendor = Vendor.objects.get(
+			id = request.POST.get('vendor_synonym_vendor_id'))
+	except Vendor.DoesNotExist:
+		vendor_synonym.vendor = None
+
+	# modified
+	vendor_synonym.modified = timezone.now()
+
+	# Сохраняем
+	vendor_synonym.save()
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Синоним производителя {} сохранён.'.format(vendor_synonym.name)}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxDeleteVendorSynonym(request):
+	"AJAX-представление: Delete Vendor Synonym."
+
+	# Импортируем
+	import json
+	from catalog.models import VendorSynonym
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.delete_vendorsynonym'):
+		return HttpResponse(status = 403)
+
+	# Получаем объект
+	try:
+		vendor_synonym = VendorSynonym.objects.get(
+			id = request.POST.get('vendor_synonym_id'))
+		vendor_synonym.delete()
+		result = {'status': 'success', 'message': 'Синоним категории удалён.'}
+	except VendorSynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним производителя отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
-def ajaxLinkVendorSameSynonym(request):
-	"AJAX-представление: Link Vendor Same Synonym."
+def ajaxLinkVendorSynonymSameVendor(request):
+	"AJAX-представление: Link Vendor Synonym same Vendor."
 
 	# Импортируем
 	import json
 	import unidecode
-	from datetime import datetime
+	from django.utils import timezone
 	from catalog.models import VendorSynonym, Vendor
 
 	# Проверяем тип запроса
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	# TODO Проверяем права доступа
-	#	return HttpResponse(status=403)
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_vendorsynonym')\
+	or not request.user.has_perm('catalog.add_vendor'):
+		return HttpResponse(status = 403)
 
-	# Проверяем корректность вводных данных
-	if not request.POST.get('synonym'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			synonym = VendorSynonym.objects.get(id=request.POST.get('synonym'))
-			try:
-				name = synonym.name
-				alias = unidecode.unidecode(name.lower())
-				alias = alias.replace(' ', '-')
-				alias = alias.replace('&', 'and')
-				alias = alias.replace('\'', '')
-				vendor = Vendor.objects.get(alias=alias)
-			except Vendor.DoesNotExist:
-				vendor = Vendor(name=name, alias=alias, created=datetime.now(), modified=datetime.now())
-				vendor.save()
-			synonym.vendor = vendor
-			synonym.save()
-			result = {'status': 'success', 'message': 'Синоним ' + synonym.name + ' привязан к одноименному производителю.'}
+	# Получаем объект синонима
+	try:
+		vendor_synonym = VendorSynonym.objects.get(
+			id = request.POST.get('vendor_synonym_id'))
+	except VendorSynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним производителя отсутствует в базе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
 
-		except VendorSynonym.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Синоним с идентификатором ' + request.POST.get('synonym') + ' отсутствует в базе.'}
+	# name
+	name = vendor_synonym.name
+
+	# alias
+	alias = unidecode.unidecode(name.lower())
+	alias = alias.replace(' ', '-')
+	alias = alias.replace('&', 'and')
+	alias = alias.replace('\'', '')
+
+	# vendor
+	try:
+		vendor = Vendor.objects.get(alias = alias)
+	except Vendor.DoesNotExist:
+		vendor = Vendor()
+		vendor.name = name
+		vendor.alias = alias
+		vendor.created = timezone.now()
+		vendor.modified = timezone.now()
+		vendor.save()
+
+	vendor_synonym.vendor = vendor
+	vendor_synonym.modified = timezone.now()
+	vendor_synonym.save()
+
+	result = {'status': 'success', 'message': 'Синоним {} привязан к одноименному производителю {}.'.format(vendor_synonym.name, vendor.name)}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
