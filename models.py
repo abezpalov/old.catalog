@@ -2,14 +2,15 @@ import uuid
 from django.db import models
 from django.utils import timezone
 
-# Connector
+
 class Connector(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100, unique=True)
-	login = models.CharField(max_length=100)
-	password = models.CharField(max_length=100)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
+
+	name     = models.CharField(max_length = 100)
+	alias    = models.CharField(max_length = 100, unique = True)
+	login    = models.CharField(max_length = 100)
+	password = models.CharField(max_length = 100)
+	state    = models.BooleanField(default = True)
+	created  = models.DateTimeField()
 	modified = models.DateTimeField()
 
 	def __str__(self):
@@ -18,27 +19,33 @@ class Connector(models.Model):
 	class Meta:
 		ordering = ['name']
 
-# Distributor manager
+
 class DistributorManager(models.Manager):
 
 	def take(self, alias, name):
 		try:
-			distributor = self.get(alias=alias)
+			distributor = self.get(alias = alias)
 		except Distributor.DoesNotExist:
-			distributor = Distributor(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
+			distributor = Distributor(
+				alias    = alias,
+				name     = name,
+				created  = timezone.now(),
+				modified = timezone.now())
 			distributor.save()
 		return distributor
 
-# Distributor
+
 class Distributor(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100, unique=True)
+
+	name        = models.CharField(max_length = 100)
+	alias       = models.CharField(max_length = 100, unique = True)
 	description = models.TextField()
-	connector = models.ForeignKey(Connector, null=True, default=None)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = DistributorManager()
+	connector   = models.ForeignKey(Connector, null = True, default = None)
+	state       = models.BooleanField(default = True)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+
+	objects     = DistributorManager()
 
 	def __str__(self):
 		return self.name
@@ -46,29 +53,37 @@ class Distributor(models.Model):
 	class Meta:
 		ordering = ['name']
 
-# Updater manager
+
 class UpdaterManager(models.Manager):
 
-	def take(self, alias, name, distributor=None):
+	def take(self, alias, name, distributor = None):
 		try:
-			updater = self.get(alias=alias)
+			updater = self.get(alias = alias)
 		except Updater.DoesNotExist:
-			updater = Updater(alias=alias, name=name, distributor=distributor, created=timezone.now(), modified=timezone.now(), updated=timezone.now())
+			updater = Updater(
+				alias       = alias,
+				name        = name,
+				distributor = distributor,
+				created     = timezone.now(),
+				modified    = timezone.now(),
+				updated     = timezone.now())
 			updater.save()
 		return updater
 
-# Updater
+
 class Updater(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100, unique=True)
-	distributor = models.ForeignKey(Distributor, null=True, default=None)
-	login = models.CharField(max_length=100)
-	password = models.CharField(max_length=100)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	updated = models.DateTimeField()
-	objects = UpdaterManager()
+
+	name        = models.CharField(max_length = 100)
+	alias       = models.CharField(max_length = 100, unique = True)
+	distributor = models.ForeignKey(Distributor, null = True, default = None)
+	login       = models.CharField(max_length = 100)
+	password    = models.CharField(max_length = 100)
+	state       = models.BooleanField(default = True)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+	updated     = models.DateTimeField()
+
+	objects     = UpdaterManager()
 
 	def __str__(self):
 		return self.name
@@ -80,26 +95,36 @@ class Updater(models.Model):
 # Stock manager
 class StockManager(models.Manager):
 
-	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20, distributor=None):
+	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20,
+			distributor=None):
 		try:
-			stock = self.get(alias=alias)
+			stock = self.get(alias = alias)
 		except Stock.DoesNotExist:
-			stock = Stock(alias=alias, name=name, delivery_time_min = delivery_time_min, delivery_time_max = delivery_time_max, distributor=distributor, created=timezone.now(), modified=timezone.now())
+			stock = Stock(
+				alias             = alias,
+				name              = name,
+				delivery_time_min = delivery_time_min,
+				delivery_time_max = delivery_time_max,
+				distributor       = distributor,
+				created           = timezone.now(),
+				modified          = timezone.now())
 			stock.save()
 		return stock
 
 
 # Stock
 class Stock(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100, unique=True)
-	distributor = models.ForeignKey(Distributor, null=True, default=None)
+
+	name              = models.CharField(max_length = 100)
+	alias             = models.CharField(max_length = 100, unique = True)
+	distributor       = models.ForeignKey(Distributor, null = True, default = None)
 	delivery_time_min = models.IntegerField()
 	delivery_time_max = models.IntegerField()
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = StockManager()
+	state             = models.BooleanField(default = True)
+	created           = models.DateTimeField()
+	modified          = models.DateTimeField()
+
+	objects           = StockManager()
 
 	def __str__(self):
 		return self.name
@@ -108,14 +133,13 @@ class Stock(models.Model):
 		ordering = ['name']
 
 
-# Category manager
 class CategoryManager(models.Manager):
 
-	def getCategoryTree(self, tree, parent=None):
+	def getCategoryTree(self, tree, parent = None):
 		"Функция: дерево категорий (используется рекурсия)."
 
 		# Получаем список дочерних категорий
-		categories = self.filter(parent=parent).order_by('order')
+		categories = self.filter(parent = parent).order_by('order')
 
 		# Проходим по списку категорий с рекурсивным погружением
 		for category in categories:
@@ -126,14 +150,14 @@ class CategoryManager(models.Manager):
 		return tree
 
 
-	def getCategoryHTMLTree(self, root, parent=None, first=None):
+	def getCategoryHTMLTree(self, root, parent = None, first = None):
 		"Функция: дерево категорий (используется рекурсия)."
 
 		# Импортируем
 		from lxml import etree
 
 		# Получаем список дочерних категорий
-		categories = self.filter(parent=parent).filter(state=True).order_by('order')
+		categories = self.filter(parent = parent).filter(state = True).order_by('order')
 
 		# Проходим по списку категорий с рекурсивным погружением
 		if len(categories):
@@ -177,19 +201,20 @@ class CategoryManager(models.Manager):
 		return root
 
 
-# Category
 class Category(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
+
+	name        = models.CharField(max_length = 100)
+	alias       = models.CharField(max_length = 100)
 	description = models.TextField()
-	parent = models.ForeignKey('self', null=True, default=None)
-	level = models.IntegerField()
-	order = models.IntegerField()
-	path = models.CharField(max_length=100)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = CategoryManager()
+	parent      = models.ForeignKey('self', null = True, default = None)
+	level       = models.IntegerField()
+	order       = models.IntegerField()
+	path        = models.CharField(max_length = 100)
+	state       = models.BooleanField(default = True)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+
+	objects     = CategoryManager()
 
 	def __str__(self):
 		return self.name
@@ -197,7 +222,7 @@ class Category(models.Model):
 	class Meta:
 		ordering = ['order']
 
-# Vendor manager
+
 class VendorManager(models.Manager):
 
 	def take(self, alias, name):
@@ -208,15 +233,17 @@ class VendorManager(models.Manager):
 			vendor.save()
 		return vendor
 
-# Vendor
+
 class Vendor(models.Model):
-	name = models.CharField(max_length=100, unique=True)
-	alias = models.CharField(max_length=100, unique=True)
+
+	name        = models.CharField(max_length = 100, unique = True)
+	alias       = models.CharField(max_length = 100, unique = True)
 	description = models.TextField()
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = VendorManager()
+	state       = models.BooleanField(default = True)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+
+	objects     = VendorManager()
 
 	def __str__(self):
 		return self.name
@@ -224,25 +251,31 @@ class Vendor(models.Model):
 	class Meta:
 		ordering = ['name']
 
-# Unit manager
+
 class UnitManager(models.Manager):
 
 	def take(self, alias, name):
 		try:
 			unit = self.get(alias=alias)
 		except Unit.DoesNotExist:
-			unit = Unit(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
+			unit = Unit(
+				alias    = alias,
+				name     = name,
+				created  = timezone.now(),
+				modified = timezone.now())
 			unit.save()
 		return unit
 
-# Unit
+
 class Unit(models.Model):
-	name = models.CharField(max_length=100, unique=True)
-	alias = models.CharField(max_length=100, unique=True)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
+
+	name     = models.CharField(max_length = 100, unique = True)
+	alias    = models.CharField(max_length = 100, unique = True)
+	state    = models.BooleanField(default = True)
+	created  = models.DateTimeField()
 	modified = models.DateTimeField()
-	objects = UnitManager()
+
+	objects  = UnitManager()
 
 	def __str__(self):
 		return self.name
@@ -250,26 +283,32 @@ class Unit(models.Model):
 	class Meta:
 		ordering = ['name']
 
-# Price Type manager
+
 class PriceTypeManager(models.Manager):
 
 	def take(self, alias, name):
 		try:
 			price_type = self.get(alias=alias)
 		except PriceType.DoesNotExist:
-			price_type = PriceType(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
+			price_type = PriceType(
+				alias    = alias,
+				name     = name,
+				created  = timezone.now(),
+				modified = timezone.now())
 			price_type.save()
 		return price_type
 
-# Price Type
+
 class PriceType(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100, unique=True)
-	state = models.BooleanField(default=True)
-	multiplier = models.DecimalField(max_digits=10, decimal_places=4, default=1.0)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = PriceTypeManager()
+
+	name       = models.CharField(max_length = 100)
+	alias      = models.CharField(max_length = 100, unique = True)
+	state      = models.BooleanField(default = True)
+	multiplier = models.DecimalField(max_digits = 10, decimal_places = 4, default = 1.0)
+	created    = models.DateTimeField()
+	modified   = models.DateTimeField()
+
+	objects    = PriceTypeManager()
 
 	def __str__(self):
 		return self.name
@@ -277,28 +316,36 @@ class PriceType(models.Model):
 	class Meta:
 		ordering = ['name']
 
-# Currency manager
+
 class CurrencyManager(models.Manager):
 
-	def take(self, alias, name, full_name, rate=1, quantity=1):
+	def take(self, alias, name, full_name, rate = 1, quantity = 1):
 		try:
-			currency = self.get(alias=alias)
+			currency = self.get(alias = alias)
 		except Currency.DoesNotExist:
-			currency = Currency(alias=alias, name=name, full_name=full_name, rate=rate, quantity=quantity, created=timezone.now(), modified=timezone.now())
+			currency = Currency(
+				alias     = alias,
+				name      = name,
+				full_name = full_name,
+				rate      = rate,
+				quantity  = quantity,
+				created   = timezone.now(),
+				modified  = timezone.now())
 			currency.save()
 		return currency
 
-# Currency
+
 class Currency(models.Model):
-	name = models.CharField(max_length=100)
-	full_name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100, unique=True)
-	rate = models.DecimalField(max_digits=10, decimal_places=4)
-	quantity = models.DecimalField(max_digits=10, decimal_places=3)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = CurrencyManager()
+	name      = models.CharField(max_length = 100)
+	full_name = models.CharField(max_length = 100)
+	alias     = models.CharField(max_length = 100, unique = True)
+	rate      = models.DecimalField(max_digits = 10, decimal_places = 4)
+	quantity  = models.DecimalField(max_digits = 10, decimal_places = 3)
+	state     = models.BooleanField(default = True)
+	created   = models.DateTimeField()
+	modified  = models.DateTimeField()
+
+	objects   = CurrencyManager()
 
 	def __str__(self):
 		return self.name
@@ -306,7 +353,7 @@ class Currency(models.Model):
 	class Meta:
 		ordering = ['alias']
 
-# Price manager
+
 class PriceManager(models.Manager):
 
 	def recalculate(self):
@@ -316,9 +363,16 @@ class PriceManager(models.Manager):
 		from catalog.models import Party
 		from catalog.models import PriceType
 
-		rp = PriceType.objects.take(alias='RP', name='Розничная цена')
-		rub = Currency.objects.take(alias='RUB', name='р.', full_name='Российский рубль', rate=1, quantity=1)
+		rp = PriceType.objects.take(
+			alias = 'RP',
+			name  = 'Розничная цена')
 
+		rub = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
 
 		# Получаем перечень всех продуктов
 		products = Product.objects.all()
@@ -326,7 +380,7 @@ class PriceManager(models.Manager):
 		for n, product in enumerate(products):
 
 			# Получаем партии продукта
-			parties = Party.objects.filter(product=product)
+			parties = Party.objects.filter(product = product)
 
 			# Получаем цену
 			if product.price:
@@ -343,13 +397,13 @@ class PriceManager(models.Manager):
 
 			# Записываем лучшую в базу
 			if len(prices):
-				price.price = min(prices)
+				price.price      = min(prices)
 				price.price_type = rp
-				price.currency = rub
+				price.currency   = rub
 			else:
-				price.price = None
+				price.price      = None
 				price.price_type = rp
-				price.currency = rub
+				price.currency   = rub
 			price.modified = timezone.now()
 			price.save()
 
@@ -362,21 +416,22 @@ class PriceManager(models.Manager):
 
 		return True
 
-# Price
+
 class Price(models.Model):
-	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
-	price_type = models.ForeignKey(PriceType, null=True, default=None)
-	currency = models.ForeignKey(Currency, null=True, default=None)
-	fixed = models.BooleanField(default=False)
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = PriceManager()
+	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	price_type = models.ForeignKey(PriceType, null = True, default = None)
+	currency   = models.ForeignKey(Currency, null = True, default = None)
+	fixed      = models.BooleanField(default = False)
+	state      = models.BooleanField(default = True)
+	created    = models.DateTimeField()
+	modified   = models.DateTimeField()
+
+	objects    = PriceManager()
 
 	def _get_price_str(self):
 
 		try:
-			price = self.price
+			price    = self.price
 			currency = self.currency
 		except: return None
 
@@ -394,7 +449,7 @@ class Price(models.Model):
 	class Meta:
 		ordering = ['-created']
 
-# Quantity manager
+
 class QuantityManager(models.Manager):
 
 	def recalculate(self):
@@ -463,14 +518,15 @@ class QuantityManager(models.Manager):
 
 		return True
 
-# Quantity
+
 class Quantity(models.Model):
-	on_stock   = models.IntegerField(null=True, default=None)
-	on_transit = models.IntegerField(null=True, default=None)
-	on_factory = models.IntegerField(null=True, default=None)
-	unit       = models.ForeignKey(Unit, null=True, default=None)
-	fixed      = models.BooleanField(default=False)
-	state      = models.BooleanField(default=True)
+
+	on_stock   = models.IntegerField(null = True, default = None)
+	on_transit = models.IntegerField(null = True, default = None)
+	on_factory = models.IntegerField(null = True, default = None)
+	unit       = models.ForeignKey(Unit, null = True, default = None)
+	fixed      = models.BooleanField(default = False)
+	state      = models.BooleanField(default = True)
 	created    = models.DateTimeField()
 	modified   = models.DateTimeField()
 	objects    = QuantityManager()
@@ -478,10 +534,11 @@ class Quantity(models.Model):
 	class Meta:
 		ordering = ['-created']
 
-# Product manager
+
 class ProductManager(models.Manager):
 
-	def take(self, article, vendor, name, category = None, unit = None, description = None):
+	def take(self, article, vendor, name, category = None, unit = None,
+			description = None):
 
 		name = str(name).strip()
 		name = name.replace("\u00AD", "")
@@ -502,15 +559,23 @@ class ProductManager(models.Manager):
 				product.save()
 			if not product.description and description:
 				product.description = description
-				product.modified = timezone.now()
+				product.modified    = timezone.now()
 				product.save()
 		except Product.DoesNotExist:
-			product = Product(name=name[:500], full_name = name, article=article, vendor=vendor, category=category, unit=unit, created = timezone.now(), modified = timezone.now())
+			product = Product(
+				name      = name[:500],
+				full_name = name,
+				article   = article,
+				vendor    = vendor,
+				category  = category,
+				unit      = unit,
+				created   = timezone.now(),
+				modified  = timezone.now())
 			product.save()
 		except Product.MultipleObjectsReturned:
 			print("MultipleObjectsReturned: {} {}".format(vendor, article))
-			products = self.get(article=article, vendor=vendor)
-			product = products[0]
+			products = self.get(article = article, vendor = vendor)
+			product  = products[0]
 
 		if product.duble:
 			product = self.get(id = product.duble)
@@ -520,28 +585,30 @@ class ProductManager(models.Manager):
 	def fixNames(self):
 		products = self.all()
 		for product in products:
-			product.name = product.name.replace("\u00AD", '')
+			product.name     = product.name.replace("\u00AD", '')
 			product.modified = timezone.now()
 			product.save()
 		return True
 
 # Product
 class Product(models.Model):
-	name = models.CharField(max_length=500)
-	full_name = models.TextField()
-	article = models.CharField(max_length=100)
-	vendor = models.ForeignKey(Vendor)
-	category = models.ForeignKey(Category, null=True, default=None)
-	unit = models.ForeignKey(Unit, null=True, default=None)
+
+	name        = models.CharField(max_length = 500)
+	full_name   = models.TextField()
+	article     = models.CharField(max_length = 100)
+	vendor      = models.ForeignKey(Vendor)
+	category    = models.ForeignKey(Category, null = True, default = None)
+	unit        = models.ForeignKey(Unit, null = True, default = None)
 	description = models.TextField()
-	duble = models.ForeignKey('self', null=True, default=None)
-	edited = models.BooleanField(default=False)
-	state = models.BooleanField(default=True)
-	price = models.ForeignKey(Price, null=True, default=None)
-	quantity = models.ForeignKey(Quantity, null=True, default=None)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = ProductManager()
+	duble       = models.ForeignKey('self', null = True, default = None)
+	edited      = models.BooleanField(default = False)
+	state       = models.BooleanField(default = True)
+	price       = models.ForeignKey(Price, null = True, default = None)
+	quantity    = models.ForeignKey(Quantity, null = True, default = None)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+
+	objects     = ProductManager()
 
 	def __str__(self):
 		return self.name
@@ -580,23 +647,25 @@ class PartyManager(models.Manager):
 
 # Party
 class Party(models.Model):
-	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
-	product = models.ForeignKey(Product)
-	stock = models.ForeignKey(Stock)
-	article = models.CharField(max_length=100, null=True, default=None) # Артикул поставщика
-	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
-	price_type = models.ForeignKey(PriceType, null=True, default=None)
-	currency = models.ForeignKey(Currency, null=True, default=None)
-	price_out = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
-	price_type_out = models.ForeignKey(PriceType, related_name = 'party_requests_currency_out', null=True, default=None)
-	currency_out = models.ForeignKey(Currency, related_name = 'party_requests_currency_out', null=True, default=None)
-	quantity = models.IntegerField(null=True, default=None)
-	unit = models.ForeignKey(Unit, null=True, default=None)
-	comment = models.TextField()
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
-	objects = PartyManager()
+
+	id             = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
+	product        = models.ForeignKey(Product)
+	stock          = models.ForeignKey(Stock)
+	article        = models.CharField(max_length = 100, null = True, default = None) # Артикул поставщика
+	price          = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	price_type     = models.ForeignKey(PriceType, null = True, default = None)
+	currency       = models.ForeignKey(Currency, null = True, default = None)
+	price_out      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	price_type_out = models.ForeignKey(PriceType, related_name = 'party_requests_currency_out', null = True, default = None)
+	currency_out   = models.ForeignKey(Currency, related_name = 'party_requests_currency_out', null = True, default = None)
+	quantity       = models.IntegerField(null = True, default = None)
+	unit           = models.ForeignKey(Unit, null = True, default = None)
+	comment        = models.TextField()
+	state          = models.BooleanField(default = True)
+	created        = models.DateTimeField()
+	modified       = models.DateTimeField()
+
+	objects        = PartyManager()
 
 	def _get_price_str(self):
 
@@ -648,43 +717,46 @@ class Party(models.Model):
 
 # Party Hystory
 class PartyHystory(models.Model):
-	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
-	product = models.ForeignKey(Product)
-	stock = models.ForeignKey(Stock)
-	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
-	price_type = models.ForeignKey(PriceType, null=True, default=None)
-	currency = models.ForeignKey(Currency, null=True, default=None)
-	price_out = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
-	price_type_out = models.ForeignKey(PriceType, related_name = 'party_hystory_requests_price_type_out', null=True, default=None)
-	currency_out = models.ForeignKey(Currency, related_name = 'party_hystory_requests_currency_out', null=True, default=None)
-	quantity = models.IntegerField(null=True, default=None)
-	unit = models.ForeignKey(Unit, null=True, default=None)
-	comment = models.TextField()
-	date = models.DateField()
+
+	id             = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
+	product        = models.ForeignKey(Product)
+	stock          = models.ForeignKey(Stock)
+	price          = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	price_type     = models.ForeignKey(PriceType, null = True, default = None)
+	currency       = models.ForeignKey(Currency, null = True, default = None)
+	price_out      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	price_type_out = models.ForeignKey(PriceType, related_name = 'party_hystory_requests_price_type_out', null = True, default = None)
+	currency_out   = models.ForeignKey(Currency, related_name = 'party_hystory_requests_currency_out', null = True, default = None)
+	quantity       = models.IntegerField(null = True, default = None)
+	unit           = models.ForeignKey(Unit, null = True, default = None)
+	comment        = models.TextField()
+	date           = models.DateField()
 
 	class Meta:
 		ordering = ['-date']
 
 # Price Hystory
 class PriceHystory(models.Model):
-	id = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
-	product = models.ForeignKey(Product)
-	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, default=None)
-	price_type = models.ForeignKey(PriceType, null=True, default=None)
-	currency = models.ForeignKey(Currency, null=True, default=None)
-	date = models.DateField()
+
+	id         = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
+	product    = models.ForeignKey(Product)
+	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	price_type = models.ForeignKey(PriceType, null = True, default = None)
+	currency   = models.ForeignKey(Currency, null = True, default = None)
+	date       = models.DateField()
 
 	class Meta:
 		ordering = ['-date']
 
 # Quantity Hystory
 class QuantityHystory(models.Model):
-	id         = models.CharField(max_length=100, primary_key=True, default=uuid.uuid4, editable=False)
+
+	id         = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
 	product    = models.ForeignKey(Product)
-	on_stock   = models.IntegerField(null=True, default=None)
-	on_transit = models.IntegerField(null=True, default=None)
-	on_factory = models.IntegerField(null=True, default=None)
-	unit       = models.ForeignKey(Unit, null=True, default=None)
+	on_stock   = models.IntegerField(null = True, default = None)
+	on_transit = models.IntegerField(null = True, default = None)
+	on_factory = models.IntegerField(null = True, default = None)
+	unit       = models.ForeignKey(Unit, null = True, default = None)
 	date       = models.DateField()
 
 	class Meta:
@@ -692,13 +764,14 @@ class QuantityHystory(models.Model):
 
 # Parameter Type
 class ParameterType(models.Model):
-	name = models.CharField(max_length=100)
-	alias = models.CharField(max_length=100)
-	data_type = models.CharField(max_length=100)
-	order = models.IntegerField()
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
+
+	name      = models.CharField(max_length = 100)
+	alias     = models.CharField(max_length = 100)
+	data_type = models.CharField(max_length = 100)
+	order     = models.IntegerField()
+	state     = models.BooleanField(default = True)
+	created   = models.DateTimeField()
+	modified  = models.DateTimeField()
 
 	def __str__(self):
 		return self.name
@@ -708,24 +781,26 @@ class ParameterType(models.Model):
 
 # Parameter Type to Category
 class ParameterTypeToCategory(models.Model):
+
 	parameter_type = models.ForeignKey(ParameterType)
-	category = models.ForeignKey(Category)
-	order = models.IntegerField()
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
+	category       = models.ForeignKey(Category)
+	order          = models.IntegerField()
+	state          = models.BooleanField(default = True)
+	created        = models.DateTimeField()
+	modified       = models.DateTimeField()
 
 	class Meta:
 		ordering = ['created']
 
 # Parameter
 class Parameter(models.Model):
+
 	parameter_type = models.ForeignKey(ParameterType)
-	product = models.ForeignKey(Product)
-	value = models.TextField()
-	state = models.BooleanField(default=True)
-	created = models.DateTimeField()
-	modified = models.DateTimeField()
+	product        = models.ForeignKey(Product)
+	value          = models.TextField()
+	state          = models.BooleanField(default = True)
+	created        = models.DateTimeField()
+	modified       = models.DateTimeField()
 
 	class Meta:
 		ordering = ['created']
@@ -752,6 +827,7 @@ class CategorySynonymManager(models.Manager):
 
 # Category Synonym
 class CategorySynonym(models.Model):
+
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
 	distributor = models.ForeignKey(Distributor, null = True, default = None)
@@ -788,6 +864,7 @@ class VendorSynonymManager(models.Manager):
 
 # Vendor Synonym
 class VendorSynonym(models.Model):
+
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
 	distributor = models.ForeignKey(Distributor, null = True, default = None)
