@@ -1606,7 +1606,7 @@ def ajaxSaveProduct(request):
 			'status': 'alert',
 			'message': 'Ошибка: отсутствует артикул.'}
 		return HttpResponse(json.dumps(result), 'application/javascript')
-	product.name   = request.POST.get('product_name').strip()[:100]
+	product.article = request.POST.get('product_article').strip()[:100]
 
 	# vendor
 	try:
