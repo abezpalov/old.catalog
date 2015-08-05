@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Производители{% endblock %}
+{% block title %}Anodos.Каталог: Производители{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -16,7 +16,7 @@
 
 {% endif %}
 
-{% if perms.catalog.change_vendor or perms.catalog.add_vendor %}
+{% if perms.catalog.add_vendor or perms.catalog.change_vendor or perms.catalog.delete_vendor %}
 
 <!-- Таблица со списком производителей -->
 <div class="row collapse">

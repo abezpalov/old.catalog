@@ -1,18 +1,6 @@
 import lxml.html
 import requests
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+from catalog.models import *
 
 
 class Runner:
@@ -70,12 +58,9 @@ class Runner:
 
 		# Распознаваемые слова
 		word = {
-			'article': 'Артикул',
-			'code': 'Код (ID)',
-			'name': 'Наименование продукции',
-			'price': "Цена",
-			'price-alt': '"Цена, RUB"',
-			'price-alt2': '"Цена, RUB'}
+			'article':    'Артикул',
+			'code':       'Код (ID)',
+			'name':       'Наименование продукции'}
 
 		# Создаем сессию
 		s = requests.Session()
@@ -90,24 +75,24 @@ class Runner:
 
 		# Парсим
 		try:
-			table = tree.xpath("//table")[0]
+			table = tree.xpath(".//table")[0]
 		except IndexError:
 			print("Не получилось загрузить прайс-лист.")
 			print("Проверьте параметры доступа.")
 			return False
 
-		for trn, tr in enumerate(table):
+		trs = table.xpath('.//tr')
+
+		for trn, tr in enumerate(trs):
 
 			# Заголовок таблицы
 			if trn == num['header']:
 				for tdn, td in enumerate(tr):
 					print(td.text)
-					if   td.text == word['article']:    num['article'] = tdn
-					elif td.text == word['code']:       num['code']    = tdn
-					elif td.text == word['name']:       num['name']    = tdn
-					elif td.text == word['price']:      num['price']   = tdn
-					elif td.text == word['price-alt']:  num['price']   = tdn
-					elif td.text == word['price-alt2']: num['price']   = tdn
+					if   td.text == word['article']: num['article'] = tdn
+					elif td.text == word['code']:    num['code']    = tdn
+					elif td.text == word['name']:    num['name']    = tdn
+					elif td.text is None:            num['price']   = tdn
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['code'] or not num['name'] or not num['price']:

@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Поставщики{% endblock %}
+{% block title %}Anodos.Catalog: Поставщики{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -7,7 +7,7 @@
 
 {% block content %}
 
-{% if perms.catalog.change_distributor or perms.catalog.add_distributor %}
+{% if perms.catalog.add_distributor or perms.catalog.change_distributor or perms.catalog.delete_distributor %}
 
 <!-- Таблица со списком поставщиков -->
 <div class="row collapse">
