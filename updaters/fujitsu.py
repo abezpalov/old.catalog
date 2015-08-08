@@ -7,6 +7,13 @@ class Runner:
 	name = 'Fujitsu'
 	alias = 'fujitsu'
 
+	url = {
+		'start': 'https://globalpartners.ts.fujitsu.com/com/Pages/Default.aspx',
+		'login': 'https://globalpartners.ts.fujitsu.com/CookieAuth.dll?Logon',
+		'links': 'https://globalpartners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
+		'search': '2015.zip',
+		'prefix': 'https://globalpartners.ts.fujitsu.com'}
+
 
 	def __init__(self):
 
@@ -52,15 +59,6 @@ class Runner:
 			full_name = 'US Dollar',
 			rate      = 60,
 			quantity  = 1)
-
-		# Используемые ссылки
-		self.url = {
-			'start': 'https://globalpartners.ts.fujitsu.com/com/Pages/Default.aspx',
-			'login': 'https://globalpartners.ts.fujitsu.com/CookieAuth.dll?Logon',
-			'links': 'https://globalpartners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
-			'search': '_RDP.zip',
-			'prefix': 'https://globalpartners.ts.fujitsu.com'}
-
 
 	def run(self):
 
