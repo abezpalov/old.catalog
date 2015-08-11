@@ -1820,25 +1820,25 @@ def categorysynonyms(request, updater_selected = 'all', distributor_selected = '
 	or request.user.has_perm('catalog.delete_categorysynonym'):
 
 		# Получаем список объектов синонимов
-		category_synonyms = CategorySynonym.objects.all().order_by('name')
+		category_synonyms = CategorySynonym.objects.select_related().all().order_by('name')
 		if updater_selected and updater_selected != 'all':
-			category_synonyms = category_synonyms.filter(updater = updater_selected)
+			category_synonyms = category_synonyms.select_related().filter(updater = updater_selected)
 		if not updater_selected:
-			category_synonyms = category_synonyms.filter(updater = None)
+			category_synonyms = category_synonyms.select_related().filter(updater = None)
 
 		if distributor_selected and distributor_selected != 'all':
-			category_synonyms = category_synonyms.filter(distributor = distributor_selected)
+			category_synonyms = category_synonyms.select_related().filter(distributor = distributor_selected)
 		if not distributor_selected:
-			category_synonyms = category_synonyms.filter(distributor = None)
+			category_synonyms = category_synonyms.select_related().filter(distributor = None)
 
 		if category_selected and category_selected != 'all':
-			category_synonyms = category_synonyms.filter(category = category_selected)
+			category_synonyms = category_synonyms.select_related().filter(category = category_selected)
 		if not category_selected:
-			category_synonyms = category_synonyms.filter(category = None)
+			category_synonyms = category_synonyms.select_related().filter(category = None)
 
 		# Получаем дополнительные списки объектов
-		updaters = Updater.objects.all().order_by('name')
-		distributors = Distributor.objects.all().order_by('name')
+		updaters = Updater.objects.select_related().all().order_by('name')
+		distributors = Distributor.objects.select_related().all().order_by('name')
 		categories = []
 		categories = Category.objects.getCategoryTree(categories)
 
@@ -2041,27 +2041,27 @@ def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'al
 	or request.user.has_perm('catalog.delete_vendorsynonym'):
 
 		# Получаем список объектов синонимов
-		vendor_synonyms = VendorSynonym.objects.all().order_by('name')
+		vendor_synonyms = VendorSynonym.objects.select_related().all().order_by('name')
 
 		if updater_selected and updater_selected != 'all':
-			vendor_synonyms = vendor_synonyms.filter(updater = updater_selected)
+			vendor_synonyms = vendor_synonyms.select_related().filter(updater = updater_selected)
 		if not updater_selected:
-			vendor_synonyms = vendor_synonyms.filter(updater = None)
+			vendor_synonyms = vendor_synonyms.select_related().filter(updater = None)
 
 		if distributor_selected and distributor_selected != 'all':
-			vendor_synonyms = vendor_synonyms.filter(distributor = distributor_selected)
+			vendor_synonyms = vendor_synonyms.select_related().filter(distributor = distributor_selected)
 		if not distributor_selected:
-			vendor_synonyms = vendor_synonyms.filter(distributor = None)
+			vendor_synonyms = vendor_synonyms.select_related().filter(distributor = None)
 
 		if vendor_selected and vendor_selected != 'all':
-			vendor_synonyms = vendor_synonyms.filter(vendor = vendor_selected)
+			vendor_synonyms = vendor_synonyms.select_related().filter(vendor = vendor_selected)
 		if not vendor_selected:
-			vendor_synonyms = vendor_synonyms.filter(vendor = None)
+			vendor_synonyms = vendor_synonyms.select_related().filter(vendor = None)
 
 		# Получаем дополнительные списки объектов
-		updaters = Updater.objects.all().order_by('name')
-		distributors = Distributor.objects.all().order_by('name')
-		vendors = Vendor.objects.all().order_by('name')
+		updaters = Updater.objects.select_related().all().order_by('name')
+		distributors = Distributor.objects.select_related().all().order_by('name')
+		vendors = Vendor.objects.select_related().all().order_by('name')
 
 
 	return render(request, 'catalog/vendorsynonyms.html', locals())
