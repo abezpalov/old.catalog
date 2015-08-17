@@ -167,6 +167,9 @@ class Runner:
 			print("Ошибка: превышен интервал ожидания загрузки категорий.")
 			return False
 
+		# TEST
+		print(r.text[:1000])
+
 		for c in json.loads(r.text)['d']['Categories']:
 			if c['ParentCategoryID']:
 				category_synonyms[c['CategoryID']] = "{} | {}".format(
