@@ -1178,7 +1178,7 @@ def currencies(request):
 	from catalog.models import Currency
 
 	# Получаем список
-	currencies = Currency.objects.all().order_by('name')
+	currencies = Currency.objects.all()
 
 	return render(request, 'catalog/currencies.html', locals())
 
