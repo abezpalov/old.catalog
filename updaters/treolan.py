@@ -63,8 +63,7 @@ class Runner:
 
 		# Используемые ссылки
 		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
-		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?&comodity=true&withMarketingProgramsOnly=false&availableAtStockOnly=false&rusDescription=true&condition=0&catalogProductsOnly=true&order=0&getExcel=true&searchBylink=false&take=50&skip=0'
-
+		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?Template=&Commodity=true&IncludeFullPriceList=false&OrderBy=0&Groups=23318&IncludeSubGroups=true&Condition=0&PriceMin=&PriceMax=&Currency=RUB&WithMarketingProgramsOnly=false&AvailableAtStockOnly=false&AdditionalParamsStr=%5B%5D&AdditionalParams=&AddParamsShow=&GetExcel=&FromLeftCol=false&CatalogProductsOnly=true&RusDescription=false&skip=0&take=50&LoadResults=false&DemoOnly=false&ShowHpCarePack=false&showActualGoods=false'
 
 	def run(self):
 
