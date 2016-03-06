@@ -8,11 +8,11 @@ class Runner:
 	alias = 'fujitsu'
 
 	url = {
-		'start': 'https://globalpartners.ts.fujitsu.com/com/Pages/Default.aspx',
-		'login': 'https://globalpartners.ts.fujitsu.com/CookieAuth.dll?Logon',
-		'links': 'https://globalpartners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
-		'search': '2015.zip',
-		'prefix': 'https://globalpartners.ts.fujitsu.com'}
+		'start': 'https://partners.ts.fujitsu.com/com/Pages/Default.aspx',
+		'login': 'https://partners.ts.fujitsu.com/CookieAuth.dll?Logon',
+		'links': 'https://partners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
+		'search': '2016.zip',
+		'prefix': 'https://partners.ts.fujitsu.com'}
 
 
 	def __init__(self):
@@ -64,6 +64,11 @@ class Runner:
 
 		import lxml.html
 		import requests
+
+		# Проверяем наличие параметров авторизации
+		if not self.updater.login or not self.updater.password:
+			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
+			return False
 
 		# Создаем сессию
 		s = requests.Session()
