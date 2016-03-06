@@ -205,15 +205,15 @@ class Runner:
 	def parseProducts(self, table, vendor_synonym_name):
 
 		# Номера строк и столбцов
-		num = {'headers': 10}
+		num = {'headers': 9}
 
 		# Распознаваемые слова
 		word = {
 			'party_article': 'Н/н',
 			'product_article': 'Код',
 			'product_name': 'Наименование',
-			's1': 'С1',
-			's2': 'C2',
+#			's1': 'Р',
+			's2': 'C',
 			'bt': 'БТ',
 			'dt': 'ДТ',
 			'price': 'Цена Dealer',
@@ -247,7 +247,7 @@ class Runner:
 					if   th.text == word['party_article']:   num['party_article']   = thn
 					elif th.text == word['product_article']: num['product_article'] = thn
 					elif th.text == word['product_name']:    num['product_name']    = thn
-					elif th.text == word['s1']:              num['s1']              = thn
+#					elif th.text == word['s1']:              num['s1']              = thn
 					elif th.text == word['s2']:              num['s2']              = thn
 					elif th.text == word['bt']:              num['bt']              = thn
 					elif th.text == word['dt']:              num['dt']              = thn
@@ -284,27 +284,27 @@ class Runner:
 				if currency_alias: currency = currencies[currency_alias]
 				else: currency =  None
 
-				s1 = self.fixQuantity(tr[num['s1']].text)
+#				s1 = self.fixQuantity(tr[num['s1']].text)
 				s2 = self.fixQuantity(tr[num['s2']].text)
 				bt = self.fixQuantity(tr[num['bt']].text)
 				dt = self.fixQuantity(tr[num['dt']].text)
 
 				# Записываем партии
-				if s1:
-					party = Party.objects.make(
-						product    = product,
-						stock      = self.s1,
-						price      = price,
-						price_type = self.dp,
-						currency   = currency,
-						quantity   = s1,
-						unit       = self.default_unit)
-					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
+#				if s1:
+#					party = Party.objects.make(
+#						product    = product,
+#						stock      = self.s1,
+#						price      = price,
+#						price_type = self.dp,
+#						currency   = currency,
+#						quantity   = s1,
+#						unit       = self.default_unit)
+#					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
 
 				if s2:
 					party = Party.objects.make(
 						product    = product,
-						stock      = self.s1,
+						stock      = self.s2,
 						price      = price,
 						price_type = self.dp,
 						currency   = currency,
@@ -315,7 +315,7 @@ class Runner:
 				if bt:
 					party = Party.objects.make(
 						product    = product,
-						stock      = self.s1,
+						stock      = self.bt,
 						price      = price,
 						price_type = self.dp,
 						currency   = currency,
@@ -326,7 +326,7 @@ class Runner:
 				if dt:
 					party = Party.objects.make(
 						product    = product,
-						stock      = self.s1,
+						stock      = self.dt,
 						price      = price,
 						price_type = self.dp,
 						currency   = currency,
