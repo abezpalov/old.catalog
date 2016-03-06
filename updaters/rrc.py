@@ -184,7 +184,7 @@ class Runner:
 
 		# Распознаваемые слова
 		word = {
-			'article': 'Partnumber',
+			'article': 'Partnumber/',
 			'vendor': 'Вендор',
 			'name': 'Товар',
 			'quantity': 'Доступно',
@@ -193,17 +193,19 @@ class Runner:
 		# Заголовок таблицы
 		ths = tree.xpath('//table[@class="catalog-item-list"]/thead/tr/th')
 		for thn, th in enumerate(ths):
-			if   th.text == word['article']:  num['article'] = thn
-			elif th.text == word['vendor']:   num['vendor'] = thn
-			elif th.text == word['name']:     num['name'] = thn
+
+			if   th.text == word['article']:  num['article']  = thn
+			elif th.text == word['vendor']:   num['vendor']   = thn
+			elif th.text == word['name']:     num['name']     = thn
 			elif th.text == word['quantity']: num['quantity'] = thn
-			elif th.text == word['price']:    num['price'] = thn
+			elif th.text == word['price']:    num['price']    = thn
 
 		# Проверяем, все ли столбцы распознались
-		if len(num) < num['headers']:
-			print("Ошибка структуры данных: не все столбцы опознаны.")
+		if len(num) == num['headers']:
+			print("Структура данных без изменений.")
+		else:
+			print("Ошибка структуры данных: не все столбцы опознаны. Количество распознанных столбцов: {}".format(len(num) - 1))
 			return False
-		else: print("Структура данных без изменений.")
 
 		# Товар
 		tbs = tree.xpath('//table[@class="catalog-item-list"]/tbody[@class="b-products-item__table x-products-item"]')
