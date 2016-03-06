@@ -25,10 +25,15 @@ class Runner:
 	def __init__(self):
 
 		# Поставщик
-		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
+		self.distributor = Distributor.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
 		# Загрузчик
-		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
+		self.updater = Updater.objects.take(
+			alias       = self.alias,
+			name        = self.name,
+			distributor = self.distributor)
 
 		# Склад в Самаре
 		self.stock_samara = Stock.objects.take(
@@ -116,12 +121,17 @@ class Runner:
 		# Используемые ссылки
 		self.url_login = 'https://b2b.merlion.com/'
 		self.url_price = (
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=84bbfe81dd1cd7966229740eac26ddae&type=xml',
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=95a71288d806dfa41c09d2bfacbb5dd6&type=xml',)
+			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=67fefc81ad0a9acf5628f7a97f28ae9b&type=xml',
+			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=62f4cd5350ba000dbfdff489a151b22d&type=xml',)
+
 
 
 	def run(self):
 
+		# Проверяем наличие параметров авторизации
+		if not self.updater.login or not self.updater.password:
+			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
+			return False
 
 		# Создаем сессию
 		s = requests.Session()
@@ -149,18 +159,18 @@ class Runner:
 
 		# Получаем архив с прайс-листом
 		for url in self.url_price:
-			try:
-				r = s.get(url, cookies = cookies)
-				data = self.getData(r)
-				tree = etree.parse(data)
-				if self.parsePrice(tree):
-					del(tree)
-				else:
-					print("Ошибка: парсинг невозможен.")
-					return False
-			except:
-				print("Неизвестная ошибка: требуется отладка.")
+#			try:
+			r = s.get(url, cookies = cookies)
+			data = self.getData(r)
+			tree = etree.parse(data)
+			if self.parsePrice(tree):
+				del(tree)
+			else:
+				print("Ошибка: парсинг невозможен.")
 				return False
+#			except:
+#				print("Неизвестная ошибка: требуется отладка.")
+#				return False
 
 		return True
 
