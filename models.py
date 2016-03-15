@@ -203,13 +203,14 @@ class CategoryManager(models.Manager):
 
 class Category(models.Model):
 
-	name        = models.CharField(max_length = 100)
+	name        = models.TextField()
+	name_search = models.CharField(max_length = 100, null = True)
 	alias       = models.CharField(max_length = 100)
 	description = models.TextField()
 	parent      = models.ForeignKey('self', null = True, default = None)
 	level       = models.IntegerField()
 	order       = models.IntegerField()
-	path        = models.CharField(max_length = 100)
+	path        = models.CharField(max_length = 512)
 	state       = models.BooleanField(default = True)
 	created     = models.DateTimeField()
 	modified    = models.DateTimeField()
@@ -552,7 +553,7 @@ class ProductManager(models.Manager):
 		article = article[:100]
 
 		try:
-			product = self.get(article=article, vendor=vendor)
+			product = self.get(article = article, vendor = vendor)
 			if not product.category and category:
 				product.category = category
 				product.modified = timezone.now()
@@ -563,14 +564,14 @@ class ProductManager(models.Manager):
 				product.save()
 		except Product.DoesNotExist:
 			product = Product(
-				name      = name[:500],
-				full_name = name,
-				article   = article,
-				vendor    = vendor,
-				category  = category,
-				unit      = unit,
-				created   = timezone.now(),
-				modified  = timezone.now())
+				name        = name,
+				name_search = name[:512],
+				article     = article,
+				vendor      = vendor,
+				category    = category,
+				unit        = unit,
+				created     = timezone.now(),
+				modified    = timezone.now())
 			product.save()
 		except Product.MultipleObjectsReturned:
 			print("MultipleObjectsReturned: {} {}".format(vendor, article))
@@ -593,8 +594,8 @@ class ProductManager(models.Manager):
 # Product
 class Product(models.Model):
 
-	name        = models.CharField(max_length = 500)
-	full_name   = models.TextField()
+	name        = models.TextField()
+	name_search = models.CharField(max_length = 512, null = True)
 	article     = models.CharField(max_length = 100)
 	vendor      = models.ForeignKey(Vendor)
 	category    = models.ForeignKey(Category, null = True, default = None)

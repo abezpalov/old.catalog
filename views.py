@@ -4,10 +4,7 @@ from django.template import RequestContext, loader
 import math
 
 
-# Connector
-
-
-# TODO
+# Connector TODO
 
 
 # Distributor
@@ -930,7 +927,14 @@ def ajaxSaveVendor(request):
 	vendor.modified = timezone.now()
 
 	# Сохраняем
-	vendor.save()
+	try:
+		vendor.save()
+	except:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: вероятно, производитель уже есть в базе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+		
 
 	# Возвращаем ответ
 	result = {
