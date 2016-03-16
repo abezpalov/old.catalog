@@ -218,7 +218,7 @@ class Category(models.Model):
 	objects     = CategoryManager()
 
 	def __str__(self):
-		return self.name
+		return self.name_search
 
 	class Meta:
 		ordering = ['order']
