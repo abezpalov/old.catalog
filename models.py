@@ -204,7 +204,7 @@ class CategoryManager(models.Manager):
 class Category(models.Model):
 
 	name        = models.TextField()
-	name_search = models.CharField(max_length = 100, null = True)
+	name_search = models.CharField(max_length = 512, null = True)
 	alias       = models.CharField(max_length = 100)
 	description = models.TextField()
 	parent      = models.ForeignKey('self', null = True, default = None)

@@ -101,13 +101,21 @@ class Runner:
 			distributor       = self.distributor)
 		Party.objects.clear(stock = self.stocks['Транзит из ЦО'])
 
-		self.stocks['ЦО'] = Stock.objects.take(
+		self.stocks['ЦО (Москва)'] = Stock.objects.take(
 			alias             = self.alias + '-stock-moskow',
 			name              = self.name + ': склад в Москве',
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['ЦО'])
+		Party.objects.clear(stock = self.stocks['ЦО (Москва)'])
+
+		self.stocks['ЦО (СПб)'] = Stock.objects.take(
+			alias             = self.alias + '-stock-спб',
+			name              = self.name + ': склад в Санкт-Петербурге',
+			delivery_time_min = 3,
+			delivery_time_max = 10,
+			distributor       = self.distributor)
+		Party.objects.clear(stock = self.stocks['ЦО (СПб)'])
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
