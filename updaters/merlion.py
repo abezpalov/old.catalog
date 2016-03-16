@@ -121,9 +121,8 @@ class Runner:
 		# Используемые ссылки
 		self.url_login = 'https://b2b.merlion.com/'
 		self.url_price = (
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=67fefc81ad0a9acf5628f7a97f28ae9b&type=xml',
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=62f4cd5350ba000dbfdff489a151b22d&type=xml',)
-
+			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=84bbfe81dd1cd7966229740eac26ddae&type=xml',
+			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=95a71288d806dfa41c09d2bfacbb5dd6&type=xml',)
 
 
 	def run(self):
@@ -156,6 +155,10 @@ class Runner:
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания подтверждения авторизации.")
 			return False
+
+		# Получаем актуальные ссылки на прайс-листы
+		# TODO
+
 
 		# Получаем архив с прайс-листом
 		for url in self.url_price:
