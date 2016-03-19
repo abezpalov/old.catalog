@@ -1,4 +1,5 @@
 import requests
+import lxml.html
 from lxml import etree
 from catalog.models import Updater
 from catalog.models import Distributor
@@ -20,6 +21,13 @@ class Runner:
 
 	name = 'Merlion'
 	alias = 'merlion'
+
+
+	# Используемые ссылки
+	urls = {
+		'login'  : 'https://b2b.merlion.com/',
+		'prices' : 'https://b2b.merlion.com/?action=Y3F86565&action1=YC2E8B7C',
+		'base'   : 'https://b2b.merlion.com/'}
 
 
 	def __init__(self):
@@ -118,12 +126,6 @@ class Runner:
 			rate      = 60,
 			quantity  = 1)
 
-		# Используемые ссылки
-		self.url_login = 'https://b2b.merlion.com/'
-		self.url_price = (
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=84bbfe81dd1cd7966229740eac26ddae&type=xml',
-			'https://b2b.merlion.com/?action=Y3F86565&action1=YD56AF97&lol=95a71288d806dfa41c09d2bfacbb5dd6&type=xml',)
-
 
 	def run(self):
 
@@ -137,7 +139,7 @@ class Runner:
 
 		# Получаем куки
 		try:
-			r = s.get(self.url_login, timeout=100.0)
+			r = s.get(self.urls['login'], timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки Cookies.")
@@ -150,30 +152,44 @@ class Runner:
 				'login': self.updater.login.split('|')[1],
 				'password': self.updater.password,
 				'Ok': '%C2%EE%E9%F2%E8'}
-			r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
+			r = s.post(self.urls['login'], cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания подтверждения авторизации.")
 			return False
 
 		# Получаем актуальные ссылки на прайс-листы
-		# TODO
+		r = s.get(self.urls['prices'], cookies = cookies)
+		tree = lxml.html.fromstring(r.text)
+		forms = tree.xpath('//form')
 
+		for form in forms:
 
-		# Получаем архив с прайс-листом
-		for url in self.url_price:
-#			try:
-			r = s.get(url, cookies = cookies)
-			data = self.getData(r)
-			tree = etree.parse(data)
-			if self.parsePrice(tree):
-				del(tree)
-			else:
-				print("Ошибка: парсинг невозможен.")
-				return False
-#			except:
-#				print("Неизвестная ошибка: требуется отладка.")
-#				return False
+			url = self.urls['base']
+
+			elements = form.xpath('.//input')
+
+			for n, element in enumerate(elements):
+
+				if element.name and element.value:
+
+					if n:
+						url = '{}&{}={}'.format(url, element.name, element.value)
+					else:
+						url = '{}?{}={}'.format(url, element.name, element.value)
+
+			# Выбираем формат XML
+			if 'type=xml' in url:
+
+				# Загружаем прайс-лист
+				r = s.get(url, cookies = cookies)
+				data = self.getData(r)
+				tree = etree.parse(data)
+				if self.parsePrice(tree):
+					del(tree)
+				else:
+					print("Ошибка: парсинг невозможен.")
+					return False
 
 		return True
 
