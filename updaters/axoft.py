@@ -77,11 +77,14 @@ class Runner:
 			quantity = 1)
 
 		# Используемые ссылки
-		self.url = {
-			'start':   'http://axoft.ru/',
-			'login':   'http://axoft.ru/',
-			'prices':  'http://axoft.ru/software/pricelists/',
-			'prefix':  'http://axoft.ru'}
+		self.urls = {
+			'start'         : 'http://axoft.ru/',
+			'login'         : 'http://axoft.ru/',
+			'vendors'       : 'http://axoft.ru/vendors/',
+			'search_vendor' : '/vendors/',
+			'search_price'  : '/pricelists/download.php?',
+			'prefix'        : 'http://axoft.ru',
+		}
 
 		# Сессия
 		self.s = requests.Session()
@@ -99,33 +102,27 @@ class Runner:
 
 		# Получаем список производителей и ссылок на их прайс-листы
 		prices = self.getPrices()
-		if not prices:
-			print('Ошибка: не получен список прайс-листов.')
-			return False
 
 		# Проходим по каждому прайс-листу
 		for n, price in enumerate(prices):
 
-			if price['sName'] and price['sDownloadUrl']:
+			print("Прайс-лист {} из {}: {}".format(
+				n + 1,
+				len(prices),
+				price['name']))
 
-				print("Прайс-лист {} из {}: {}".format(
-					n + 1,
-					len(prices),
-					price['sName']))
+			# Синоним производителя
+			vendor_synonym = VendorSynonym.objects.take(
+				name = price['name'],
+				updater = self.updater,
+				distributor = self.distributor)
 
-				# Синоним производителя
-				vendor_synonym = VendorSynonym.objects.take(
-					name = price['sName'],
-					updater = self.updater,
-					distributor = self.distributor)
-
-				if vendor_synonym.vendor:
-					url = self.url['prefix'] + price['sDownloadUrl']
-					data = self.getData(url)
-					if data:
-						self.parsePrice(data, vendor_synonym.vendor)
-				else:
-					print('Производитель не привязан.')
+			if vendor_synonym.vendor:
+				data = self.getData(price['url'])
+				if data:
+					self.parsePrice(data, vendor_synonym.vendor)
+			else:
+				print('Производитель не привязан.')
 
 		return True
 
@@ -139,7 +136,7 @@ class Runner:
 
 		# Получаем куки
 		try:
-			r = self.s.get(self.url['start'], timeout = 30.0)
+			r = self.s.get(self.urls['start'], timeout = 30.0)
 			self.cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания загрузки Cookies.")
@@ -156,7 +153,7 @@ class Runner:
 				'USER_PASSWORD': self.updater.password,
 				'Login': 'Вход для партнеров'}
 			r = self.s.post(
-				self.url['login'],
+				self.urls['login'],
 				cookies = self.cookies,
 				data = payload,
 				allow_redirects = True,
@@ -171,21 +168,73 @@ class Runner:
 
 	def getPrices(self):
 
-		# Загружаем начальную страницу каталога
+		vendors = []
+		prices  = []
+
+		# Загружаем список производителей
 		try:
 			r = self.s.get(
-				self.url['prices'],
+				self.urls['vendors'],
 				cookies = self.cookies,
 				allow_redirects = True,
 				timeout = 30.0)
 			self.cookies = r.cookies
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки каталога.")
+			print("Превышение интервала ожидания загрузки списка производителей.")
 			return False
 
-		# Находим и парсим список в тексте страницы
-		prices = re.search(self.reg, r.text)
-		prices = json.loads(prices.group(1))
+		# Проходим по всем ссылкам
+		tree = lxml.html.fromstring(r.text)
+		links = tree.xpath('//a')
+
+		# Выбираем ссылкки на страницы производителей
+		for link in links:
+
+			vendor = {}
+			vendor['name'] = link.text
+			vendor['url']  = '{}{}'.format(self.urls['prefix'], link.get('href'))
+
+			if (self.urls['search_vendor'] in vendor['url']):
+
+				print("{} {}".format(vendor['name'], vendor['url']))
+
+				vendors.append(vendor)
+
+
+		# Проходим по всем страницам производителям
+		for vendor in vendors:
+
+			try:
+				r = self.s.get(
+					vendor['url'],
+					cookies = self.cookies,
+					allow_redirects = True,
+					timeout = 30.0)
+				self.cookies = r.cookies
+			except requests.exceptions.Timeout:
+				print("Превышение интервала ожидания загрузки страницы производителя.")
+				continue
+
+			# Проходим по всем ссылкам
+			tree = lxml.html.fromstring(r.text)
+			urls = tree.xpath('//a/@href')
+
+			# Добавляем в список ссылок на прайс-листы соответсвующие
+			for url in urls:
+
+				price = {}
+
+				if self.urls['search_price'] in url:
+
+					if not self.urls['prefix'] in url:
+						url  = '{}{}'.format(self.urls['prefix'], url)
+
+					price['url']  = url
+					price['name'] = vendor['name']
+
+					if price['url'] and price['name']:
+						prices.append(price)
+						print('Найден прайс-лист: {}'.format(price['url']))
 
 		return prices
 
@@ -258,10 +307,8 @@ class Runner:
 			return False
 		sheet = book.sheet_by_index(0)
 
-
 		# Получаем словарь форматов (потребуется при получении валюты)
 		formats = book.format_map
-
 
 		# Проходим по всем строкам
 		for row_num in range(sheet.nrows):
