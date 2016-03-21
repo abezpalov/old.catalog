@@ -234,7 +234,7 @@ class Runner:
 
 					if price['url'] and price['name']:
 						prices.append(price)
-						print('Найден прайс-лист: {}'.format(price['url']))
+						print('Найден прайс-лист: {} [{}].'.format(price['url'], price['name']))
 
 		return prices
 
@@ -409,11 +409,10 @@ class Runner:
 						currency_out   = price_currency_out,
 						quantity       = -1,
 						unit           = self.default_unit)
-					print("{} {} = {} {}".format(
+					print("{} {} = {}".format(
 						party.product.vendor,
 						party.product.article,
-						party.price,
-						party.currency))
+						party.price_str))
 
 		return True
 

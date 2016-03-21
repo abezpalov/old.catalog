@@ -677,6 +677,24 @@ class Party(models.Model):
 
 		if price:
 			price = '{:,}'.format(round(price, 2))
+			price = price.replace(',', ' ')
+			price = price.replace('.', ',')
+			price = price + ' ' + currency.name
+		else: return ''
+
+		return price
+
+	price_str = property(_get_price_str)
+
+	def _get_price_xml(self):
+
+		try:
+			price = self.price
+			currency = self.currency
+		except: return ''
+
+		if price:
+			price = '{:,}'.format(round(price, 2))
 			price = price.replace(',', '&nbsp;')
 			price = price.replace('.', ',')
 			price = price + '&nbsp;' + currency.name
@@ -684,7 +702,11 @@ class Party(models.Model):
 
 		return price
 
-	price_str = property(_get_price_str)
+	price_xml = property(_get_price_xml)
+
+
+
+
 
 	def _get_price_out_str(self):
 		try:
