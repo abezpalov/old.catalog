@@ -46,7 +46,7 @@ class Runner:
 		# Склад в Самаре
 		self.stock_samara = Stock.objects.take(
 			alias             = self.alias + '-samara-stock',
-			name              = self.name+': Склад в Самаре',
+			name              = self.name+': склад в Самаре',
 			delivery_time_min = 1,
 			delivery_time_max = 3,
 			distributor       = self.distributor)
@@ -218,29 +218,29 @@ class Runner:
 
 		# Распознаваемые слова
 		word = {
-			'party_article': 'No',
-			'product_name': 'Name',
-			'vendor_synonym_name': 'Brand',
-			'product_article': 'PartNo',
-			'price_usd': 'Price',
-			'price_rub': 'PriceR',
-			'stock_chehov': 'Avail_SV_CHEHOV',
-			'stock_bykovo': 'Avail_SV_BYKOVO',
-			'stock_dostavka': 'Avail_DOSTAVKA',
-			'stock_samara': 'Avail_RSMR',
-			'stock_moscow': 'Avail_MSK',
-			'transit_b': 'Avail_Expect',
-			'transit_d': 'Avail_ExpectNext',
-			'transit_date': 'Date_ExpectNext',
-			'pack_minimal': 'Min_Pack',
-			'pack': 'Pack',
-			'volume': 'Vol',
-			'weight': 'WT',
-			'warranty': 'Warranty',
-			'status': 'Status',
-			'maction': 'MAction',
-			'rrp': 'RRP',
-			'rrp_date': 'RRP_Date'}
+			'party_article'       : 'No',
+			'product_name'        : 'Name',
+			'vendor_synonym_name' : 'Brand',
+			'product_article'     : 'PartNo',
+			'price_usd'           : 'Price',
+			'price_rub'           : 'PriceR',
+			'stock_chehov'        : 'Avail_SV_CHEHOV',
+			'stock_bykovo'        : 'Avail_SV_BYKOVO',
+			'stock_dostavka'      : 'Avail_DOSTAVKA',
+			'stock_samara'        : 'Avail_RSMR',
+			'stock_moscow'        : 'Avail_MSK',
+			'transit_b'           : 'Avail_Expect',
+			'transit_d'           : 'Avail_ExpectNext',
+			'transit_date'        : 'Date_ExpectNext',
+			'pack_minimal'        : 'Min_Pack',
+			'pack'                : 'Pack',
+			'volume'              : 'Vol',
+			'weight'              : 'WT',
+			'warranty'            : 'Warranty',
+			'status'              : 'Status',
+			'maction'             : 'MAction',
+			'rrp'                 : 'RRP',
+			'rrp_date'            : 'RRP_Date'}
 
 		for g1 in tree.xpath('.//G1'):
 			for g2_n, g2 in enumerate(g1):
