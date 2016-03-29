@@ -1,4 +1,3 @@
-import re
 import json
 import time
 import xlrd
@@ -52,23 +51,23 @@ class Runner:
 
 		# Валюты
 		self.rub = Currency.objects.take(
-			alias = 'RUB',
-			name = 'р.',
+			alias     = 'RUB',
+			name      = 'р.',
 			full_name = 'Российский рубль',
-			rate = 1,
-			quantity = 1)
+			rate      = 1,
+			quantity  = 1)
 		self.usd = Currency.objects.take(
-			alias = 'USD',
-			name = '$',
+			alias     = 'USD',
+			name      = '$',
 			full_name = 'US Dollar',
-			rate = 60,
-			quantity = 1)
+			rate      = 60,
+			quantity  = 1)
 		self.eur = Currency.objects.take(
-			alias = 'EUR',
-			name = 'EUR',
+			alias     = 'EUR',
+			name      = 'EUR',
 			full_name = 'Euro',
-			rate = 80,
-			quantity = 1)
+			rate      = 80,
+			quantity  = 1)
 
 		# Используемые ссылки
 		self.urls = {
@@ -83,9 +82,6 @@ class Runner:
 		# Сессия
 		self.s = requests.Session()
 		self.cookie = None
-
-		# Регулярные выражения
-		self.reg = re.compile('var oFilterArray = (\[[^\[]*\])')
 
 
 	def run(self):
@@ -107,8 +103,8 @@ class Runner:
 
 			# Синоним производителя
 			vendor_synonym = VendorSynonym.objects.take(
-				name = price['name'],
-				updater = self.updater,
+				name        = price['name'],
+				updater     = self.updater,
 				distributor = self.distributor)
 
 			if vendor_synonym.vendor:
@@ -134,6 +130,11 @@ class Runner:
 
 		# Проверяем наличие параметров авторизации
 		if not self.updater.login or not self.updater.password:
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "login error",
+				description = "Проверьте параметры авторизации. Кажется их нет.")
 			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
 			return False
 
@@ -142,28 +143,36 @@ class Runner:
 			r = self.s.get(self.urls['start'], timeout = 30.0)
 			self.cookies = r.cookies
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки Cookies.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала ожидания загрузки.")
 			return False
 
 		# Авторизуемся
 		try:
 			payload = {
-				'backurl': '/',
-				'AUTH_FORM': 'Y',
-				'TYPE': 'AUTH',
-				'IS_POPUP': '1',
-				'USER_LOGIN': self.updater.login,
-				'USER_PASSWORD': self.updater.password,
-				'Login': 'Вход для партнеров'}
+				'backurl'       : '/',
+				'AUTH_FORM'     : 'Y',
+				'TYPE'          : 'AUTH',
+				'IS_POPUP'      : '1',
+				'USER_LOGIN'    : self.updater.login,
+				'USER_PASSWORD' : self.updater.password,
+				'Login'         : 'Вход для партнеров'}
 			r = self.s.post(
 				self.urls['login'],
-				cookies = self.cookies,
-				data = payload,
+				cookies         = self.cookies,
+				data            = payload,
 				allow_redirects = True,
-				timeout = 30.0)
+				timeout         = 30.0)
 			self.cookies = r.cookies
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания подтверждения авторизации.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала ожидания авторизации.")
 			return False
 
 		return True
@@ -178,12 +187,16 @@ class Runner:
 		try:
 			r = self.s.get(
 				self.urls['vendors'],
-				cookies = self.cookies,
+				cookies         = self.cookies,
 				allow_redirects = True,
-				timeout = 30.0)
+				timeout         = 30.0)
 			self.cookies = r.cookies
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки списка производителей.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала ожидания загрузки списка производителей.")
 			return False
 
 		# Проходим по всем ссылкам
@@ -208,12 +221,16 @@ class Runner:
 			try:
 				r = self.s.get(
 					vendor['url'],
-					cookies = self.cookies,
+					cookies         = self.cookies,
 					allow_redirects = True,
-					timeout = 30.0)
+					timeout         = 30.0)
 				self.cookies = r.cookies
 			except requests.exceptions.Timeout:
-				print("Превышение интервала ожидания загрузки страницы производителя.")
+				Log.objects.add(
+					subject     = "catalog.updater.{}".format(self.updater.alias),
+					channel     = "error",
+					title       = "requests.exceptions.Timeout",
+					description = "Превышение интервала ожидания загрузки страницы производителя.")
 				continue
 
 			# Проходим по всем ссылкам
@@ -248,25 +265,29 @@ class Runner:
 		try:
 			r = self.s.get(
 				url,
-				cookies = self.cookies,
+				cookies         = self.cookies,
 				allow_redirects = True,
-				timeout = 30.0)
+				timeout         = 30.0)
 			self.cookies = r.cookies
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки каталога.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала ожидания загрузки каталога.")
 			return False
 
 		try:
 			zip_data = ZipFile(BytesIO(r.content))
 		except:
-			print("Ошибка: битый архив.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Битый архив.")
 			return False
 
 		data = zip_data.open(zip_data.namelist()[0])
-
-		print('Получен прайс: {}'.format(zip_data.namelist()[0]))
-
-		time.sleep(1)
 
 		return data
 
@@ -275,25 +296,25 @@ class Runner:
 
 		# Номера строк и столбцов
 		num = {
-			'header_line': 3,
-			'first_line':  5}
+			'header_line' : 3,
+			'first_line'  : 5}
 
 		# Распознаваемые слова
 		word = {
-			'party_article':   'AxoftSKU',
-			'product_article': 'VendorSKU',
-			'product_name':    'ProductDescription',
-			'product_version': 'Version',
-			'price_in':        'Partner',
-			'price_out':       'Retail',
-			'product_vat':     'NDS'}
+			'party_article'   : 'AxoftSKU',
+			'product_article' : 'VendorSKU',
+			'product_name'    : 'ProductDescription',
+			'product_version' : 'Version',
+			'price_in'        : 'Partner',
+			'price_out'       : 'Retail',
+			'product_vat'     : 'NDS'}
 
 		# Сопоставление валют
 		currencies = {
-			'General':           None,
-			'#,##0.00[$р.-419]': self.rub,
-			'[$$-409]#,##0.00':  self.usd,
-			'[$€-2]\\ #,##0.00': self.eur}
+			'General'           : None,
+			'#,##0.00[$р.-419]' : self.rub,
+			'[$$-409]#,##0.00'  : self.usd,
+			'[$€-2]\\ #,##0.00' : self.eur}
 
 		# Имя категории поставщика
 		category_synonym_name = None

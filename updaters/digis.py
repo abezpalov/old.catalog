@@ -1,20 +1,8 @@
 import requests
 import lxml.html
-from datetime import date
-from datetime import datetime
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+from django.utils import timezone
+from catalog.models import *
+from project.models import Log
 
 
 class Runner:
@@ -128,10 +116,17 @@ class Runner:
 
 		# Получаем куки
 		try:
-			r = s.get(self.url['start'], allow_redirects = True, timeout = 30.0)
+			r = s.get(
+				self.url['start'],
+				allow_redirects = True,
+				timeout         = 30.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки Cookies.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала ожидания загрузки.")
 			return False
 
 		# Авторизуемся
@@ -148,14 +143,22 @@ class Runner:
 			r = s.post(self.url['login'], cookies = cookies, data = payload, allow_redirects = True)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания подтверждения авторизации.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала ожидания подтверждения авторизации.")
 			return False
 
 		# Заходим на страницу загрузки
 		try:
 			r = s.get(self.url['files'], cookies = cookies, timeout = 30.0)
 		except requests.exceptions.Timeout:
-			print("Превышение интервала загрузки ссылок.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала загрузки ссылок.")
 			return False
 
 		# Получаем ссылки со страницы
@@ -172,20 +175,22 @@ class Runner:
 				print("Прайс-лист найден: {}".format(url))
 				r = s.get(url, cookies = cookies)
 
-				# TODO Парсим прайс-лист
-				if self.parsePrice(r):
+				# Парсим прайс-лист
+				if not self.parsePrice(r):
+					return False
+
+		Party.objects.clear(stock = self.factory, time = self.start_time)
+		Party.objects.clear(stock = self.stock,   time = self.start_time)
+		Party.objects.clear(stock = self.transit, time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
 
 
-
-					Party.objects.clear(stock = self.factory)
-					Party.objects.clear(stock = self.stock)
-					Party.objects.clear(stock = self.transit)
-
-					return True
-				else: return False
-
-		print("Ошибка: прайс-лист не найден.")
-		return False
+		return True
 
 	def parsePrice(self, r):
 

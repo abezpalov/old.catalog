@@ -53,7 +53,7 @@ class Runner:
 			tree = lxml.html.fromstring(r.text)
 		except requests.exceptions.Timeout:
 			Log.objects.add(
-				subject     = "updater.{}".format(self.updater.alias),
+				subject     = "catalog.updater.{}".format(self.updater.alias),
 				channel     = "error",
 				title       = "requests.exceptions.Timeout",
 				description = "Превышение интервала ожидания загрузки.")
