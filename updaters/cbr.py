@@ -1,13 +1,17 @@
+import requests
+import lxml.html
 from datetime import date
 from django.utils import timezone
-from catalog.models import Updater
-from catalog.models import Currency
-
+from catalog.models import *
+from project.models import Log
 
 class Runner:
 
-	name = 'Обновление курсов валют (Центральный банк России)'
+
+	name  = 'Обновление курсов валют (Центральный банк России)'
 	alias = 'cbr'
+	count = 0
+
 
 	def __init__(self):
 
@@ -30,9 +34,6 @@ class Runner:
 
 	def run(self):
 
-		import lxml.html
-		import requests
-
 		# Номера строк и столбцов
 		num = {'header': 0}
 
@@ -51,7 +52,11 @@ class Runner:
 			r = s.get(self.url, timeout = 100.0)
 			tree = lxml.html.fromstring(r.text)
 		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки.")
+			Log.objects.add(
+				subject     = "updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "requests.exceptions.Timeout",
+				description = "Превышение интервала ожидания загрузки.")
 			return False
 
 		table = tree.xpath("//table[@class='CBRTBL']/tr")
@@ -85,9 +90,17 @@ class Runner:
 				currency.quantity = quantity
 				currency.modified = timezone.now()
 				currency.save()
+
+				self.count += 1
 				print('{} = {} / {}'.format(
 					currency.alias,
 					currency.rate,
 					currency.quantity))
+
+		Log.objects.add(
+			subject     = "updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обновлены курсы валют: {} шт.".format(self.count))
 
 		return True

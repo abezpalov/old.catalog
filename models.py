@@ -623,7 +623,10 @@ class PartyManager(models.Manager):
 	def make(self, product, stock, article = None,
 			price = None, price_type = None, currency = None,
 			price_out = None, price_type_out = None, currency_out = None,
-			quantity = None, unit = None):
+			quantity = None, unit = None, time = None):
+
+		if time:
+			Party.objects.filter(stock = stock, created__gt = time).delete()
 
 		party = Party(
 			product        = product,
@@ -640,10 +643,19 @@ class PartyManager(models.Manager):
 			created        = timezone.now(),
 			modified       = timezone.now())
 		party.save()
+
+		print('{} {} = {}'.format(
+			party.product.vendor,
+			party.product.article,
+			party.price_str))
+
 		return party
 
-	def clear(self, stock):
-		Party.objects.filter(stock = stock).delete()
+	def clear(self, stock, time = None):
+		if time:
+			Party.objects.filter(stock = stock, created__gt = time).delete()
+		else:
+			Party.objects.filter(stock = stock).delete()
 		return True
 
 # Party
@@ -704,10 +716,6 @@ class Party(models.Model):
 
 	price_xml = property(_get_price_xml)
 
-
-
-
-
 	def _get_price_out_str(self):
 		try:
 			price = self.price_out * self.currency_out.rate / self.currency_out.quantity
@@ -729,7 +737,6 @@ class Party(models.Model):
 			price = price.replace('.', ',')
 			price = price + '&nbsp;' + currency.name
 		else: return ''
-
 
 		return price
 

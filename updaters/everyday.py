@@ -1,7 +1,7 @@
 import datetime
+from django.utils import timezone
 from catalog.models import Updater
 from project.models import Log
-from django.utils import timezone
 
 
 class Runner:
@@ -52,11 +52,6 @@ class Runner:
 					if runner.run():
 						runner.updater.updated = timezone.now()
 						runner.updater.save()
-				Log.objects.add(
-					subject    = "Catalog Updater Everyday: {}".format(updater),
-					channel    = "info",
-					title      = "Updated",
-					description = 'Завершено обновление: {}.'.format(runner.updater.name))
 
 			except Exception as error:
 				Log.objects.add(

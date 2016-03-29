@@ -20,11 +20,16 @@ from catalog.models import Price
 class Runner:
 
 
-	name = 'Digis'
+	name  = 'Digis'
 	alias = 'digis'
-
+	count = {
+		'product' : 0,
+		'party'   : 0}
 
 	def __init__(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Поставщик
 		self.distributor = Distributor.objects.take(
@@ -33,8 +38,8 @@ class Runner:
 
 		# Загрузчик
 		self.updater = Updater.objects.take(
-			alias = self.alias,
-			name  = self.name,
+			alias       = self.alias,
+			name        = self.name,
 			distributor = self.distributor)
 
 		# На заказ
@@ -44,7 +49,6 @@ class Runner:
 			delivery_time_min = 20,
 			delivery_time_max = 60,
 			distributor       = self.distributor)
-		Party.objects.clear(stock=self.factory)
 
 		# Склад
 		self.stock = Stock.objects.take(
@@ -53,7 +57,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stock)
 
 		# Транзит
 		self.transit = Stock.objects.take(
@@ -62,7 +65,6 @@ class Runner:
 			delivery_time_min = 10,
 			delivery_time_max = 40,
 			distributor       = self.distributor)
-		Party.objects.clear(stock=self.transit)
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
@@ -100,18 +102,18 @@ class Runner:
 			'price': '/bitrix/redirect.php?event1=news_out&event2=/personal/profile/price/p14u/daily_price_cs_pdl.xlsx'}
 
 		self.currencies = {
-			'RUB':  self.rub,
-			'RUR':  self.rub,
-			'руб':  self.rub,
+			'RUB' : self.rub,
+			'RUR' : self.rub,
+			'руб' : self.rub,
 			'руб.': self.rub,
-			'USD':  self.usd,
-			'EUR':  self.eur,
-			'':     None}
+			'USD' : self.usd,
+			'EUR' : self.eur,
+			''    : None}
 
 		self.stocks = {
-			'factory': self.factory,
-			'stock':   self.stock,
-			'transit': self.transit}
+			'factory' : self.factory,
+			'stock'   : self.stock,
+			'transit' : self.transit}
 
 
 	def run(self):
@@ -171,7 +173,15 @@ class Runner:
 				r = s.get(url, cookies = cookies)
 
 				# TODO Парсим прайс-лист
-				if self.parsePrice(r): return True
+				if self.parsePrice(r):
+
+
+
+					Party.objects.clear(stock = self.factory)
+					Party.objects.clear(stock = self.stock)
+					Party.objects.clear(stock = self.transit)
+
+					return True
 				else: return False
 
 		print("Ошибка: прайс-лист не найден.")

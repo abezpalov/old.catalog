@@ -6,6 +6,7 @@ import requests
 import lxml.html
 from io import BytesIO
 from zipfile import ZipFile
+from django.utils import timezone
 from catalog.models import Updater
 from catalog.models import Distributor
 from catalog.models import Stock
@@ -23,11 +24,16 @@ from catalog.models import Price
 class Runner:
 
 
-	name = 'Axsoft'
+	name  = 'Axsoft'
 	alias = 'axoft'
-
+	count = {
+		'product' : 0,
+		'party'   : 0}
 
 	def __init__(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Поставщик
 		self.distributor = Distributor.objects.take(
@@ -47,7 +53,6 @@ class Runner:
 			delivery_time_min = 10,
 			delivery_time_max = 40,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.on_order)
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
@@ -123,6 +128,9 @@ class Runner:
 					self.parsePrice(data, vendor_synonym.vendor)
 			else:
 				print('Производитель не привязан.')
+
+		# Чистим устаревшие партии
+		Party.objects.clear(stock = self.on_order, time = self.start_time)
 
 		return True
 
@@ -396,6 +404,7 @@ class Runner:
 						name     = product_name,
 						category = category,
 						unit     = self.default_unit)
+					self.count['product'] += 1
 
 					# Добавляем партии
 					party = Party.objects.make(
@@ -408,7 +417,9 @@ class Runner:
 						price_type_out = self.rp,
 						currency_out   = price_currency_out,
 						quantity       = -1,
-						unit           = self.default_unit)
+						unit           = self.default_unit,
+						time           = self.start_time)
+					self.count['party'] += 1
 					print("{} {} = {}".format(
 						party.product.vendor,
 						party.product.article,

@@ -1,15 +1,23 @@
-import lxml.html
 import requests
+import lxml.html
+from django.utils import timezone
 from catalog.models import *
-
+from project.models import Log
 
 class Runner:
 
-	name = 'ЦМО'
+
+	name  = 'ЦМО'
 	alias = 'cmo'
+	count = {
+		'product' : 0,
+		'party'   : 0}
 
 
 	def __init__(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Дистрибьютор
 		self.distributor = Distributor.objects.take(
@@ -29,7 +37,6 @@ class Runner:
 			delivery_time_min = 10,
 			delivery_time_max = 20,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.factory)
 
 		# Производитель
 		self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
@@ -49,7 +56,8 @@ class Runner:
 			quantity  = 1)
 
 		# Переменные
-		self.url = 'http://www.cmo.ru/price/'
+		self.url = 'http://cmo.ru/price/'
+
 
 	def run(self):
 
@@ -74,77 +82,82 @@ class Runner:
 			return False
 
 		# Парсим
-		try:
-			table = tree.xpath(".//table")[0]
-		except IndexError:
-			print("Не получилось загрузить прайс-лист.")
-			print("Проверьте параметры доступа.")
-			return False
+		tables = tree.xpath(".//div[@class='price-list']")
 
-		trs = table.xpath('.//tr')
+		# Проходим по таблицам
+		for table in tables:
 
-		for trn, tr in enumerate(trs):
+			groups = table.xpath(".//li[@id]")
 
-			# Заголовок таблицы
-			if trn == num['header']:
-				for tdn, td in enumerate(tr):
-					print(td.text)
-					if   td.text == word['article']: num['article'] = tdn
-					elif td.text == word['code']:    num['code']    = tdn
-					elif td.text == word['name']:    num['name']    = tdn
-					elif td.text is None:            num['price']   = tdn
+			# Прохидим по группам
+			for group in groups:
 
-				# Проверяем, все ли столбцы распознались
-				if not num['article'] == 0 or not num['code'] or not num['name'] or not num['price']:
-					print("Ошибка структуры данных: не все столбцы опознаны.")
-					return False
-				else: print("Структура данных без изменений.")
+				# Определяем синоним категории
+				group_name = group.xpath(".//div[@class='item-text-root']")[0]
 
-			# Категория
-			elif len(tr) == 1:
 				category_synonym = CategorySynonym.objects.take(
-					name = tr[0][0][0].text.strip(),
-					updater = self.updater,
+					name        = group_name.text.strip(),
+					updater     = self.updater,
 					distributor = self.distributor)
 
-			# Товар
-			elif len(tr) == 4:
+				elements = group.xpath(".//div[@class='item-text']")
 
-				article = str(tr[num['article']].text).strip()
-				code    = str(tr[num['code']].text).strip()
-				name    = str(tr[num['name']][0].text).strip()
-				link    = str(tr[num['name']][0].get('href')).strip()
-				price   = self.fixPrice(tr[num['price']].text)
+				# Проходим по элементам
+				for element in elements:
 
-				# Если артикул не указан - используем код товара
-				if not article and code: article = code
+					# Артикулы
+					try:
+						party_article   = element.xpath(".//div[@class='service-num']")[0].text.strip()
+						product_article = element.xpath(".//div[@class='service-code']")[0].text.strip()
+					except: continue
 
-				# Получаем объект товара
-				if article and name:
-					product = Product.objects.take(
-						article = article,
-						vendor = self.vendor,
-						name = name,
-						category = category_synonym.category,
-						unit = self.default_unit)
-				else: continue
+					# Наименование
+					try:
+						product_name = element.xpath(".//div[@class='name-text']/a")[0].text.strip()
+						product_link = element.xpath(".//div[@class='name-text']/a")[0].get('href').strip()
+					except: continue
 
-				# Добавляем партии
-				party = Party.objects.make(
-					product = product,
-					stock = self.factory,
-					price = price,
-					price_type = self.rp,
-					currency = self.rub,
-					quantity = -1,
-					unit = self.default_unit)
-				print('{} {} = {} {}'.format(
-					product.vendor,
-					product.article,
-					party.price,
-					party.currency))
+					# Цена
+					try:
+						price = element.xpath(".//div[@class='price']")[0].text.strip()
+						price = self.fixPrice(price)
+					except: continue
+
+					# Получаем объект товара
+					if product_article and product_name:
+						product = Product.objects.take(
+							article  = product_article,
+							vendor   = self.vendor,
+							name     = product_name,
+							category = category_synonym.category,
+							unit     = self.default_unit)
+						self.count['product'] += 1
+					else: continue
+
+					# Добавляем партии
+					party = Party.objects.make(
+						product    = product,
+						stock      = self.factory,
+						article    = party_article,
+						price      = price,
+						price_type = self.rp,
+						currency   = self.rub,
+						quantity   = -1,
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
+
+		# Чистим устаревшие партии
+		Party.objects.clear(stock = self.factory, time = self.start_time)
+
+		Log.objects.add(
+			subject     = "updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
 
 		return True
+
 
 	def fixPrice(self, price):
 		price = str(price).strip()
