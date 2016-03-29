@@ -1,28 +1,20 @@
 import requests
 import json
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+from django.utils import timezone
+from catalog.models import *
+from project.models import Log
 
 
 class Runner:
 
 
-	name = 'OCS'
-	alias = 'ocs'
-
-
 	def __init__(self):
+
+		self.name = 'OCS'
+		self.alias = 'ocs'
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 		# Поставщик
 		self.distributor = Distributor.objects.take(
@@ -43,7 +35,6 @@ class Runner:
 			delivery_time_min = 1,
 			delivery_time_max = 3,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['Самара'])
 
 		self.stocks['Саратов'] = Stock.objects.take(
 			alias             = self.alias + '-stock-saratov',
@@ -51,7 +42,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['Саратов'])
 
 		self.stocks['Оренбург'] = Stock.objects.take(
 			alias             = self.alias + '-stock-orenburg',
@@ -59,7 +49,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['Оренбург'])
 
 		self.stocks['Казань'] = Stock.objects.take(
 			alias             = self.alias + '-stock-kazan',
@@ -67,7 +56,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['Казань'])
 
 		self.stocks['Уфа'] = Stock.objects.take(
 			alias             = self.alias + '-stock-ufa',
@@ -75,7 +63,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['Уфа'])
 
 		self.stocks['Нижний Новгород'] = Stock.objects.take(
 			alias             = self.alias + '-stock-nizhniy-novgorod',
@@ -83,7 +70,6 @@ class Runner:
 			delivery_time_min = 5,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['Нижний Новгород'])
 
 		self.stocks['В пути'] = Stock.objects.take(
 			alias             = self.alias + '-transit',
@@ -91,7 +77,6 @@ class Runner:
 			delivery_time_min = 10,
 			delivery_time_max = 60,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['В пути'])
 
 		self.stocks['Транзит из ЦО'] = Stock.objects.take(
 			alias             = self.alias + '-transit-from-moskow',
@@ -99,7 +84,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['Транзит из ЦО'])
 
 		self.stocks['ЦО (Москва)'] = Stock.objects.take(
 			alias             = self.alias + '-stock-moskow',
@@ -107,7 +91,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['ЦО (Москва)'])
 
 		self.stocks['ЦО (СПб)'] = Stock.objects.take(
 			alias             = self.alias + '-stock-спб',
@@ -115,7 +98,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stocks['ЦО (СПб)'])
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
@@ -149,6 +131,9 @@ class Runner:
 
 	def run(self):
 
+		# Фиксируем время старта
+		self.start_time = timezone.now()
+
 		category_synonyms = {}
 		locations = []
 
@@ -174,9 +159,6 @@ class Runner:
 		except requests.exceptions.Timeout:
 			print("Ошибка: превышен интервал ожидания загрузки категорий.")
 			return False
-
-		# TEST
-		print(r.text[:1000])
 
 		for c in json.loads(r.text)['d']['Categories']:
 			if c['ParentCategoryID']:
@@ -262,7 +244,7 @@ class Runner:
 					name     = product_name,
 					category = category_synonym.category,
 					unit     = self.default_unit)
-				print("{} {}".format(product.vendor.name, product.article))
+				self.count['product'] += 1
 
 				# Цена
 				price = p['Price']
@@ -286,11 +268,26 @@ class Runner:
 						price_type = self.dp,
 						currency   = currency,
 						quantity   = quantity,
-						unit       = self.default_unit)
-					print("{} {} = {} {}".format(
-						product.vendor.name,
-						product.article,
-						party.price,
-						party.currency.alias))
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
+
+		# Чистим партии
+		Party.objects.clear(stock = self.stocks['Самара'],          time = self.start_time)
+		Party.objects.clear(stock = self.stocks['Саратов'],         time = self.start_time)
+		Party.objects.clear(stock = self.stocks['Оренбург'],        time = self.start_time)
+		Party.objects.clear(stock = self.stocks['Казань'],          time = self.start_time)
+		Party.objects.clear(stock = self.stocks['Уфа'],             time = self.start_time)
+		Party.objects.clear(stock = self.stocks['Нижний Новгород'], time = self.start_time)
+		Party.objects.clear(stock = self.stocks['В пути'],          time = self.start_time)
+		Party.objects.clear(stock = self.stocks['Транзит из ЦО'],   time = self.start_time)
+		Party.objects.clear(stock = self.stocks['ЦО (Москва)'],     time = self.start_time)
+		Party.objects.clear(stock = self.stocks['ЦО (СПб)'],        time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
 
 		return True
