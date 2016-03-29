@@ -284,7 +284,7 @@ class Runner:
 				subject     = "catalog.updater.{}".format(self.updater.alias),
 				channel     = "error",
 				title       = "requests.exceptions.Timeout",
-				description = "Битый архив.")
+				description = "Битый архив: {}.".format(url))
 			return False
 
 		data = zip_data.open(zip_data.namelist()[0])

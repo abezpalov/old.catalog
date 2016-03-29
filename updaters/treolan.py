@@ -1,16 +1,22 @@
-import requests
 import lxml.html
+import requests
+from django.utils import timezone
 from catalog.models import *
+from project.models import Log
 
 
 class Runner:
 
 
-	name  = 'Treolan'
-	alias = 'treolan'
-
-
 	def __init__(self):
+
+		self.name  = 'Treolan'
+		self.alias = 'treolan'
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
+		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
+		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?Template=&Commodity=true&IncludeFullPriceList=false&OrderBy=0&Groups=23318&IncludeSubGroups=true&Condition=0&PriceMin=&PriceMax=&Currency=RUB&WithMarketingProgramsOnly=false&AvailableAtStockOnly=false&AdditionalParamsStr=%5B%5D&AdditionalParams=&AddParamsShow=&GetExcel=&FromLeftCol=false&CatalogProductsOnly=true&RusDescription=false&skip=0&take=50&LoadResults=false&DemoOnly=false&ShowHpCarePack=false&showActualGoods=false'
 
 		# Поставщик
 		self.distributor = Distributor.objects.take(
@@ -30,7 +36,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stock)
 
 		# Транзит
 		self.transit = Stock.objects.take(
@@ -39,7 +44,6 @@ class Runner:
 			delivery_time_min = 10,
 			delivery_time_max = 40,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.transit)
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
@@ -61,11 +65,11 @@ class Runner:
 			rate      = 60,
 			quantity  = 1)
 
-		# Используемые ссылки
-		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
-		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?Template=&Commodity=true&IncludeFullPriceList=false&OrderBy=0&Groups=23318&IncludeSubGroups=true&Condition=0&PriceMin=&PriceMax=&Currency=RUB&WithMarketingProgramsOnly=false&AvailableAtStockOnly=false&AdditionalParamsStr=%5B%5D&AdditionalParams=&AddParamsShow=&GetExcel=&FromLeftCol=false&CatalogProductsOnly=true&RusDescription=false&skip=0&take=50&LoadResults=false&DemoOnly=false&ShowHpCarePack=false&showActualGoods=false'
 
 	def run(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Проверяем наличие параметров авторизации
 		if not self.updater.login or not self.updater.password:
@@ -180,6 +184,7 @@ class Runner:
 						name     = name,
 						category = category_synonym.category,
 						unit     = self.default_unit)
+					self.count['product'] += 1
 				else: continue
 
 				# Цена в долларах
@@ -192,7 +197,9 @@ class Runner:
 							price_type = self.dp,
 							currency   = self.usd,
 							quantity   = stock,
-							unit       = self.default_unit)
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 					if transit:
 						party = Party.objects.make(
 							product    = product,
@@ -201,8 +208,9 @@ class Runner:
 							price_type = self.dp,
 							currency   = self.usd,
 							quantity   = transit,
-							unit       = self.default_unit)
-					print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 
 				# Цена в рублях
 				elif price_rub:
@@ -214,7 +222,9 @@ class Runner:
 							price_type = self.dp,
 							currency   = self.rub,
 							quantity   = stock,
-							unit       = self.default_unit)
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 					if transit:
 						party = Party.objects.make(
 							product    = product,
@@ -223,8 +233,9 @@ class Runner:
 							price_type = self.dp,
 							currency   = self.rub,
 							quantity   = transit,
-							unit       = self.default_unit)
-					print(product.vendor.name + ' ' + product.article + ' = ' + str(party.price) + ' ' + party.currency.alias + ' ' + party.price_type.alias)
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 
 				# Цена не определена
 				else:
@@ -236,7 +247,9 @@ class Runner:
 							price_type = self.dp,
 							currency   = self.rub,
 							quantity   = stock,
-							unit       = self.default_unit)
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 					if transit:
 						party = Party.objects.make(
 							product    = product,
@@ -245,10 +258,20 @@ class Runner:
 							price_type = self.dp,
 							currency   = self.rub,
 							quantity   = transit,
-							unit       = self.default_unit)
-					print(product.vendor.name + ' ' + product.article)
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 
-		print("Обработка прайс-листа завершена.")
+		# Чистим партии
+		Party.objects.clear(stock = self.stock,   time = self.start_time)
+		Party.objects.clear(stock = self.transit, time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+
 		return True
 
 

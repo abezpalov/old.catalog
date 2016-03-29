@@ -1,30 +1,25 @@
 import re
 import time
-import requests
 import lxml.html
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+import requests
+from django.utils import timezone
+from catalog.models import *
+from project.models import Log
 
 
 class Runner:
 
 
-	name  = 'RRC'
-	alias = 'rrc'
-
-
 	def __init__(self):
+
+		self.name  = 'RRC'
+		self.alias = 'rrc'
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
+		self.url        = 'http://rrc.ru/catalog/?login=yes'
+		self.url_prefix = 'http://rrc.ru'
+		self.p = re.compile('^\/catalog\/[0-9]{4}_[0-9]_[0-9]{4}\/(\?PAGEN_[0-9]+=[0-9]+)?$')
 
 		# Поставщик
 		self.distributor = Distributor.objects.take(
@@ -44,7 +39,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stock)
 
 		# На заказ
 		self.on_order = Stock.objects.take(
@@ -53,7 +47,6 @@ class Runner:
 			delivery_time_min = 10,
 			delivery_time_max = 40,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.on_order)
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
@@ -81,14 +74,11 @@ class Runner:
 			rate      = 80,
 			quantity  = 1)
 
-		# Используемые ссылки
-		self.url        = 'http://rrc.ru/catalog/?login=yes'
-		self.url_prefix = 'http://rrc.ru'
-
-		# Шаблон, соответсвующий ссылке на категорию с продуктами
-		self.p = re.compile('^\/catalog\/[0-9]{4}_[0-9]_[0-9]{4}\/(\?PAGEN_[0-9]+=[0-9]+)?$')
 
 	def run(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Проверяем наличие параметров авторизации
 		if not self.updater.login or not self.updater.password:
@@ -174,7 +164,16 @@ class Runner:
 
 			i += 1
 
-		print("Обработка прайс-листа завершена.")
+		# Чистим партии
+		Party.objects.clear(stock = self.on_order, time = self.start_time)
+		Party.objects.clear(stock = self.stock,    time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+
 		return True
 
 	def parseProducts(self, tree):
@@ -184,21 +183,21 @@ class Runner:
 
 		# Распознаваемые слова
 		word = {
-			'article': 'Partnumber/',
-			'vendor': 'Вендор',
-			'name': 'Товар',
-			'quantity': 'Доступно',
-			'price': 'Цена'}
+			'article'  : 'Partnumber/',
+			'vendor'   : 'Вендор',
+			'name'     : 'Товар',
+			'quantity' : 'Доступно',
+			'price'    : 'Цена'}
 
 		# Заголовок таблицы
 		ths = tree.xpath('//table[@class="catalog-item-list"]/thead/tr/th')
 		for thn, th in enumerate(ths):
 
-			if   th.text == word['article']:  num['article']  = thn
-			elif th.text == word['vendor']:   num['vendor']   = thn
-			elif th.text == word['name']:     num['name']     = thn
-			elif th.text == word['quantity']: num['quantity'] = thn
-			elif th.text == word['price']:    num['price']    = thn
+			if   th.text == word['article']  : num['article']  = thn
+			elif th.text == word['vendor']   : num['vendor']   = thn
+			elif th.text == word['name']     : num['name']     = thn
+			elif th.text == word['quantity'] : num['quantity'] = thn
+			elif th.text == word['price']    : num['price']    = thn
 
 		# Проверяем, все ли столбцы распознались
 		if len(num) == num['headers']:
@@ -262,6 +261,7 @@ class Runner:
 					vendor  = vendor_synonym.vendor,
 					name    = name,
 					unit    = self.default_unit)
+				self.count['product'] += 1
 			else: continue
 
 			# Партии
@@ -273,12 +273,9 @@ class Runner:
 					price_type = self.dp,
 					currency   = currency,
 					quantity   = quantity,
-					unit       = self.default_unit)
-				print('{} {} = {} {}'.format(
-					product.vendor,
-					product.article,
-					party.price,
-					party.currency.alias))
+					unit       = self.default_unit,
+					time       = self.start_time)
+				self.count['party'] += 1
 			else:
 				party = Party.objects.make(
 					product    = product,
@@ -287,12 +284,9 @@ class Runner:
 					price_type = self.dp,
 					currency   = currency,
 					quantity   = 0,
-					unit       = self.default_unit)
-				print('{} {} = {} {}'.format(
-					product.vendor,
-					product.article,
-					party.price,
-					party.currency.alias))
+					unit       = self.default_unit,
+					time       = self.start_time)
+				self.count['party'] += 1
 
 		return True
 

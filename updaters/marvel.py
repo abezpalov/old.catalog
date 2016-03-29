@@ -15,13 +15,14 @@ class Runner:
 		self.count = {
 			'product' : 0,
 			'party'   : 0}
+		self.url = 'https://b2b.marvel.ru/Api/'
 
-		# Объект дистрибьютора
+		# Поставщик
 		self.distributor = Distributor.objects.take(
 			alias = self.alias,
 			name  = self.name)
 
-		# Объект загрузчика
+		# Загрузчик
 		self.updater = Updater.objects.take(
 			alias       = self.alias,
 			name        = self.name,
@@ -86,7 +87,6 @@ class Runner:
 		self.stocks = {
 			'msk': self.stock_msk,
 			'spb': self.stock_spb}
-		self.url = 'https://b2b.marvel.ru/Api/'
 
 
 	def run(self):
