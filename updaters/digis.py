@@ -164,6 +164,9 @@ class Runner:
 		# Получаем ссылки со страницы
 		tree = lxml.html.fromstring(r.text)
 		urls = tree.xpath('//a/@href')
+
+		parsed = []
+
 		for url in urls:
 			if self.url['price'] in url:
 
@@ -171,13 +174,17 @@ class Runner:
 				if not self.url['base'] in url:
 					url = self.url['base'] + url
 
-				# Скачиваем прайс-лист
-				print("Прайс-лист найден: {}".format(url))
-				r = s.get(url, cookies = cookies)
+				if not url in parsed:
 
-				# Парсим прайс-лист
-				if not self.parsePrice(r):
-					return False
+					parsed.append(url)
+
+					# Скачиваем прайс-лист
+					print("Прайс-лист найден: {}".format(url))
+					r = s.get(url, cookies = cookies)
+
+					# Парсим прайс-лист
+					if not self.parsePrice(r):
+						return False
 
 		Party.objects.clear(stock = self.factory, time = self.start_time)
 		Party.objects.clear(stock = self.stock,   time = self.start_time)
@@ -188,7 +195,6 @@ class Runner:
 			channel     = "info",
 			title       = "Updated",
 			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
-
 
 		return True
 
@@ -292,7 +298,7 @@ class Runner:
 						name     = product_name,
 						category = category_synonym.category,
 						unit     = self.default_unit)
-					print("{} {}".format(product.vendor.name, product.article))
+					self.count['product'] += 1
 
 					# Партии
 					party_article      = row[num['party_article']]
@@ -322,12 +328,9 @@ class Runner:
 							price_type_out = self.rp,
 							currency_out   = party_currency,
 							quantity       = quantity[stock_name],
-							unit           = self.default_unit)
-						print("{} {} = {} {}".format(
-							product.vendor.name,
-							product.article,
-							party.price,
-							party.currency))
+							unit           = self.default_unit,
+							time           = self.start_time)
+						self.count['party'] += 1
 
 					# Партии на складе
 					stock_name = 'stock'
@@ -343,12 +346,9 @@ class Runner:
 							price_type_out = self.rp,
 							currency_out   = party_currency,
 							quantity       = quantity[stock_name],
-							unit           = self.default_unit)
-						print("{} {} = {} {}".format(
-							product.vendor.name,
-							product.article,
-							party.price,
-							party.currency))
+							unit           = self.default_unit,
+							time           = self.start_time)
+						self.count['party'] += 1
 
 					# Партии в транзите
 					stock_name = 'transit'
@@ -364,12 +364,9 @@ class Runner:
 							price_type_out = self.rp,
 							currency_out   = party_currency,
 							quantity       = quantity[stock_name],
-							unit           = self.default_unit)
-						print("{} {} = {} {}".format(
-							product.vendor.name,
-							product.article,
-							party.price,
-							party.currency))
+							unit           = self.default_unit,
+							time           = self.start_time)
+						self.count['party'] += 1
 
 		return True
 
