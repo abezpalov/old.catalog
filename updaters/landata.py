@@ -1,19 +1,9 @@
 import time
-import requests
 import lxml.html
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+import requests
+from django.utils import timezone
+from catalog.models import *
+from project.models import Log
 
 
 class Runner:
@@ -21,6 +11,15 @@ class Runner:
 
 	name = 'Landata'
 	alias = 'landata'
+	count = {
+		'product' : 0,
+		'party'   : 0}
+	url = {
+		'start': 'http://www.landata.ru/forpartners/',
+		'login': 'http://www.landata.ru/forpartners/',
+		'price': 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
+		'backurl': '/index.php',
+		'filter': '?vendor_code='}
 
 
 	def __init__(self):
@@ -44,7 +43,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.s1)
 
 		# C2- склад №2 по адресу Дмитровское шоссе
 		self.s2 = Stock.objects.take(
@@ -53,7 +51,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.s2)
 
 		# БТ- Ближний транзит - свободный товар, поступающий на склады Landata в течение 1-21 дней
 		self.bt = Stock.objects.take(
@@ -62,7 +59,6 @@ class Runner:
 			delivery_time_min = 10,
 			delivery_time_max = 30,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.bt)
 
 		# ДТ- Дальний транзит - свободный товар, поступающий на склады Landata в период между 22 - 60 днями
 		self.dt = Stock.objects.take(
@@ -71,13 +67,16 @@ class Runner:
 			delivery_time_min = 25,
 			delivery_time_max = 80,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.dt)
 
 		# Единица измерения
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+		self.default_unit = Unit.objects.take(
+			alias = 'pcs',
+			name  = 'шт.')
 
 		# Тип цены
-		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
+		self.dp = PriceType.objects.take(
+			alias = 'DP',
+			name = 'Диллерская цена')
 
 		# Валюта
 		self.rub = Currency.objects.take(
@@ -99,16 +98,11 @@ class Runner:
 			rate      = 80,
 			quantity  = 1)
 
-		# Используемые ссылки
-		self.url = {
-			'start': 'http://www.landata.ru/forpartners/',
-			'login': 'http://www.landata.ru/forpartners/',
-			'price': 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
-			'backurl': '/index.php',
-			'filter': '?vendor_code='}
-
 
 	def run(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Проверяем наличие параметров авторизации
 		if not self.updater.login or not self.updater.password:
@@ -199,6 +193,18 @@ class Runner:
 				# Ждем, чтобы не получить отбой сервера
 				time.sleep(1)
 
+		# Чистим партии
+		Party.objects.clear(stock = self.s1, time = self.start_time)
+		Party.objects.clear(stock = self.s2, time = self.start_time)
+		Party.objects.clear(stock = self.bt, time = self.start_time)
+		Party.objects.clear(stock = self.dt, time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+
 		return True
 
 
@@ -273,6 +279,7 @@ class Runner:
 						name = product_name,
 						category = None,
 						unit = self.default_unit)
+					self.count['product'] += 1
 				else: continue
 
 				# Обрабатываем информацию о партиях
@@ -309,8 +316,10 @@ class Runner:
 						price_type = self.dp,
 						currency   = currency,
 						quantity   = s2,
-						unit       = self.default_unit)
-					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
+
 
 				if bt:
 					party = Party.objects.make(
@@ -320,8 +329,9 @@ class Runner:
 						price_type = self.dp,
 						currency   = currency,
 						quantity   = bt,
-						unit       = self.default_unit)
-					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
 
 				if dt:
 					party = Party.objects.make(
@@ -331,8 +341,9 @@ class Runner:
 						price_type = self.dp,
 						currency   = currency,
 						quantity   = dt,
-						unit       = self.default_unit)
-					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
 
 		return True
 

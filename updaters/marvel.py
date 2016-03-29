@@ -1,25 +1,20 @@
 import time
+import lxml.html
 import requests
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+from django.utils import timezone
+from catalog.models import *
+from project.models import Log
 
 class Runner:
 
-	name = 'Marvel'
-	alias = 'marvel'
 
 	def __init__(self):
+
+		self.name  = 'Marvel'
+		self.alias = 'marvel'
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 		# Объект дистрибьютора
 		self.distributor = Distributor.objects.take(
@@ -39,7 +34,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stock_msk)
 
 		# Склад в Санкт-Петербурге
 		self.stock_spb = Stock.objects.take(
@@ -48,7 +42,6 @@ class Runner:
 			delivery_time_min = 3,
 			delivery_time_max = 10,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.stock_spb)
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
@@ -77,11 +70,10 @@ class Runner:
 			quantity  = 1)
 
 		# Дополнительные переменные
-		self.url = 'https://b2b.marvel.ru/Api/'
 		self.key = ''
 		self.task = {
-			'categories': 'GetCatalogCategories',
-			'catalog': 'GetFullStock'}
+			'categories' : 'GetCatalogCategories',
+			'catalog'    : 'GetFullStock'}
 		self.request_format = {'xml': '0', 'json': '1'}
 		self.cookies = None
 		self.category_synonyms = {}
@@ -94,9 +86,13 @@ class Runner:
 		self.stocks = {
 			'msk': self.stock_msk,
 			'spb': self.stock_spb}
+		self.url = 'https://b2b.marvel.ru/Api/'
 
 
 	def run(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Проверяем наличие параметров авторизации
 		if not self.updater.login or not self.updater.password:
@@ -122,6 +118,16 @@ class Runner:
 		# Обрабатываем каталог
 		if data: self.parseCatalog(data)
 		else: return False
+
+		# Чистим партии
+		Party.objects.clear(stock = self.stock_msk, time = self.start_time)
+		Party.objects.clear(stock = self.stock_spb, time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
 
 		return True
 
@@ -150,11 +156,7 @@ class Runner:
 			request_format = self.request_format[request_format])
 
 		# Выполняем запрос
-		r = s.post(
-			url,
-			cookies = self.cookies,
-			verify = False,
-			timeout = 300)
+		r = s.post(url, cookies = self.cookies, verify = False, timeout = 300)
 
 		# Обрабатываем ответ
 		if 'json' == request_format:
@@ -162,8 +164,18 @@ class Runner:
 			data = json.loads(r.text)
 			if data['Header']['Key']: self.key = data['Header']['Key']
 			if data['Header']['Code'] != 0:
-				print('Ошибка: невнятный ответ сервера.')
-				if data['Header']['Message']: print(data['Header']['Message'])
+				if data['Header']['Message']:
+					Log.objects.add(
+					subject     = "catalog.updater.{}".format(self.updater.alias),
+					channel     = "error",
+					title       = "?",
+					description = data['Header']['Message'])
+				else:
+					Log.objects.add(
+					subject     = "catalog.updater.{}".format(self.updater.alias),
+					channel     = "error",
+					title       = "?",
+					description = "Невнятный ответ сервера")
 				return False
 			else:
 				return data['Body']
@@ -242,7 +254,7 @@ class Runner:
 					name     = product_name,
 					category = category_synonym.category,
 					unit     = self.default_unit)
-				print("{} {}".format(product.vendor.name, product.article))
+				self.count['product'] += 1
 
 				# Партии
 				stock_name = 'msk'
@@ -254,12 +266,9 @@ class Runner:
 						price_type = self.dp,
 						currency   = party_currency,
 						quantity   = party_quantity[stock_name],
-						unit       = self.default_unit)
-					print("{} {} = {} {}".format(
-						product.vendor.name,
-						product.article,
-						party.price,
-						party.currency))
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
 				stock_name = 'spb'
 				if party_quantity[stock_name]:
 					party = Party.objects.make(
@@ -269,12 +278,9 @@ class Runner:
 						price_type = self.dp,
 						currency   = party_currency,
 						quantity   = party_quantity[stock_name],
-						unit       = self.default_unit)
-					print("{} {} = {} {}".format(
-						product.vendor.name,
-						product.article,
-						party.price,
-						party.currency))
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
 
 
 	def fixPrice(self, price):

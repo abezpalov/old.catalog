@@ -1,21 +1,33 @@
+import lxml.html
+import requests
+from io import BytesIO
+from zipfile import ZipFile
+import sys, subprocess, os
+from django.utils import timezone
 from catalog.models import *
+from project.models import Log
 
 
 class Runner:
 
 
-	name = 'Fujitsu'
+	name  = 'Fujitsu'
 	alias = 'fujitsu'
-
+	count = {
+		'product' : 0,
+		'party'   : 0}
 	url = {
-		'start': 'https://partners.ts.fujitsu.com/com/Pages/Default.aspx',
-		'login': 'https://partners.ts.fujitsu.com/CookieAuth.dll?Logon',
-		'links': 'https://partners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
-		'search': '2016.zip',
-		'prefix': 'https://partners.ts.fujitsu.com'}
+		'start'  : 'https://partners.ts.fujitsu.com/com/Pages/Default.aspx',
+		'login'  : 'https://partners.ts.fujitsu.com/CookieAuth.dll?Logon',
+		'links'  : 'https://partners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
+		'search' : '2016.zip',
+		'prefix' : 'https://partners.ts.fujitsu.com'}
 
 
 	def __init__(self):
+
+		# Фиксируем время старта
+		self.start_time = timezone.now()
 
 		# Дистрибьютор
 		self.distributor = Distributor.objects.take(
@@ -31,7 +43,7 @@ class Runner:
 		# Производитель
 		self.vendor = Vendor.objects.take(
 			alias = self.alias,
-			name = self.name)
+			name  = self.name)
 
 		# Завод
 		self.factory = Stock.objects.take(
@@ -40,7 +52,6 @@ class Runner:
 			delivery_time_min = 40,
 			delivery_time_max = 60,
 			distributor       = self.distributor)
-		Party.objects.clear(stock = self.factory)
 
 		# Единица измерения
 		self.default_unit = Unit.objects.take(
@@ -61,9 +72,6 @@ class Runner:
 			quantity  = 1)
 
 	def run(self):
-
-		import lxml.html
-		import requests
 
 		# Проверяем наличие параметров авторизации
 		if not self.updater.login or not self.updater.password:
@@ -125,16 +133,27 @@ class Runner:
 				mdb = self.getMDB(r, 'prices.mdb')
 				self.parsePrices(mdb)
 
+				# Чистим партии
+				Party.objects.clear(stock = self.factory, time = self.start_time)
+
+				Log.objects.add(
+					subject     = "catalog.updater.{}".format(self.updater.alias),
+					channel     = "info",
+					title       = "Updated",
+					description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+
 				return True
 
-		print("Архив не найден.")
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "error",
+			title       = "return False",
+			description = "Не найден прайс-лист.")
+
 		return False
 
 
 	def getMDB(self, r, mdb_name):
-
-		from io import BytesIO
-		from zipfile import ZipFile
 
 		zip_data = ZipFile(BytesIO(r.content))
 
@@ -145,8 +164,6 @@ class Runner:
 
 
 	def parseCategories(self, mdb):
-
-		import sys, subprocess, os
 
 		# Синонимы категорий
 		self.category_synonyms = {}
@@ -187,19 +204,19 @@ class Runner:
 
 				# Получаем объект синонима
 				category_synonym = CategorySynonym.objects.take(
-					name = "{} | {}".format(row[num['numb']], row[num['name']].strip().replace('"', '')),
-					updater = self.updater,
+					name        = "{} | {}".format(
+						row[num['numb']],
+						row[num['name']].strip().replace('"', '')),
+					updater     = self.updater,
 					distributor = self.distributor)
 				self.category_synonyms[row[num['numb']]] = category_synonym
 
-				print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))
+				#print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))
 
 		return True
 
 
 	def parseProducts(self, mdb):
-
-		import sys, subprocess, os
 
 		# Номера строк и столбцов
 		num = {}
@@ -241,7 +258,11 @@ class Runner:
 				if len(num) == 6:
 					print("Все столбцы распознаны")
 				else:
-					print("Error: Не опознаны необходимые столбцы.")
+					Log.objects.add(
+						subject     = "catalog.updater.{}".format(self.updater.alias),
+						channel     = "error",
+						title       = "error",
+						description = "Не опознаны необходимые столбцы.")
 					return False
 
 			# Строка с данными
@@ -254,8 +275,10 @@ class Runner:
 				name = row[num['name']].strip().replace('"', '')
 
 				# Статус
-				if '50' == row[num['status']].strip().replace('"', ''): self.quantity[article] = -1
-				else: self.quantity[article] = None
+				if '50' == row[num['status']].strip().replace('"', ''):
+					self.quantity[article] = -1
+				else:
+					self.quantity[article] = None
 
 				# Категория
 				try:
@@ -280,15 +303,12 @@ class Runner:
 						category    = category,
 						unit        = self.default_unit,
 						description = description)
-
-					print("{} из {}: {}".format(rown + 1, len(rows), article))
+					self.count['product'] += 1
 
 		return True
 
 
 	def parsePrices(self, mdb):
-
-		import sys, subprocess, os
 
 		# Номера строк и столбцов
 		num = {}
@@ -369,15 +389,15 @@ class Runner:
 
 					# Добавляем партии
 					party = Party.objects.make(
-						product = product,
-						stock = self.factory,
-						price = price,
+						product    = product,
+						stock      = self.factory,
+						price      = price,
 						price_type = self.rdp,
-						currency = self.usd,
-						quantity = quantity,
-						unit = self.default_unit)
-
-					print("{} из {}: {} = {} {} {}".format(rown + 1, len(rows), article, str(price), self.usd.alias, self.rdp.alias))
+						currency   = self.usd,
+						quantity   = quantity,
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
 
 				except KeyError: continue
 				except Product.DoesNotExist: continue

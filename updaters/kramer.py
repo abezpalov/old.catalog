@@ -1,67 +1,80 @@
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
-
+import lxml.html
+import requests
+from django.utils import timezone
+from catalog.models import *
+from project.models import Log
 
 class Runner:
 
 
-	name = 'Kramer'
+	name  = 'Kramer'
 	alias = 'kramer'
+	count = {
+		'product' : 0,
+		'party'   : 0}
+	url = {
+		'start' : 'http://kramer.ru/',
+		'login' : 'http://kramer.ru/?login=yes',
+		'files' : 'http://kramer.ru/partners/prices/',
+		'base'  : 'http://kramer.ru',
+		'price' : 'http://kramer.ru/filedownload.php?id='}
 
 
 	def __init__(self):
 
+		# Фиксируем время старта
+		self.start_time = timezone.now()
+
 		# Поставщик
-		self.distributor = Distributor.objects.take(alias = self.alias, name = self.name)
+		self.distributor = Distributor.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
 		# Загрузчик
-		self.updater = Updater.objects.take(alias = self.alias, name = self.name, distributor = self.distributor)
+		self.updater = Updater.objects.take(
+			alias       = self.alias,
+			name        = self.name,
+			distributor = self.distributor)
 
 		# Завод
 		self.factory = Stock.objects.take(
-			alias = self.alias + '-factory',
-			name = self.name + ': завод',
+			alias             = self.alias + '-factory',
+			name              = self.name + ': завод',
 			delivery_time_min = 10,
 			delivery_time_max = 40,
-			distributor = self.distributor)
-		Party.objects.clear(stock=self.factory)
+			distributor       = self.distributor)
 
 		# Производитель
-		self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
+		self.vendor = Vendor.objects.take(
+			alias = self.alias,
+			name  = self.name)
 
 		# Единица измерения
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+		self.default_unit = Unit.objects.take(
+			alias = 'pcs',
+			name  = 'шт.')
 
 		# Тип цены
-		self.rrp = PriceType.objects.take(alias = 'RRP', name = 'Рекомендованная розничная цена')
+		self.rrp = PriceType.objects.take(
+			alias = 'RRP',
+			name  = 'Рекомендованная розничная цена')
 
 		# Валюты
-		self.rub = Currency.objects.take(alias = 'RUB', name = 'р.', full_name = 'Российский рубль', rate = 1, quantity = 1)
-		self.usd = Currency.objects.take(alias = 'USD', name = '$', full_name = 'Доллар США', rate = 60, quantity = 1)
+		self.rub = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
+		self.usd = Currency.objects.take(
+			alias     = 'USD',
+			name      = '$',
+			full_name = 'Доллар США',
+			rate      = 60,
+			quantity  = 1)
 
-		# Ссылки
-		self.url = {
-			'start': 'http://kramer.ru/',
-			'login': 'http://kramer.ru/?login=yes',
-			'files': 'http://kramer.ru/partners/prices/',
-			'base':  'http://kramer.ru',
-			'price': 'http://kramer.ru/filedownload.php?id='}
 
 	def run(self):
-
-		import lxml.html
-		import requests
 
 		# Создаем сессию
 		s = requests.Session()
@@ -85,7 +98,7 @@ class Runner:
 		r = s.get(self.url['files'], cookies = cookies, allow_redirects = True)
 		tree = lxml.html.fromstring(r.text)
 
-		# Ещем ссылки
+		# Ищем ссылки
 		urls = tree.xpath('//a/@href')
 		ok = 0
 		for url in urls:
@@ -95,9 +108,21 @@ class Runner:
 					ok += 1
 
 		if ok < 2:
-			print("Не получилось загрузить прайс-листы.")
-			print("Проверьте параметры доступа.")
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "return False",
+				description = "Не получилось загрузить прайс-листы.")
 			return False
+
+		# Чистим партии
+		Party.objects.clear(stock=self.factory, time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
 
 		return True
 
@@ -136,15 +161,15 @@ class Runner:
 
 		# Распознаваемые слова
 		word = {
-			'group': 'ГРУППА',
-			'article': 'P/N',
-			'model': 'Модель',
-			'size': 'Размер',
-			'name': 'Описание',
-			'price': 'Цена, $',
-			'dop': 'Примечание',
-			'group_name': '',
-			'category_name': ''}
+			'group'         : 'ГРУППА',
+			'article'       : 'P/N',
+			'model'         : 'Модель',
+			'size'          : 'Размер',
+			'name'          : 'Описание',
+			'price'         : 'Цена, $',
+			'dop'           : 'Примечание',
+			'group_name'    : '',
+			'category_name' : ''}
 
 		book = xlrd.open_workbook(file_contents = xls_data.read())
 		sheet = book.sheet_by_index(0)
@@ -192,11 +217,12 @@ class Runner:
 
 				# Получаем объект товара
 				product = Product.objects.take(
-					article = article,
-					vendor = self.vendor,
-					name = name,
+					article  = article,
+					vendor   = self.vendor,
+					name     = name,
 					category = category_synonym.category,
-					unit = self.default_unit)
+					unit     = self.default_unit)
+				self.count['product'] += 1
 
 				# Указываем категорию
 				if not product.category and category_synonym.category:
@@ -206,16 +232,16 @@ class Runner:
 				# Добавляем партии
 				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(
-					product = product,
-					stock = self.factory,
-					price = price,
+					product    = product,
+					stock      = self.factory,
+					price      = price,
 					price_type = self.rrp,
-					currency = self.usd,
-					quantity = -1,
-					unit = self.default_unit)
-				print("{} = {} {}".format(product.article, party.price, party.currency.alias))
+					currency   = self.usd,
+					quantity   = -1,
+					unit       = self.default_unit,
+					time       = self.start_time)
+				self.count['party'] += 1
 
-		print("Обработка прайс-листа оборудования завершена.")
 		return True
 
 
@@ -228,13 +254,13 @@ class Runner:
 
 		# Распознаваемые слова
 		word = {
-			'article': 'Part Number',
-			'model': 'Модель',
-			'name': 'Описание',
-			'size': 'Метры',
-			'price': 'Цена,     $',
-			'dop': 'Примечание',
-			'category_name': ''}
+			'article'       : 'Part Number',
+			'model'         : 'Модель',
+			'name'          : 'Описание',
+			'size'          : 'Метры',
+			'price'         : 'Цена,     $',
+			'dop'           : 'Примечание',
+			'category_name' : ''}
 
 		book = xlrd.open_workbook(file_contents = xls_data.read())
 		sheet = book.sheet_by_index(0)
@@ -281,30 +307,25 @@ class Runner:
 
 				# Получаем объект товара
 				product = Product.objects.take(
-					article = article,
-					vendor = self.vendor,
-					name = name,
+					article  = article,
+					vendor   = self.vendor,
+					name     = name,
 					category = category_synonym.category,
-					unit = self.default_unit)
-
-				# Указываем категорию
-				if not product.category and category_synonym.category:
-					product.category = category_synonym.category
-					product.save()
+					unit     = self.default_unit)
+				self.count['product'] += 1
 
 				# Добавляем партии
-				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(
-					product = product,
-					stock = self.factory,
-					price = price,
+					product    = product,
+					stock      = self.factory,
+					price      = self.fixPrice(row[num['price']]),
 					price_type = self.rrp,
-					currency = self.usd,
-					quantity = -1,
-					unit = self.default_unit)
-				print("{} = {} {}".format(product.article, party.price, party.currency.alias))
+					currency   = self.usd,
+					quantity   = -1,
+					unit       = self.default_unit,
+					time       = self.start_time)
+				self.count['party'] += 1
 
-		print("Обработка прайс-листа материалов завершена.")
 		return True
 
 

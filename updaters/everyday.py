@@ -10,23 +10,19 @@ class Runner:
 	alias = 'everyday'
 
 	updaters = [
-		'cbr',
-
 		'axoft',
+		'cbr',
+		'cmo',
 		'digis',
+		'fujitsu',
+		'kramer',
 		'landata',
+		'marvel',
 		'merlion',
 		'ocs',
 		'rrc',
 		'treolan',
-		'cmo',
-		'kramer',
-
-		'fujitsu',
-		'marvel',
-
-		'price-recalculate',
-		'quantity-recalculate']
+		'recalculate']
 
 	def __init__(self):
 

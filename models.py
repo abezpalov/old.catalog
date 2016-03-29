@@ -355,69 +355,6 @@ class Currency(models.Model):
 		ordering = ['alias']
 
 
-class PriceManager(models.Manager):
-
-	def recalculate(self):
-
-		from catalog.models import Currency
-		from catalog.models import Product
-		from catalog.models import Party
-		from catalog.models import PriceType
-
-		rp = PriceType.objects.take(
-			alias = 'RP',
-			name  = 'Розничная цена')
-
-		rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-
-		# Получаем перечень всех продуктов
-		products = Product.objects.all()
-
-		for n, product in enumerate(products):
-
-			# Получаем партии продукта
-			parties = Party.objects.filter(product = product)
-
-			# Получаем цену
-			if product.price:
-				price = product.price
-			else:
-				price = Price()
-				price.created = timezone.now()
-
-			# Вычисляем розничные цены на основании входных цен
-			prices = []
-			for party in parties:
-				if party.price and party.currency and party.price_type:
-					prices.append(party.price * party.currency.rate * party.price_type.multiplier / party.currency.quantity)
-
-			# Записываем лучшую в базу
-			if len(prices):
-				price.price      = min(prices)
-				price.price_type = rp
-				price.currency   = rub
-			else:
-				price.price      = None
-				price.price_type = rp
-				price.currency   = rub
-			price.modified = timezone.now()
-			price.save()
-
-			# Если цена не привязана к продукту, привязываем
-			if product.price is None:
-				product.price = price
-				product.save()
-
-			print("{} of {}. {} {} = {} {}".format(str(n+1), len(products), product.vendor.name, product.article, product.price.price, str(product.price.currency.alias)))
-
-		return True
-
-
 class Price(models.Model):
 	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
 	price_type = models.ForeignKey(PriceType, null = True, default = None)
@@ -427,17 +364,33 @@ class Price(models.Model):
 	created    = models.DateTimeField()
 	modified   = models.DateTimeField()
 
-	objects    = PriceManager()
-
 	def _get_price_str(self):
 
 		try:
 			price    = self.price
 			currency = self.currency
-		except: return None
+		except: return ''
 
 		if price:
-			price = '{:,}'.format(price)
+			price = '{:,}'.format(round(price, 2))
+			price = price.replace(',', ' ')
+			price = price.replace('.', ',')
+			price = price + ' ' + currency.name
+		else: return ''
+
+		return price
+
+	price_str = property(_get_price_str)
+
+	def _get_price_xml(self):
+
+		try:
+			price    = self.price
+			currency = self.currency
+		except: return ''
+
+		if price:
+			price = '{:,}'.format(round(price, 2))
 			price = price.replace(',', '&nbsp;')
 			price = price.replace('.', ',')
 			price = price + '&nbsp;' + currency.name
@@ -445,79 +398,10 @@ class Price(models.Model):
 
 		return price
 
-	price_str = property(_get_price_str)
+	price_xml = property(_get_price_xml)
 
 	class Meta:
 		ordering = ['-created']
-
-
-class QuantityManager(models.Manager):
-
-	def recalculate(self):
-
-		from catalog.models import Unit
-		from catalog.models import Product
-		from catalog.models import Party
-
-		# Получаем перечень всех продуктов
-		products = Product.objects.all()
-
-		for n, product in enumerate(products):
-
-			# Получаем партии продукта
-			parties = Party.objects.filter(product=product)
-
-			# Получаем объект количества
-			if product.quantity:
-				quantity = product.quantity
-			else:
-				quantity = Quantity()
-				quantity.created = timezone.now()
-
-			# Вычисляем количество товара
-			on_stock   = [0]
-			on_transit = [0]
-			on_factory = [0]
-
-			for party in parties:
-				if party.quantity:
-					if 'stock' in party.stock.alias:
-						on_stock.append(party.quantity)
-					elif 'transit' in party.stock.alias:
-						on_transit.append(party.quantity)
-					elif 'factory' in party.stock.alias:
-						on_factory.append(party.quantity)
-					elif 'delivery' in party.stock.alias:
-						on_factory.append(party.quantity)
-
-			# Записываем информацию в базу
-			if -1 in on_stock: quantity.on_stock = -1
-			else: quantity.on_stock = sum(on_stock)
-
-			if -1 in on_transit: quantity.on_transit = -1
-			else: quantity.on_transit = sum(on_transit)
-
-			if -1 in on_factory: quantity.on_factory = -1
-			else: quantity.on_factory = sum(on_factory)
-
-			quantity.modified = timezone.now()
-			quantity.save()
-
-			# Если объект количества не привязана к продукту, привязываем
-			if product.quantity is None:
-				product.quantity = quantity
-				product.save()
-
-			print("{} of {}. {} {} = {} | {} | {}".format(
-				str(n+1),
-				len(products),
-				product.vendor.name,
-				product.article,
-				product.quantity.on_stock,
-				product.quantity.on_transit,
-				product.quantity.on_factory))
-
-		return True
 
 
 class Quantity(models.Model):
@@ -530,7 +414,6 @@ class Quantity(models.Model):
 	state      = models.BooleanField(default = True)
 	created    = models.DateTimeField()
 	modified   = models.DateTimeField()
-	objects    = QuantityManager()
 
 	class Meta:
 		ordering = ['-created']
@@ -581,6 +464,10 @@ class ProductManager(models.Manager):
 		if product.duble:
 			product = self.get(id = product.duble)
 
+		print('{} {}'.format(
+			product.vendor,
+			product.article))
+
 		return product
 
 	def fixNames(self):
@@ -614,8 +501,112 @@ class Product(models.Model):
 	def __str__(self):
 		return self.name
 
+	def recalculate(self):
+
+		from catalog.models import Party
+		from catalog.models import Unit
+		from catalog.models import Currency
+		from catalog.models import PriceType
+
+		# Определяем переменные
+		rp = PriceType.objects.take(
+			alias = 'RP',
+			name  = 'Розничная цена')
+
+		rub = Currency.objects.take(
+			alias     = 'RUB',
+			name      = 'р.',
+			full_name = 'Российский рубль',
+			rate      = 1,
+			quantity  = 1)
+
+		# Получаем партии продукта
+		parties = Party.objects.filter(product=self)
+
+		# Получаем объект количества
+		if self.quantity:
+			quantity = self.quantity
+		else:
+			quantity = Quantity()
+			quantity.created = timezone.now()
+
+		# Вычисляем количество товара
+		on_stock   = [0]
+		on_transit = [0]
+		on_factory = [0]
+
+		for party in parties:
+			if party.quantity:
+				if 'stock' in party.stock.alias:
+					on_stock.append(party.quantity)
+				elif 'transit' in party.stock.alias:
+					on_transit.append(party.quantity)
+				elif 'factory' in party.stock.alias:
+					on_factory.append(party.quantity)
+				elif 'delivery' in party.stock.alias:
+					on_factory.append(party.quantity)
+
+		# Записываем информацию в базу
+		if -1 in on_stock: quantity.on_stock = -1
+		else: quantity.on_stock = sum(on_stock)
+
+		if -1 in on_transit: quantity.on_transit = -1
+		else: quantity.on_transit = sum(on_transit)
+
+		if -1 in on_factory: quantity.on_factory = -1
+		else: quantity.on_factory = sum(on_factory)
+
+		quantity.modified = timezone.now()
+		quantity.save()
+
+		# Если объект количества не привязан к продукту, привязываем
+		if self.quantity is None:
+			self.quantity = quantity
+			self.save()
+
+		#print("quantity = {} | {} | {}".format(
+		#	self.quantity.on_stock,
+		#	self.quantity.on_transit,
+		#	self.quantity.on_factory))
+
+		# Получаем цену
+		if self.price:
+			price = self.price
+		else:
+			price = Price()
+			price.created = timezone.now()
+
+		# Вычисляем розничные цены на основании входных цен
+		prices = []
+		for party in parties:
+			if party.price and party.currency and party.price_type:
+				prices.append(party.price * party.currency.rate * party.price_type.multiplier / party.currency.quantity)
+
+		# Записываем лучшую в базу
+		if len(prices):
+			price.price      = min(prices)
+			price.price_type = rp
+			price.currency   = rub
+		else:
+			price.price      = None
+			price.price_type = rp
+			price.currency   = rub
+		price.modified = timezone.now()
+		price.save()
+
+		# Если цена не привязана к продукту, привязываем
+		if self.price is None:
+			self.price = price
+			self.save()
+
+		#print("price = {}".format(self.price.price_str))
+
+		return True
+
+
 	class Meta:
 		ordering = ['name']
+
 
 # Party manager
 class PartyManager(models.Manager):
@@ -648,6 +639,8 @@ class PartyManager(models.Manager):
 			party.product.vendor,
 			party.product.article,
 			party.price_str))
+
+		party.product.recalculate()
 
 		return party
 
