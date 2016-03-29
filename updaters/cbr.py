@@ -98,7 +98,7 @@ class Runner:
 					currency.quantity))
 
 		Log.objects.add(
-			subject     = "updater.{}".format(self.updater.alias),
+			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
 			description = "Обновлены курсы валют: {} шт.".format(self.count))

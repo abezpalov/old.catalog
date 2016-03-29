@@ -151,7 +151,7 @@ class Runner:
 		Party.objects.clear(stock = self.factory, time = self.start_time)
 
 		Log.objects.add(
-			subject     = "updater.{}".format(self.updater.alias),
+			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
 			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))

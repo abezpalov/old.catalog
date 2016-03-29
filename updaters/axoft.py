@@ -7,19 +7,8 @@ import lxml.html
 from io import BytesIO
 from zipfile import ZipFile
 from django.utils import timezone
-from catalog.models import Updater
-from catalog.models import Distributor
-from catalog.models import Stock
-from catalog.models import Currency
-from catalog.models import Unit
-from catalog.models import CategorySynonym
-from catalog.models import VendorSynonym
-from catalog.models import Category
-from catalog.models import Vendor
-from catalog.models import Product
-from catalog.models import Party
-from catalog.models import PriceType
-from catalog.models import Price
+from catalog.models import *
+from project.models import Log
 
 class Runner:
 
@@ -132,6 +121,12 @@ class Runner:
 		# Чистим устаревшие партии
 		Party.objects.clear(stock = self.on_order, time = self.start_time)
 
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+
 		return True
 
 
@@ -203,14 +198,12 @@ class Runner:
 			vendor['url']  = '{}{}'.format(self.urls['prefix'], link.get('href'))
 
 			if (self.urls['search_vendor'] in vendor['url']):
-
-				print("{} {}".format(vendor['name'], vendor['url']))
-
 				vendors.append(vendor)
 
+		print("Обнаружил страниц производителей: {} шт.".format(len(vendors)))
 
 		# Проходим по всем страницам производителям
-		for vendor in vendors:
+		for n, vendor in enumerate(vendors):
 
 			try:
 				r = self.s.get(
@@ -242,7 +235,7 @@ class Runner:
 
 					if price['url'] and price['name']:
 						prices.append(price)
-						print('Найден прайс-лист: {} [{}].'.format(price['url'], price['name']))
+						print('Прайс-лист {} из {}: {} [{}].'.format(n + 1, len(vendors), price['url'], price['name']))
 
 		return prices
 
@@ -420,10 +413,6 @@ class Runner:
 						unit           = self.default_unit,
 						time           = self.start_time)
 					self.count['party'] += 1
-					print("{} {} = {}".format(
-						party.product.vendor,
-						party.product.article,
-						party.price_str))
 
 		return True
 
