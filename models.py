@@ -564,11 +564,6 @@ class Product(models.Model):
 			self.quantity = quantity
 			self.save()
 
-		#print("quantity = {} | {} | {}".format(
-		#	self.quantity.on_stock,
-		#	self.quantity.on_transit,
-		#	self.quantity.on_factory))
-
 		# Получаем цену
 		if self.price:
 			price = self.price
@@ -599,8 +594,6 @@ class Product(models.Model):
 			self.price = price
 			self.save()
 
-		#print("price = {}".format(self.price.price_str))
-
 		return True
 
 
@@ -617,7 +610,7 @@ class PartyManager(models.Manager):
 			quantity = None, unit = None, time = None):
 
 		if time:
-			Party.objects.filter(stock = stock, created__gt = time).delete()
+			Party.objects.filter(product = product, stock = stock, created__gt = time).delete()
 
 		party = Party(
 			product        = product,

@@ -182,8 +182,11 @@ class Runner:
 				# Парсим таблицу с товарами
 				table = tree.xpath('//table[@class="table  table-striped tablevendor"]//tr')
 				print("Загружено строк таблицы: {}.".format(len(table)))
-				if self.parseProducts(table, url.split(self.url['filter'])[1]):
-					done.append(url) # Добавляем ссылку в обработанные страницы
+				try:
+					if self.parseProducts(table, url.split(self.url['filter'])[1]):
+						done.append(url) # Добавляем ссылку в обработанные страницы
+				except:
+					time.sleep(1)
 
 				# Чистим за собой
 				del(r)
