@@ -182,11 +182,8 @@ class Runner:
 				# Парсим таблицу с товарами
 				table = tree.xpath('//table[@class="table  table-striped tablevendor"]//tr')
 				print("Загружено строк таблицы: {}.".format(len(table)))
-				try:
-					if self.parseProducts(table, url.split(self.url['filter'])[1]):
-						done.append(url) # Добавляем ссылку в обработанные страницы
-				except:
-					time.sleep(1)
+				if self.parseProducts(table, url.split(self.url['filter'])[1]):
+					done.append(url) # Добавляем ссылку в обработанные страницы
 
 				# Чистим за собой
 				del(r)
@@ -272,81 +269,83 @@ class Runner:
 			# Строка товара
 			else:
 
-				# Обрабатываем информацию о товаре
-				product_article = tr[num['product_article']].text.strip().split('//')[0]
-				product_name    = tr[num['product_name']].text.strip()
-				if product_article and product_name:
-					product = Product.objects.take(
-						article = product_article,
-						vendor = vendor,
-						name = product_name,
-						category = None,
-						unit = self.default_unit)
-					self.count['product'] += 1
-				else: continue
+				try:
+					# Обрабатываем информацию о товаре
+					product_article = tr[num['product_article']].text.strip().split('//')[0]
+					product_name    = tr[num['product_name']].text.strip()
+					if product_article and product_name:
+						product = Product.objects.take(
+							article = product_article,
+							vendor = vendor,
+							name = product_name,
+							category = None,
+							unit = self.default_unit)
+						self.count['product'] += 1
+					else: continue
 
-				# Обрабатываем информацию о партиях
-				party_article = tr[num['party_article']].text.strip()
+					# Обрабатываем информацию о партиях
+					party_article = tr[num['party_article']].text.strip()
 
-				price = self.fixPrice(tr[num['price']].text)
+					price = self.fixPrice(tr[num['price']].text)
 
-				currency_alias = tr[num['currency_alias']].text.strip()
-				if currency_alias: currency = currencies[currency_alias]
-				else: currency =  None
+					currency_alias = tr[num['currency_alias']].text.strip()
+					if currency_alias: currency = currencies[currency_alias]
+					else: currency =  None
 
-#				s1 = self.fixQuantity(tr[num['s1']].text)
-				s2 = self.fixQuantity(tr[num['s2']].text)
-				bt = self.fixQuantity(tr[num['bt']].text)
-				dt = self.fixQuantity(tr[num['dt']].text)
+#					s1 = self.fixQuantity(tr[num['s1']].text)
+					s2 = self.fixQuantity(tr[num['s2']].text)
+					bt = self.fixQuantity(tr[num['bt']].text)
+					dt = self.fixQuantity(tr[num['dt']].text)
 
-				# Записываем партии
-#				if s1:
-#					party = Party.objects.make(
-#						product    = product,
-#						stock      = self.s1,
-#						price      = price,
-#						price_type = self.dp,
-#						currency   = currency,
-#						quantity   = s1,
-#						unit       = self.default_unit)
-#					print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
+					# Записываем партии
+#					if s1:
+#						party = Party.objects.make(
+#							product    = product,
+#							stock      = self.s1,
+#							price      = price,
+#							price_type = self.dp,
+#							currency   = currency,
+#							quantity   = s1,
+#							unit       = self.default_unit)
+#						print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
 
-				if s2:
-					party = Party.objects.make(
-						product    = product,
-						stock      = self.s2,
-						price      = price,
-						price_type = self.dp,
-						currency   = currency,
-						quantity   = s2,
-						unit       = self.default_unit,
-						time       = self.start_time)
-					self.count['party'] += 1
+					if s2:
+						party = Party.objects.make(
+							product    = product,
+							stock      = self.s2,
+							price      = price,
+							price_type = self.dp,
+							currency   = currency,
+							quantity   = s2,
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 
+					if bt:
+						party = Party.objects.make(
+							product    = product,
+							stock      = self.bt,
+							price      = price,
+							price_type = self.dp,
+							currency   = currency,
+							quantity   = bt,
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
 
-				if bt:
-					party = Party.objects.make(
-						product    = product,
-						stock      = self.bt,
-						price      = price,
-						price_type = self.dp,
-						currency   = currency,
-						quantity   = bt,
-						unit       = self.default_unit,
-						time       = self.start_time)
-					self.count['party'] += 1
-
-				if dt:
-					party = Party.objects.make(
-						product    = product,
-						stock      = self.dt,
-						price      = price,
-						price_type = self.dp,
-						currency   = currency,
-						quantity   = dt,
-						unit       = self.default_unit,
-						time       = self.start_time)
-					self.count['party'] += 1
+					if dt:
+						party = Party.objects.make(
+							product    = product,
+							stock      = self.dt,
+							price      = price,
+							price_type = self.dp,
+							currency   = currency,
+							quantity   = dt,
+							unit       = self.default_unit,
+							time       = self.start_time)
+						self.count['party'] += 1
+				except:
+					continue
 
 		return True
 
