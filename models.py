@@ -790,6 +790,7 @@ class Parameter(models.Model):
 
 class ParameterToCategory(models.Model):
 
+	id        = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
 	parameter = models.ForeignKey(Parameter)
 	category  = models.ForeignKey(Category)
 	order     = models.IntegerField()
@@ -803,6 +804,7 @@ class ParameterToCategory(models.Model):
 
 class ParameterToProduct(models.Model):
 
+	id        = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
 	parameter = models.ForeignKey(Parameter)
 	product   = models.ForeignKey(Product)
 	value     = models.TextField()

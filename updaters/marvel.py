@@ -126,6 +126,7 @@ class Runner:
 		Party.objects.clear(stock = self.stock_spb, time = self.start_time)
 
 		# В случае расширенного обновления, обновляем описание товара
+		ext = True # TODO TEST
 		if ext:
 			for product in self.products:
 				data = self.getData('produts', 'json', 1, product.article)
@@ -304,26 +305,21 @@ class Runner:
 
 	def parseProducts(self, data, product):
 
-		# Проходим по категориям
-		for item in data['CategoryItem']:
+		try:
+			ps = data['CategoryItem'][0]['ExtendedInfo']['Parameter']
 
-			print(item)
+			for p in ps:
 
-			for ss in item['ExtendedInfo']:
+				name  = p['ParameterName']
+				value = p['ParameterValue']	
 
-				for s in ss:
+				parameter_synonym = ParameterSynonym.objects.take(
+					name        = name,
+					updater     = self.updater,
+					distributor = self.distributor)
 
-					name  = s['ParameterName']
-					value = s['ParameterValue']
-
-					# Синоним параметра
-					parameter_synonym = ParameterSynonym.objects.take(
-						name        = name,
-						updater     = self.updater,
-						distributor = self.distributor)
-
-
-
+		except:
+			return False
 
 
 	def fixPrice(self, price):
