@@ -637,12 +637,14 @@ class PartyManager(models.Manager):
 
 		return party
 
+
 	def clear(self, stock, time = None):
 		if time:
 			Party.objects.filter(stock = stock, created__gt = time).delete()
 		else:
 			Party.objects.filter(stock = stock).delete()
 		return True
+
 
 # Party
 class Party(models.Model):
