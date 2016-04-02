@@ -628,11 +628,6 @@ class PartyManager(models.Manager):
 			modified       = timezone.now())
 		party.save()
 
-		print('{} {} = {}'.format(
-			party.product.vendor,
-			party.product.article,
-			party.price_str))
-
 		party.product.recalculate()
 
 		return party
