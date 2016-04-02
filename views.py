@@ -1783,22 +1783,326 @@ def ajaxGetParties(request):
 # TODO
 
 
-# Parameter Type
-
-
-# TODO
-
-
-# Parameter Type to Category
-
-
-# TODO
-
-
 # Parameter
 
 
 # TODO
+
+
+# Parameter to Category
+
+
+# TODO
+
+
+# Parameter to Product
+
+
+# TODO
+
+
+# Parameter Synonym
+
+
+# TODO
+
+
+def parametersynonyms(request, updater_selected = 'all', distributor_selected = 'all', parameter_selected = 'all'):
+	"Представление: список синонимов параметров."
+
+	# Импортируем
+	from catalog.models import ParameterSynonym, Parameter, Updater, Distributor
+
+	# Преобразуем типы данных
+	if updater_selected != 'all':
+		updater_selected = int(updater_selected)
+	if distributor_selected != 'all':
+		distributor_selected = int(distributor_selected)
+	if parameter_selected != 'all':
+		parameter_selected = int(parameter_selected)
+
+	# Проверяем права доступа
+	if request.user.has_perm('catalog.add_parametersynonym')\
+	or request.user.has_perm('catalog.change_parametersynonym')\
+	or request.user.has_perm('catalog.delete_parametersynonym'):
+
+		# Получаем список объектов синонимов
+		parameter_synonyms = ParameterSynonym.objects.select_related().all().order_by('name')
+
+		if updater_selected and updater_selected != 'all':
+			parameter_synonyms = parameter_synonyms.select_related().filter(
+				updater = updater_selected)
+		if not updater_selected:
+			parameter_synonyms = parameter_synonyms.select_related().filter(
+				updater = None)
+
+		if distributor_selected and distributor_selected != 'all':
+			parameter_synonyms = parameter_synonyms.select_related().filter(
+				distributor = distributor_selected)
+		if not distributor_selected:
+			parameter_synonyms = parameter_synonyms.select_related().filter(
+				distributor = None)
+
+		if parameter_selected and parameter_selected != 'all':
+			parameter_synonyms = parameter_synonyms.select_related().filter(
+				parameter = parameter_selected)
+		if not parameter_selected:
+			parameter_synonyms = parameter_synonyms.select_related().filter(
+				parameter = None)
+
+		# Получаем дополнительные списки объектов
+		updaters = Updater.objects.select_related().all().order_by('name')
+		distributors = Distributor.objects.select_related().all().order_by('name')
+		parameters = Parameter.objects.select_related().all().order_by('name')
+
+	return render(request, 'catalog/parametersynonyms.html', locals())
+
+
+def ajaxGetParameterSynonym(request):
+	"AJAX-представление: Get Parameter Synonym."
+
+	# Импортируем
+	import json
+	from catalog.models import ParameterSynonym, Updater, Distributor, Parameter
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_parametersynonym')\
+	or not request.user.has_perm('catalog.delete_parametersynonym'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Получаем объект
+	try:
+		s = ParameterSynonym.objects.get(
+			id = request.POST.get('parameter_synonym_id'))
+
+		parameter_synonym         = {}
+		parameter_synonym['id']   = s.id
+		parameter_synonym['name'] = s.name
+
+		if s.updater:
+			parameter_synonym['updater']          = {}
+			parameter_synonym['updater']['id']    = s.updater.id
+			parameter_synonym['updater']['name']  = s.updater.alias
+			parameter_synonym['updater']['alias'] = s.updater.name
+		else:
+			parameter_synonym['updater']          = {}
+			parameter_synonym['updater']['id']    = 0
+			parameter_synonym['updater']['name']  = ''
+			parameter_synonym['updater']['alias'] = ''
+
+		if s.distributor:
+			parameter_synonym['distributor']          = {}
+			parameter_synonym['distributor']['id']    = s.distributor.id
+			parameter_synonym['distributor']['name']  = s.distributor.name
+			parameter_synonym['distributor']['alias'] = s.distributor.alias
+		else:
+			parameter_synonym['distributor']          = {}
+			parameter_synonym['distributor']['id']    = 0
+			parameter_synonym['distributor']['name']  = ''
+			parameter_synonym['distributor']['alias'] = ''
+
+		if s.parameter:
+			parameter_synonym['parameter']          = {}
+			parameter_synonym['parameter']['id']    = s.parameter.id
+			parameter_synonym['parameter']['name']  = s.parameter.name
+			parameter_synonym['parameter']['alias'] = s.parameter.alias
+		else:
+			parameter_synonym['parameter']          = {}
+			parameter_synonym['parameter']['id']    = 0
+			parameter_synonym['parameter']['name']  = ''
+			parameter_synonym['parameter']['alias'] = ''
+
+		result = {
+			'status':   'success',
+			'message':  'Данные синонима получены.',
+			'parameter_synonym': parameter_synonym}
+
+	except ParameterSynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним отсутствует в базе.'}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+def ajaxSaveParameterSynonym(request):
+	"AJAX-представление: Save Parameter Synonym."
+
+	# Импортируем
+	import json
+	from django.utils import timezone
+	from catalog.models import ParameterSynonym, Updater, Distributor, Parameter
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	try:
+		parameter_synonym = ParameterSynonym.objects.get(
+			id = request.POST.get('parameter_synonym_id'))
+		if not request.user.has_perm('catalog.change_parametersynonym'):
+			return HttpResponse(status = 403)
+	except ParameterSynonym.DoesNotExist:
+		parameter_synonym = ParameterSynonym()
+		if not request.user.has_perm('catalog.add_parametersynonym'):
+			return HttpResponse(status = 403)
+		parameter_synonym.created = timezone.now()
+
+	# name
+	if not request.POST.get('parameter_synonym_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	parameter_synonym.name = request.POST.get('parameter_synonym_name').strip()[:1024]
+
+	# updater
+	try:
+		parameter_synonym.updater = Updater.objects.get(
+			id = request.POST.get('parameter_synonym_updater_id'))
+	except Updater.DoesNotExist:
+		parameter_synonym.updater = None
+
+	# distributor
+	try:
+		parameter_synonym.distributor = Distributor.objects.get(
+			id = request.POST.get('parameter_synonym_distributor_id'))
+	except Distributor.DoesNotExist:
+		parameter_synonym.distributor = None
+
+	# parameter
+	try:
+		parameter_synonym.parameter = Parameter.objects.get(
+			id = request.POST.get('parameter_synonym_parameter_id'))
+	except Parameter.DoesNotExist:
+		parameter_synonym.parameter = None
+
+	# modified
+	parameter_synonym.modified = timezone.now()
+
+	# Сохраняем
+	parameter_synonym.save()
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Синоним {} сохранён.'.format(parameter_synonym.name)}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxDeleteParameterSynonym(request):
+	"AJAX-представление: Delete Parameter Synonym."
+
+	# Импортируем
+	import json
+	from catalog.models import ParameterSynonym
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.delete_parametersynonym'):
+		return HttpResponse(status = 403)
+
+	# Получаем объект
+	try:
+		parameter_synonym = ParameterSynonym.objects.get(
+			id = request.POST.get('parameter_synonym_id'))
+		parameter_synonym.delete()
+		result = {'status': 'success', 'message': 'Синоним удалён.'}
+	except ParameterSynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним отсутствует в базе.'}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxLinkParameterSynonymSameParameter(request):
+	"AJAX-представление: Link Parameter Synonym same Parameter."
+
+	# Импортируем
+	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import ParameterSynonym, Parameter
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_parametersynonym')\
+	or not request.user.has_perm('catalog.add_parameter'):
+		return HttpResponse(status = 403)
+
+	# Получаем объект синонима
+	try:
+		parameter_synonym = ParameterSynonym.objects.get(
+			id = request.POST.get('parameter_synonym_id'))
+	except ParameterSynonym.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: синоним отсутствует в базе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# name
+	name = parameter_synonym.name
+
+	# alias
+	alias = unidecode.unidecode(name.lower())
+	alias = alias.replace(' ', '-')
+	alias = alias.replace('&', 'and')
+	alias = alias.replace('\'', '')
+
+	# parameter
+	try:
+		parameter = Parameter.objects.get(alias = alias)
+	except Parameter.DoesNotExist:
+		parameter = Parameter()
+		parameter.name = name
+		parameter.alias = alias
+		parameter.created = timezone.now()
+		parameter.modified = timezone.now()
+		parameter.save()
+
+	parameter_synonym.parameter = parameter
+	parameter_synonym.modified = timezone.now()
+	parameter_synonym.save()
+
+	parameters = []
+	vs = Parameter.objects.all()
+	for v in vs:
+		parameter = {
+			'id'   : v.id,
+			'name' : v.name}
+		parameters.append(parameter)
+
+	parameter = {
+		'id'   : parameter_synonym.parameter.id,
+		'name' : parameter_synonym.parameter.name}
+
+	result = {
+		'status'  : 'success',
+		'message' : 'Синоним {} привязан к одноименному производителю {}.'.format(
+			parameter_synonym.name,
+			parameter_synonym.parameter.name),
+		'parameter'  : parameter,
+		'parameters' : parameters
+		}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 # Category Synonym

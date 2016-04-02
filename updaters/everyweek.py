@@ -10,17 +10,7 @@ class Runner:
 	alias = 'everyday'
 
 	updaters = [
-		'cmo',
-		'digis',
-		'fujitsu',
-		'kramer',
-		'landata',
-		'marvel',
-		'merlion',
-		'ocs',
-		'rrc',
-		'treolan',
-		'recalculate']
+		'marvel']
 
 	def __init__(self):
 
@@ -43,7 +33,7 @@ class Runner:
 				Updater = __import__('catalog.updaters.{}'.format(updater), fromlist=['Runner'])
 				runner = Updater.Runner()
 				if runner.updater.state:
-					if runner.run():
+					if runner.run(ext = True):
 						runner.updater.updated = timezone.now()
 						runner.updater.save()
 

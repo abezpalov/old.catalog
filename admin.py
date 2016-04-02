@@ -14,9 +14,6 @@ from catalog.models import Price
 from catalog.models import PriceHystory
 from catalog.models import Quantity
 from catalog.models import QuantityHystory
-from catalog.models import ParameterType
-from catalog.models import ParameterTypeToCategory
-from catalog.models import Parameter
 from catalog.models import CategorySynonym
 from catalog.models import VendorSynonym
 
@@ -35,8 +32,5 @@ admin.site.register(Price)
 admin.site.register(PriceHystory)
 admin.site.register(Quantity)
 admin.site.register(QuantityHystory)
-admin.site.register(ParameterType)
-admin.site.register(ParameterTypeToCategory)
-admin.site.register(Parameter)
 admin.site.register(CategorySynonym)
 admin.site.register(VendorSynonym)

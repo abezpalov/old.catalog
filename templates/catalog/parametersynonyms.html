@@ -1,0 +1,120 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Catalog: синонимы параметров{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_parametersynonym %}
+
+<!-- Панель кнопок -->
+<div class="row collapse">
+	<ul class="button-group even-2">
+		<li><button data-do="open-new-parameter-synonym" class="secondary expand"><i class="fa fa-pencil"></i> Добавить синоним</button></li>
+		<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>
+	</ul>
+</div>
+
+{% endif %}
+
+{% if perms.catalog.add_parametersynonym or perms.catalog.change_parametersynonym %}
+
+<!-- Форма фильтра вывода -->
+<div class="row collapse">
+	<div class="small-4 columns">
+		<label>Загрузчик
+			<select id="filter-updater" data-do="filter-parameter-synonyms">
+				<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
+				<option value="0"{% if updater_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for updater in updaters %}
+				<option value="{{ updater.id }}"{% if updater.id == updater_selected %} selected{% endif %}>{{ updater.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+	<div class="small-4 columns">
+		<label>Поставщик
+			<select id="filter-distributor" data-do="filter-parameter-synonyms">
+				<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
+				<option value="0"{% if distributor_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for distributor in distributors %}
+				<option value="{{ distributor.id }}"{% if distributor.id == distributor_selected %} selected{% endif %}>{{ distributor.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+	<div class="small-4 columns">
+		<label>Параметр
+			<select id="filter-parameter" data-do="filter-parameter-synonyms">
+				<option value="all"{% if parameter_selected == 'all' %} selected{% endif %}> - Все параметры - </option>
+				<option value="0"{% if parameter_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for parameter in parameters %}
+				<option value="{{ parameter.id }}"{% if parameter.id == parameter_selected %} selected{% endif %}>{{ parameter.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+</div>
+
+<!-- Таблица со списком синонимов -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th class="hide-for-small-only">Загрузчик</th>
+			<th class="hide-for-small-only">Поставщик</th>
+			<th>Параметр</th>
+			<th>Управление</th>
+		</tr>
+		{% for parameter_synonym in parameter_synonyms %}
+		<tr data-parameter-synonym="{{ parameter_synonym.id }}">
+			<td>{{ forloop.counter }}</td>
+			<td>
+				<a data-do="open-edit-parameter-synonym" data-id="{{ parameter_synonym.id }}" data-parameter-synonym-name="parameter_synonym.id">{{ parameter_synonym.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-updater" data-id="{{ parameter_synonym.updater.id }}" data-updater-name="parameter_synonym.updater.id">{{ parameter_synonym.updater.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-distributor" data-id="{{ parameter_synonym.distributor.id }}" data-distributor-name="parameter_synonym.distributor.id">{{ parameter_synonym.distributor.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a data-do="open-edit-parameter" data-id="{{ parameter_synonym.parameter.id }}" data-parameter-name="{{ parameter_synonym.parameter.id }}" data-parameter-synonym-id="{{ parameter_synonym.id }}">{{ parameter_synonym.parameter.name }}</a>
+			</td>
+			<td>
+				<button class="tiny" data-do="link-parameter-synonym-same-parameter" data-id="{{ parameter_synonym.id }}"><i class="fa fa-link"></i></button>
+				<button class="tiny alert" data-do="open-delete-parameter-synonym" data-id="{{ parameter_synonym.id }}"><i class="fa fa-trash"></i></button>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/edit-parameter-synonym.html" %}
+{% include "catalog/modal/edit-updater.html" %}
+{% include "catalog/modal/edit-distributor.html" %}
+{% include "catalog/modal/edit-parameter.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/edit-parameter-synonym.js" %}
+{% include "catalog/js/edit-updater.js" %}
+{% include "catalog/js/edit-distributor.js" %}
+{% include "catalog/js/edit-parameter.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

@@ -92,7 +92,6 @@ class Updater(models.Model):
 		ordering = ['name']
 
 
-# Stock manager
 class StockManager(models.Manager):
 
 	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20,
@@ -112,7 +111,6 @@ class StockManager(models.Manager):
 		return stock
 
 
-# Stock
 class Stock(models.Model):
 
 	name              = models.CharField(max_length = 100)
@@ -146,7 +144,6 @@ class CategoryManager(models.Manager):
 			tree.append(category)
 			tree = self.getCategoryTree(tree, category)
 
-		# Возвращаем результат
 		return tree
 
 
@@ -478,7 +475,7 @@ class ProductManager(models.Manager):
 			product.save()
 		return True
 
-# Product
+
 class Product(models.Model):
 
 	name        = models.TextField()
@@ -601,7 +598,6 @@ class Product(models.Model):
 		ordering = ['name']
 
 
-# Party manager
 class PartyManager(models.Manager):
 
 	def make(self, product, stock, article = None,
@@ -641,7 +637,6 @@ class PartyManager(models.Manager):
 		return True
 
 
-# Party
 class Party(models.Model):
 
 	id             = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
@@ -728,7 +723,7 @@ class Party(models.Model):
 	class Meta:
 		ordering = ['-created']
 
-# Party Hystory
+
 class PartyHystory(models.Model):
 
 	id             = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
@@ -748,7 +743,7 @@ class PartyHystory(models.Model):
 	class Meta:
 		ordering = ['-date']
 
-# Price Hystory
+
 class PriceHystory(models.Model):
 
 	id         = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
@@ -761,7 +756,7 @@ class PriceHystory(models.Model):
 	class Meta:
 		ordering = ['-date']
 
-# Quantity Hystory
+
 class QuantityHystory(models.Model):
 
 	id         = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
@@ -775,12 +770,12 @@ class QuantityHystory(models.Model):
 	class Meta:
 		ordering = ['-date']
 
-# Parameter Type
-class ParameterType(models.Model):
+
+class Parameter(models.Model):
 
 	name      = models.CharField(max_length = 100)
 	alias     = models.CharField(max_length = 100)
-	data_type = models.CharField(max_length = 100)
+	data_type = models.CharField(max_length = 100, default = 'text')
 	order     = models.IntegerField()
 	state     = models.BooleanField(default = True)
 	created   = models.DateTimeField()
@@ -792,33 +787,72 @@ class ParameterType(models.Model):
 	class Meta:
 		ordering = ['name']
 
-# Parameter Type to Category
-class ParameterTypeToCategory(models.Model):
 
-	parameter_type = models.ForeignKey(ParameterType)
-	category       = models.ForeignKey(Category)
-	order          = models.IntegerField()
-	state          = models.BooleanField(default = True)
-	created        = models.DateTimeField()
-	modified       = models.DateTimeField()
+class ParameterToCategory(models.Model):
 
-	class Meta:
-		ordering = ['created']
-
-# Parameter
-class Parameter(models.Model):
-
-	parameter_type = models.ForeignKey(ParameterType)
-	product        = models.ForeignKey(Product)
-	value          = models.TextField()
-	state          = models.BooleanField(default = True)
-	created        = models.DateTimeField()
-	modified       = models.DateTimeField()
+	parameter = models.ForeignKey(Parameter)
+	category  = models.ForeignKey(Category)
+	order     = models.IntegerField()
+	state     = models.BooleanField(default = True)
+	created   = models.DateTimeField()
+	modified  = models.DateTimeField()
 
 	class Meta:
 		ordering = ['created']
 
-# Category Synonym manager
+
+class ParameterToProduct(models.Model):
+
+	parameter = models.ForeignKey(Parameter)
+	product   = models.ForeignKey(Product)
+	value     = models.TextField()
+	state     = models.BooleanField(default = True)
+	created   = models.DateTimeField()
+	modified  = models.DateTimeField()
+
+	class Meta:
+		ordering = ['created']
+
+
+class ParameterSynonymManager(models.Manager):
+
+	def take(self, name, updater = None, distributor = None, parameter = None):
+		name = name.strip()
+		try:
+			parameter_synonym = self.get(
+				name        = name,
+				updater     = updater,
+				distributor = distributor)
+		except ParameterSynonym.DoesNotExist:
+			parameter_synonym = ParameterSynonym(
+				name        = name,
+				updater     = updater,
+				distributor = distributor,
+				parameter   = parameter,
+				created     = timezone.now(),
+				modified    = timezone.now())
+			parameter_synonym.save()
+		return parameter_synonym
+
+
+class ParameterSynonym(models.Model):
+
+	name        = models.CharField(max_length = 1024)
+	updater     = models.ForeignKey(Updater, null = True, default = None)
+	distributor = models.ForeignKey(Distributor, null = True, default = None)
+	parameter   = models.ForeignKey(Parameter, null = True, default = None)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
+
+	objects     = ParameterSynonymManager()
+
+	def __str__(self):
+		return self.name
+
+	class Meta:
+		ordering = ['name']
+
+
 class CategorySynonymManager(models.Manager):
 
 	def take(self, name, updater = None, distributor = None, category = None):
@@ -839,7 +873,7 @@ class CategorySynonymManager(models.Manager):
 			categorySynonym.save()
 		return categorySynonym
 
-# Category Synonym
+
 class CategorySynonym(models.Model):
 
 	name        = models.CharField(max_length = 1024)
@@ -856,7 +890,7 @@ class CategorySynonym(models.Model):
 	class Meta:
 		ordering = ['name']
 
-# Vendor Synonym manager
+
 class VendorSynonymManager(models.Manager):
 
 	def take(self, name, updater = None, distributor = None, vendor = None):
@@ -877,7 +911,7 @@ class VendorSynonymManager(models.Manager):
 			vendorSynonym.save()
 		return vendorSynonym
 
-# Vendor Synonym
+
 class VendorSynonym(models.Model):
 
 	name        = models.CharField(max_length = 1024)

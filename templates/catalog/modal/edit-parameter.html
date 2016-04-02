@@ -1,0 +1,31 @@
+{% if perms.catalog.change_parameter or perms.catalog.add_parameter %}
+<div id="modal-edit-parameter" class="reveal-modal large" data-reveal>
+
+	<h2 id="modal-edit-parameter-header">&ndsp;</h2>
+
+	<input id="edit-parameter-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-parameter-name" type="text" value="">
+	</label>
+
+	<label>Псевдоним (служебное поле)
+		<input id="edit-parameter-alias" type="text" value="">
+	</label>
+
+	<label>Описание
+		<textarea id="edit-parameter-description"></textarea>
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-parameter-state" type="checkbox">
+			<label for="edit-parameter-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-parameter-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-parameter-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}

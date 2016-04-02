@@ -16,6 +16,7 @@ class Runner:
 			'product' : 0,
 			'party'   : 0}
 		self.url = 'https://b2b.marvel.ru/Api/'
+		self.products = []
 
 		# Поставщик
 		self.distributor = Distributor.objects.take(
@@ -74,7 +75,8 @@ class Runner:
 		self.key = ''
 		self.task = {
 			'categories' : 'GetCatalogCategories',
-			'catalog'    : 'GetFullStock'}
+			'catalog'    : 'GetFullStock',
+			'produts'    : 'GetItems'}
 		self.request_format = {'xml': '0', 'json': '1'}
 		self.cookies = None
 		self.category_synonyms = {}
@@ -89,7 +91,7 @@ class Runner:
 			'spb': self.stock_spb}
 
 
-	def run(self):
+	def run(self, ext = False):
 
 		# Фиксируем время старта
 		self.start_time = timezone.now()
@@ -123,6 +125,15 @@ class Runner:
 		Party.objects.clear(stock = self.stock_msk, time = self.start_time)
 		Party.objects.clear(stock = self.stock_spb, time = self.start_time)
 
+		# В случае расширенного обновления, обновляем описание товара
+		if ext:
+			for product in self.products:
+				data = self.getData('produts', 'json', 1, product.article)
+
+				# Обрабатываем характеристики товара
+				if data: self.parseProducts(data, product)
+				else: return False
+
 		Log.objects.add(
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
@@ -131,7 +142,7 @@ class Runner:
 
 		return True
 
-	def getData(self, task, request_format, pack_status = None):
+	def getData(self, task, request_format, pack_status = None, article = None):
 
 		# Создаем сессию
 		s = requests.Session()
@@ -154,6 +165,13 @@ class Runner:
 			password       = self.updater.password,
 			key            = None,
 			request_format = self.request_format[request_format])
+
+		if article:
+			url = '{url}{midle}{article}{end}'.format(
+				url     = url,
+				midle   = '&getExtendedItemInfo=1&items={"WareItem": [{"ItemId": "',
+				article = article,
+				end     = '"}]}')
 
 		# Выполняем запрос
 		r = s.post(url, cookies = self.cookies, verify = False, timeout = 300)
@@ -255,6 +273,7 @@ class Runner:
 					category = category_synonym.category,
 					unit     = self.default_unit)
 				self.count['product'] += 1
+				self.products.append(product)
 
 				# Партии
 				stock_name = 'msk'
@@ -281,6 +300,30 @@ class Runner:
 						unit       = self.default_unit,
 						time       = self.start_time)
 					self.count['party'] += 1
+
+
+	def parseProducts(self, data, product):
+
+		# Проходим по категориям
+		for item in data['CategoryItem']:
+
+			print(item)
+
+			for ss in item['ExtendedInfo']:
+
+				for s in ss:
+
+					name  = s['ParameterName']
+					value = s['ParameterValue']
+
+					# Синоним параметра
+					parameter_synonym = ParameterSynonym.objects.take(
+						name        = name,
+						updater     = self.updater,
+						distributor = self.distributor)
+
+
+
 
 
 	def fixPrice(self, price):

@@ -129,17 +129,29 @@ urlpatterns = patterns('',
 	# TODO
 
 
-	# Parameter Type
-	# TODO
-
-
-	# Parameter Type to Category
-	# TODO
-
-
 	# Parameter
 	# TODO
 
+
+	# Parameter to Category
+	# TODO
+
+
+	# Parameter to Product
+	# TODO
+
+
+	# Parameter Synonym
+	# TODO
+	# ex: /catalog/parameter-synonyms/
+	url(r'^parameter-synonyms/$', views.parametersynonyms, name='parametersynonyms'),
+	# ex: /catalog/parameter-synonyms/1/2/none/
+	url(r'^parameter-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<parameter_selected>[a-zA-Z0-9_-]+)/$', views.parametersynonyms, name='parametersynonyms'),
+	# AJAX
+	url(r'^ajax/get-parameter-synonym/$', views.ajaxGetParameterSynonym, name='ajaxGetParameterSynonym'),
+	url(r'^ajax/save-parameter-synonym/$', views.ajaxSaveParameterSynonym, name='ajaxSaveParameterSynonym'),
+	url(r'^ajax/delete-parameter-synonym/$', views.ajaxDeleteParameterSynonym, name='ajaxDeleteParameterSynonym'),
+	url(r'^ajax/link-parameter-synonym-same-parameter/$', views.ajaxLinkParameterSynonymSameParameter, name='ajaxLinkParameterSynonymSameParameter'),
 
 	# Category Synonym
 	# ex: /catalog/category-synonyms/
