@@ -76,7 +76,8 @@ class Runner:
 		self.task = {
 			'categories' : 'GetCatalogCategories',
 			'catalog'    : 'GetFullStock',
-			'produts'    : 'GetItems'}
+			'parameters' : 'GetItems',
+			'photos'     : 'GetItemPhotos'}
 		self.request_format = {'xml': '0', 'json': '1'}
 		self.cookies = None
 		self.category_synonyms = {}
@@ -91,7 +92,7 @@ class Runner:
 			'spb': self.stock_spb}
 
 
-	def run(self, ext = False):
+	def run(self):
 
 		# Фиксируем время старта
 		self.start_time = timezone.now()
@@ -125,16 +126,6 @@ class Runner:
 		Party.objects.clear(stock = self.stock_msk, time = self.start_time)
 		Party.objects.clear(stock = self.stock_spb, time = self.start_time)
 
-		# В случае расширенного обновления, обновляем описание товара
-		ext = True # TODO TEST
-		if ext:
-			for product in self.products:
-				data = self.getData('produts', 'json', 1, product.article)
-
-				# Обрабатываем характеристики товара
-				if data: self.parseProducts(data, product)
-				else: return False
-
 		Log.objects.add(
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
@@ -142,6 +133,31 @@ class Runner:
 			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
 
 		return True
+
+
+	def updateProductDescription(self, product_id):
+
+		# TODO
+
+		print('subject = {}'.format(product_id))
+
+		# Получаем объект продукта
+		try:
+			product = Product.objects.get(id = product_id)
+			print('product.id = {}'.format(product.id))
+			print('product.article = {}'.format(product.article))
+		except:
+			return False
+
+		data = self.getData('parameters', 'json', 1, product.article)
+		print(data)
+
+		# Обрабатываем характеристики товара
+		if data:
+			self.parseParameters(data, product)
+		else:
+			return False
+
 
 	def getData(self, task, request_format, pack_status = None, article = None):
 
@@ -303,7 +319,7 @@ class Runner:
 					self.count['party'] += 1
 
 
-	def parseProducts(self, data, product):
+	def parseParameters(self, data, product):
 
 		try:
 			ps = data['CategoryItem'][0]['ExtendedInfo']['Parameter']

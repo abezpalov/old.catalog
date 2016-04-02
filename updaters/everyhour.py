@@ -10,8 +10,7 @@ class Runner:
 
 		self.name  = 'Служебное: ежечасный запуск'
 		self.alias = 'everyhour'
-		self.updaters = [
-			'cbr']
+		self.updaters = []
 
 		# Загрузчик
 		self.updater = Updater.objects.take(

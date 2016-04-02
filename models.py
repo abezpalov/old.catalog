@@ -929,3 +929,20 @@ class VendorSynonym(models.Model):
 
 	class Meta:
 		ordering = ['name']
+
+
+class UpdaterTask(models.Model):
+
+	id       = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
+	name     = models.CharField(max_length = 1024)
+	updater  = models.ForeignKey(Updater, null = True, default = None)
+	subject  = models.CharField(max_length = 1024)
+	created  = models.DateTimeField()
+	modified = models.DateTimeField()
+	objects  = VendorSynonymManager()
+
+	def __str__(self):
+		return self.name
+
+	class Meta:
+		ordering = ['created']

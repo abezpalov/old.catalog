@@ -12,6 +12,9 @@ class Runner:
 		self.alias = 'everyday'
 
 		self.updaters = [
+			'cbr',
+
+			'axoft',
 			'cmo',
 			'digis',
 			'fujitsu',
@@ -22,6 +25,7 @@ class Runner:
 			'ocs',
 			'rrc',
 			'treolan',
+
 			'recalculate']
 
 		# Загрузчик

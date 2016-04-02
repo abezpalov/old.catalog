@@ -85,7 +85,7 @@ class Runner:
 		self.cookie = None
 
 
-	def run(self, ext = False):
+	def run(self):
 
 		# Авторизуемся
 		if not self.login():

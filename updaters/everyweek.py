@@ -1,6 +1,6 @@
 import datetime
 from django.utils import timezone
-from catalog.models import Updater
+from catalog.models import *
 from project.models import Log
 
 
@@ -11,9 +11,7 @@ class Runner:
 
 		self.name  = 'Служебное: еженедельный запуск'
 		self.alias = 'everyweek'
-		self.updaters = [
-			'axoft',
-			'marvel']
+		self.updaters = []
 
 		# Загрузчик
 		self.updater = Updater.objects.take(
@@ -34,7 +32,7 @@ class Runner:
 				Updater = __import__('catalog.updaters.{}'.format(updater), fromlist=['Runner'])
 				runner = Updater.Runner()
 				if runner.updater.state:
-					if runner.run(ext = True):
+					if runner.run():
 						runner.updater.updated = timezone.now()
 						runner.updater.save()
 
@@ -44,6 +42,21 @@ class Runner:
 					channel    = "error",
 					title      = "Exception",
 					description = error)
+
+		tasks = UpdaterTask.objects.all()
+
+		print("Нашёл {} задач.".format(len(tasks)))
+
+		for task in tasks:
+
+			Updater = __import__('catalog.updaters.{}'.format(task.updater.alias), fromlist=['Runner'])
+			runner = Updater.Runner()
+
+			if 'update.product.description' == task.name:
+				runner.updateProductDescription(task.subject)
+
+				# TODO !!!
+
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
 
