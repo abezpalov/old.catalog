@@ -157,7 +157,7 @@ $("body").delegate("[data-do='open-delete-vendor-synonym']", "click", function()
 
 				// Заполняем значение полей
 				$('#delete-vendor-synonym-id').val(data.vendor_synonym['id']);
-				$('#delete-vendor-synonym-name').text(data.vendor_synonym['name'])
+				$('#delete-vendor-synonym-name').text(data.vendor_synonym['name']);
 
 				// Открываем окно
 				$('#modal-delete-vendor-synonym').foundation('reveal', 'open');
@@ -222,25 +222,22 @@ $("body").delegate("[data-do='delete-vendor-synonym-apply']", "click", function(
 {% endif %}
 
 
+// Привязка к одноимённому производителю
 $("body").delegate("[data-do='link-vendor-synonym-same-vendor']", "click", function(){
+	vendor_synonym_id = $(this).data('id');
 	$.post("/catalog/ajax/link-vendor-synonym-same-vendor/", {
-		vendor_synonym_id:   $(this).data('id'),
+		vendor_synonym_id:   vendor_synonym_id,
 		csrfmiddlewaretoken: '{{ csrf_token }}'
 	},
 	function(data) {
 		if (null != data.status) {
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
-			setTimeout(function () {location.reload();}, 3000);
+
+			// Обновлем информацию на странице
+			$("[data-vendor-synonym-id='" + vendor_synonym_id + "']").text(data.vendor.name);
+			$("[data-vendor-synonym-id='" + vendor_synonym_id + "']").data('id', data.vendor.id);
+			$("[data-vendor-synonym-id='" + vendor_synonym_id + "']").data('vendor-name', data.vendor.id);
+
+			// TODO Обновляем список производителей в окне редактирования синонимов
 		}
 	}, "json");
 	return false;

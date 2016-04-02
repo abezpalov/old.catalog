@@ -2293,7 +2293,24 @@ def ajaxLinkVendorSynonymSameVendor(request):
 	vendor_synonym.modified = timezone.now()
 	vendor_synonym.save()
 
-	result = {'status': 'success', 'message': 'Синоним {} привязан к одноименному производителю {}.'.format(vendor_synonym.name, vendor.name)}
+	vendors = []
+	vs = Vendor.objects.all()
+	for v in vs:
+		vendor = {
+			'id'   : v.id,
+			'name' : v.name}
+		vendors.append(vendor)
+
+	vendor = {
+		'id'   : vendor_synonym.vendor.id,
+		'name' : vendor_synonym.vendor.name}
+
+	result = {
+		'status'  : 'success',
+		'message' : 'Синоним {} привязан к одноименному производителю {}.'.format(vendor_synonym.name, vendor_synonym.vendor.name),
+		'vendor'  : vendor,
+		'vendors' : vendors
+		}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
