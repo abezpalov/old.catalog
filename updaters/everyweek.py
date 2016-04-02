@@ -6,13 +6,14 @@ from project.models import Log
 
 class Runner:
 
-	name  = 'Служебное: ежедневный запуск'
-	alias = 'everyday'
-
-	updaters = [
-		'marvel']
 
 	def __init__(self):
+
+		self.name  = 'Служебное: еженедельный запуск'
+		self.alias = 'everyweek'
+		self.updaters = [
+			'axoft',
+			'marvel']
 
 		# Загрузчик
 		self.updater = Updater.objects.take(
@@ -39,7 +40,7 @@ class Runner:
 
 			except Exception as error:
 				Log.objects.add(
-					subject    = "Catalog Updater Everyday: {}".format(updater),
+					subject    = "Catalog Updater Everyweek: {}".format(updater),
 					channel    = "error",
 					title      = "Exception",
 					description = error)

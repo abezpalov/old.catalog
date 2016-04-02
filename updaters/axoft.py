@@ -9,16 +9,17 @@ from django.utils import timezone
 from catalog.models import *
 from project.models import Log
 
+
 class Runner:
 
 
-	name  = 'Axsoft'
-	alias = 'axoft'
-	count = {
-		'product' : 0,
-		'party'   : 0}
-
 	def __init__(self):
+
+		self.name  = 'Axsoft'
+		self.alias = 'axoft'
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 		# Фиксируем время старта
 		self.start_time = timezone.now()
@@ -84,7 +85,7 @@ class Runner:
 		self.cookie = None
 
 
-	def run(self):
+	def run(self, ext = False):
 
 		# Авторизуемся
 		if not self.login():
@@ -108,7 +109,7 @@ class Runner:
 				distributor = self.distributor)
 
 			if vendor_synonym.vendor:
-				data = self.getData(price['url'])
+				data = self.getData(price['url'], price['name'])
 				if data:
 					self.parsePrice(data, vendor_synonym.vendor)
 			else:
@@ -230,7 +231,7 @@ class Runner:
 					subject     = "catalog.updater.{}".format(self.updater.alias),
 					channel     = "error",
 					title       = "requests.exceptions.Timeout",
-					description = "Превышение интервала ожидания загрузки страницы производителя.")
+					description = "Превышение интервала ожидания загрузки страницы производителя {}.".format(vendor['name']))
 				continue
 
 			# Проходим по всем ссылкам
@@ -257,7 +258,7 @@ class Runner:
 		return prices
 
 
-	def getData(self, url):
+	def getData(self, url, name = None):
 
 		print('Загружаю: {}.'.format(url))
 
@@ -284,7 +285,7 @@ class Runner:
 				subject     = "catalog.updater.{}".format(self.updater.alias),
 				channel     = "error",
 				title       = "requests.exceptions.Timeout",
-				description = "Битый архив: {}.".format(url))
+				description = 'Битый архив: <a href="{url}">{name}</a>.'.format(url = url, name = name))
 			return False
 
 		data = zip_data.open(zip_data.namelist()[0])

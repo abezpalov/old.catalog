@@ -6,23 +6,23 @@ from project.models import Log
 
 class Runner:
 
-	name  = 'Служебное: ежедневный запуск'
-	alias = 'everyday'
-
-	updaters = [
-		'cmo',
-		'digis',
-		'fujitsu',
-		'kramer',
-		'landata',
-		'marvel',
-		'merlion',
-		'ocs',
-		'rrc',
-		'treolan',
-		'recalculate']
-
 	def __init__(self):
+
+		self.name  = 'Служебное: ежедневный запуск'
+		self.alias = 'everyday'
+
+		self.updaters = [
+			'cmo',
+			'digis',
+			'fujitsu',
+			'kramer',
+			'landata',
+			'marvel',
+			'merlion',
+			'ocs',
+			'rrc',
+			'treolan',
+			'recalculate']
 
 		# Загрузчик
 		self.updater = Updater.objects.take(
