@@ -827,6 +827,7 @@ class Parameter(models.Model):
 class CategorySynonymManager(models.Manager):
 
 	def take(self, name, updater = None, distributor = None, category = None):
+		name = name.strip()
 		try:
 			categorySynonym = self.get(
 				name        = name,
@@ -864,6 +865,7 @@ class CategorySynonym(models.Model):
 class VendorSynonymManager(models.Manager):
 
 	def take(self, name, updater = None, distributor = None, vendor = None):
+		name = name.strip()
 		try:
 			vendorSynonym = self.get(
 				name        = name,
