@@ -1,0 +1,64 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Каталог: Параметры{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_parameter %}
+
+<!-- Панель кнопок -->
+<div class="row collapse">
+	<button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button>
+</div>
+
+{% endif %}
+
+{% if perms.catalog.add_parameter or perms.catalog.change_parameter or perms.catalog.delete_parameter %}
+
+<!-- Таблица со списком производителей -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Тип данных</th>
+			<th>Статус</th>
+		</tr>
+		{% for parameter in parameters %}
+		<tr data-parameter="{{ parameter.id }}">
+			<td>{{ forloop.counter }}</td>
+			<td><a data-do="open-edit-parameter" data-id="{{ parameter.id }}" data-parameter-name="{{ parameter.id }}">{{ parameter.name }}</a></td>
+			<td><a data-parameter-type="{{ parameter.id }}">{{ parameter.parameter_type.name }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="parameter-{{ parameter.id }}-state" data-id="{{ parameter.id }}" data-do="switch-parameter-state" data-parameter-state="{{ parameter.id }}" type="checkbox"{% if parameter.state %} checked{% endif %}>
+					<label for="parameter-{{ parameter.id }}-state"></label>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/edit-parameter.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/edit-parameter.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

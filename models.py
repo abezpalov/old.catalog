@@ -771,21 +771,97 @@ class QuantityHystory(models.Model):
 		ordering = ['-date']
 
 
-class Parameter(models.Model):
-
-	name      = models.CharField(max_length = 100)
-	alias     = models.CharField(max_length = 100)
-	data_type = models.CharField(max_length = 100, default = 'text')
-	order     = models.IntegerField()
+class ParameterType(models.Model):
+	name      = models.CharField(max_length = 100, unique = True)
+	alias     = models.CharField(max_length = 100, unique = True)
+	order     = models.IntegerField(default = 0)
 	state     = models.BooleanField(default = True)
 	created   = models.DateTimeField()
 	modified  = models.DateTimeField()
 
 	def __str__(self):
-		return self.name
+		return self.alias
 
 	class Meta:
 		ordering = ['name']
+
+
+class Parameter(models.Model):
+
+	name           = models.CharField(max_length = 100, unique = True)
+	alias          = models.CharField(max_length = 100, unique = True)
+	parameter_type = models.ForeignKey(ParameterType, null = True, default = None)
+	order          = models.IntegerField(default = 0)
+	state          = models.BooleanField(default = True)
+	created        = models.DateTimeField()
+	modified       = models.DateTimeField()
+
+	def __str__(self):
+		return self.name
+
+	class Meta:
+		ordering = ['order', 'name']
+
+	def setValue(self, product, value):
+
+		from catalog.models import ParameterToProduct
+
+		# Получаем запись
+		try:
+			parameter_to_product = ParameterToProduct.objects.get(
+				parameter = self,
+				product   = product)
+		except ParameterToProduct.DoesNotExist:
+			parameter_to_product = ParameterToProduct(
+				parameter = self,
+				product   = product)
+
+		# Тип данных
+
+		if self.parameter_type.alias == 'text':
+
+			print('text')
+
+			parameter_to_product.value_text   = value
+			parameter_to_product.value_search = value[:100]
+			parameter_to_product.save()
+
+			print("parameter_to_product.value_text = {}".format(parameter_to_product.value_text))
+
+		elif self.parameter_type.alias == 'months':
+
+			print('months')
+
+			if 'Y' in value:                                                    # Входные данные в годах
+				value = int(value.replace('Y', '').strip())*12
+				parameter_to_product.value_text    = "{} месяцев".format(value)
+				parameter_to_product.value_search  = parameter_to_product.value_text[:100]
+				parameter_to_product.value_integer = value
+
+			print("parameter_to_product.value_text = {}".format(parameter_to_product.value_text))
+
+
+
+
+
+
+
+
+class ParameterToProduct(models.Model):
+
+	id            = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
+	parameter     = models.ForeignKey(Parameter)
+	product       = models.ForeignKey(Product)
+	value_text    = models.TextField()
+	value_search  = models.CharField(max_length = 100, null = True, default = None)
+	value_integer = models.IntegerField(null = True, default = None)
+	value_decimal = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	state         = models.BooleanField(default = True)
+	created       = models.DateTimeField()
+	modified      = models.DateTimeField()
+
+	class Meta:
+		ordering = ['created']
 
 
 class ParameterToCategory(models.Model):
@@ -794,20 +870,6 @@ class ParameterToCategory(models.Model):
 	parameter = models.ForeignKey(Parameter)
 	category  = models.ForeignKey(Category)
 	order     = models.IntegerField()
-	state     = models.BooleanField(default = True)
-	created   = models.DateTimeField()
-	modified  = models.DateTimeField()
-
-	class Meta:
-		ordering = ['created']
-
-
-class ParameterToProduct(models.Model):
-
-	id        = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
-	parameter = models.ForeignKey(Parameter)
-	product   = models.ForeignKey(Product)
-	value     = models.TextField()
 	state     = models.BooleanField(default = True)
 	created   = models.DateTimeField()
 	modified  = models.DateTimeField()

@@ -13,8 +13,17 @@
 		<input id="edit-parameter-alias" type="text" value="">
 	</label>
 
-	<label>Описание
-		<textarea id="edit-parameter-description"></textarea>
+	<label>Тип данных
+		<select id="edit-parameter-parameter-type">
+			<option value="0" selected> - Не определён (None) - </option>
+			{% for parameter_type in parameter_types %}
+			<option value="{{ parameter_type.id }}">{{ parameter_type.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
+	<label>Порядковый номер
+		<input id="edit-parameter-order" type="text" value="">
 	</label>
 
 	<label>Статус

@@ -1783,10 +1783,397 @@ def ajaxGetParties(request):
 # TODO
 
 
-# Parameter
+# Parameter Type
 
 
 # TODO
+
+
+def parameterTypes(request):
+	"Представление: список типов данных параметров."
+
+	# Импортируем
+	from catalog.models import ParameterType
+
+	# Получаем список
+	parameter_types = ParameterType.objects.all().order_by('name')
+
+	return render(request, 'catalog/parametertypes.html', locals())
+
+
+def parameterType(request, alias):
+	"Представление: тип данных параметров."
+
+	# Импортируем
+	from catalog.models import ParameterType
+
+	# Получаем объект
+	parameter_type = ParameterType.objects.get(alias=alias)
+
+	return render(request, 'catalog/parametertype.html', locals())
+
+
+def ajaxGetParameterType(request):
+	"AJAX-представление: Get Parameter Type."
+
+	# Импортируем
+	import json
+	from catalog.models import ParameterType
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_parameter_type'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Получаем объект
+	try:
+		parameter_type = ParameterType.objects.get(id = request.POST.get('parameter_type_id'))
+
+	except ParameterType.DoesNotExist:
+		result = {
+			'status'  : 'alert',
+			'message' : 'Ошибка: параметр отсутствует в базе.'}
+
+	else:
+
+		parameter_type = {
+			'id'             : parameter_type.id,
+			'name'           : parameter_type.name,
+			'alias'          : parameter_type.alias,
+			'state'          : parameter_type.state}
+
+		result = {
+			'status'         : 'success',
+			'message'        : 'Данные параметра получены.',
+			'parameter_type' : parameter_type}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxSaveParameterType(request):
+	"AJAX-представление: Save Parameter Type."
+
+	# Импортируем
+	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import ParameterType
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status = 400)
+
+	# Проверяем права доступа
+	try:
+		parameter_type = ParameterType.objects.get(
+			id = request.POST.get('parameter_type_id'))
+		if not request.user.has_perm('catalog.change_parametertype'):
+			return HttpResponse(status = 403)
+	except ParameterType.DoesNotExist:
+		parameter_type = ParameterType()
+		if not request.user.has_perm('catalog.add_parametertype'):
+			return HttpResponse(status = 403)
+		parameter_type.created = timezone.now()
+
+	# name
+	if not request.POST.get('parameter_type_name').strip():
+		result = {
+			'status'  : 'alert',
+			'message' : 'Ошибка: отсутствует наименование типа данных параметра.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	parameter_type.name = request.POST.get('parameter_type_name').strip()[:100]
+
+	# alias
+	if request.POST.get('parameter_type_alias').strip():
+		parameter_type.alias = unidecode.unidecode(
+			request.POST.get('parameter_type_alias')).lower().strip()[:100]
+	else:
+		parameter_type.alias = unidecode.unidecode(
+			request.POST.get('parameter_type_name')).lower().strip()[:100]
+
+	# state
+	if request.POST.get('parameter_type_state') == 'true':
+		parameter_type.state = True
+	else:
+		parameter_type.state = False
+
+	# modified
+	parameter_type.modified = timezone.now()
+
+	# Сохраняем
+	try:
+		parameter_type.save()
+	except:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: вероятно, тип данных параметров уже есть в базе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Тип данных параметров {} сохранён.'.format(parameter_type.name)}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxSwitchParameterTypeState(request):
+	"AJAX-представление: Switch Parameter Type State."
+
+	# Импортируем
+	import json
+	from datetime import datetime
+	from catalog.models import ParameterType
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_parameter_type'):
+		result = {
+			'status'  : 'alert',
+			'message' : 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('parameter_type_id') or not request.POST.get('parameter_type_state'):
+		result = {
+			'status'  : 'warning',
+			'message' : 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			parameter_type = ParameterType.objects.get(
+				id = request.POST.get('parameter_type_id'))
+			if request.POST.get('parameter_type_state') == 'true':
+				parameter_type.state = True
+			else:
+				parameter_type.state = False
+			parameter_type.save()
+			result = {
+				'status'  : 'success',
+				'message' : 'Статус параметра {} изменен на {}.'.format(
+					parameter_type.name,
+					parameter_type.state)}
+		except ParameterType.DoesNotExist:
+			result = {
+				'status'  : 'alert',
+				'message' : 'Тип данных параметров с идентификатором {} отсутствует в базе.'.format(
+					request.POST.get('parameter_type_id'))}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+# Parameter
+
+
+def parameters(request):
+	"Представление: список параметров."
+
+	# Импортируем
+	from catalog.models import Parameter, ParameterType
+
+	# Получаем список
+	parameters = Parameter.objects.all().order_by('name')
+	parameter_types = ParameterType.objects.all().order_by('name')
+
+	return render(request, 'catalog/parameters.html', locals())
+
+
+def parameter(request, alias):
+	"Представление: параметр."
+
+	# Импортируем
+	from catalog.models import Parameter
+
+	# Получаем объект
+	parameter = Parameter.objects.get(alias=alias)
+
+	return render(request, 'catalog/parameter.html', locals())
+
+
+def ajaxGetParameter(request):
+	"AJAX-представление: Get Parameter."
+
+	# Импортируем
+	import json
+	from catalog.models import Parameter
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_parameter'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Получаем объект
+	try:
+		parameter = Parameter.objects.get(id = request.POST.get('parameter_id'))
+
+	except Parameter.DoesNotExist:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: параметр отсутствует в базе.'}
+
+	else:
+
+		if parameter.parameter_type:
+			parameter_type = {
+				'id'    : parameter.parameter_type.id,
+				'alias' : parameter.parameter_type.alias,
+				'name'  : parameter.parameter_type.name}
+
+		else:
+			parameter_type = {
+				'id' : 0}
+
+		parameter = {
+			'id'             : parameter.id,
+			'name'           : parameter.name,
+			'alias'          : parameter.alias,
+			'parameter_type' : parameter_type,
+			'order'          : parameter.order,
+			'state'          : parameter.state}
+
+		result = {
+			'status'    : 'success',
+			'message'   : 'Данные параметра получены.',
+			'parameter' : parameter}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxSaveParameter(request):
+	"AJAX-представление: Save Parameter."
+
+	# Импортируем
+	import json
+	import unidecode
+	from django.utils import timezone
+	from catalog.models import Parameter, ParameterType
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status = 400)
+
+	# Проверяем права доступа
+	try:
+		parameter = Parameter.objects.get(id = request.POST.get('parameter_id'))
+		if not request.user.has_perm('catalog.change_parameter'):
+			return HttpResponse(status = 403)
+	except Parameter.DoesNotExist:
+		parameter = Parameter()
+		if not request.user.has_perm('catalog.add_parameter'):
+			return HttpResponse(status = 403)
+		parameter.created = timezone.now()
+
+	# name
+	if not request.POST.get('parameter_name').strip():
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: отсутствует наименование параметра.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+	parameter.name = request.POST.get('parameter_name').strip()[:100]
+
+	# alias
+	if request.POST.get('parameter_alias').strip():
+		parameter.alias = unidecode.unidecode(
+			request.POST.get('parameter_alias')).lower().strip()[:100]
+	else:
+		parameter.alias = unidecode.unidecode(
+			request.POST.get('parameter_name')).lower().strip()[:100]
+
+	# parameter type
+	try:
+		parameter.parameter_type = ParameterType.objects.get(
+			id = request.POST.get('parameter_parameter_type_id').strip())
+	except AttributeError:
+		parameter.parameter_type = None
+	except ParameterType.DoesNotExist:
+		parameter.parameter_type = None
+
+	# order
+	try:
+		parameter.order = int(request.POST.get('parameter_order').strip())
+	except ValueError:
+		parameter.order = 0
+
+	# state
+	if request.POST.get('parameter_state') == 'true':
+		parameter.state = True
+	else:
+		parameter.state = False
+
+	# modified
+	parameter.modified = timezone.now()
+
+	# Сохраняем
+	try:
+		parameter.save()
+	except:
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка: вероятно, параметр уже есть в базе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Возвращаем ответ
+	result = {
+		'status': 'success',
+		'message': 'Параметр {} сохранён.'.format(parameter.name)}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+def ajaxSwitchParameterState(request):
+	"AJAX-представление: Switch Parameter State."
+
+	# Импортируем
+	import json
+	from datetime import datetime
+	from catalog.models import Parameter
+
+	# Проверяем тип запроса
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status=400)
+
+	# Проверяем права доступа
+	if not request.user.has_perm('catalog.change_parameter'):
+		result = {
+			'status': 'alert',
+			'message': 'Ошибка 403: отказано в доступе.'}
+		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	# Проверяем корректность вводных данных
+	if not request.POST.get('parameter_id') or not request.POST.get('parameter_state'):
+		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
+	else:
+		try:
+			parameter = Parameter.objects.get(id = request.POST.get('parameter_id'))
+			if request.POST.get('parameter_state') == 'true':
+				parameter.state = True
+			else:
+				parameter.state = False
+			parameter.save()
+			result = {'status': 'success', 'message': 'Статус параметра {} изменен на {}.'.format(
+				parameter.name,
+				parameter.state)}
+		except Parameter.DoesNotExist:
+			result = {'status': 'alert', 'message': 'Параметр с идентификатором {} отсутствует в базе.'.format(
+				request.POST.get('parameter_id'))}
+
+	# Возвращаем ответ
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 # Parameter to Category
@@ -1802,9 +2189,6 @@ def ajaxGetParties(request):
 
 
 # Parameter Synonym
-
-
-# TODO
 
 
 def parametersynonyms(request, updater_selected = 'all', distributor_selected = 'all', parameter_selected = 'all'):
@@ -1920,14 +2304,14 @@ def ajaxGetParameterSynonym(request):
 			parameter_synonym['parameter']['alias'] = ''
 
 		result = {
-			'status':   'success',
-			'message':  'Данные синонима получены.',
-			'parameter_synonym': parameter_synonym}
+			'status'            : 'success',
+			'message'           : 'Данные синонима получены.',
+			'parameter_synonym' : parameter_synonym}
 
 	except ParameterSynonym.DoesNotExist:
 		result = {
-			'status': 'alert',
-			'message': 'Ошибка: синоним отсутствует в базе.'}
+			'status'  : 'alert',
+			'message' : 'Ошибка: синоним отсутствует в базе.'}
 
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
@@ -2018,11 +2402,13 @@ def ajaxDeleteParameterSynonym(request):
 		parameter_synonym = ParameterSynonym.objects.get(
 			id = request.POST.get('parameter_synonym_id'))
 		parameter_synonym.delete()
-		result = {'status': 'success', 'message': 'Синоним удалён.'}
+		result = {
+			'status'  : 'success',
+			'message' : 'Синоним удалён.'}
 	except ParameterSynonym.DoesNotExist:
 		result = {
-			'status': 'alert',
-			'message': 'Ошибка: синоним отсутствует в базе.'}
+			'status'  : 'alert',
+			'message' : 'Ошибка: синоним отсутствует в базе.'}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
@@ -2052,8 +2438,8 @@ def ajaxLinkParameterSynonymSameParameter(request):
 			id = request.POST.get('parameter_synonym_id'))
 	except ParameterSynonym.DoesNotExist:
 		result = {
-			'status': 'alert',
-			'message': 'Ошибка: синоним отсутствует в базе.'}
+			'status'  : 'alert',
+			'message' : 'Ошибка: синоним отсутствует в базе.'}
 		return HttpResponse(json.dumps(result), 'application/javascript')
 
 	# name
@@ -2098,8 +2484,7 @@ def ajaxLinkParameterSynonymSameParameter(request):
 			parameter_synonym.name,
 			parameter_synonym.parameter.name),
 		'parameter'  : parameter,
-		'parameters' : parameters
-		}
+		'parameters' : parameters}
 
 	# Возвращаем ответ
 	return HttpResponse(json.dumps(result), 'application/javascript')
@@ -2230,6 +2615,7 @@ def ajaxGetCategorySynonym(request):
 
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
+
 def ajaxSaveCategorySynonym(request):
 	"AJAX-представление: Save Category Synonym."
 
@@ -2329,6 +2715,7 @@ def ajaxDeleteCategorySynonym(request):
 
 # Vendor Synonym
 
+
 def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'all', vendor_selected = 'all'):
 	"Представление: список синонимов производителей."
 
@@ -2370,7 +2757,6 @@ def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'al
 		updaters = Updater.objects.select_related().all().order_by('name')
 		distributors = Distributor.objects.select_related().all().order_by('name')
 		vendors = Vendor.objects.select_related().all().order_by('name')
-
 
 	return render(request, 'catalog/vendorsynonyms.html', locals())
 
@@ -2447,6 +2833,7 @@ def ajaxGetVendorSynonym(request):
 			'message': 'Ошибка: синоним производителя отсутствует в базе.'}
 
 	return HttpResponse(json.dumps(result), 'application/javascript')
+
 
 def ajaxSaveVendorSynonym(request):
 	"AJAX-представление: Save Vendor Synonym."

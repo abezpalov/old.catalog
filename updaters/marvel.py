@@ -334,6 +334,15 @@ class Runner:
 					updater     = self.updater,
 					distributor = self.distributor)
 
+				parameter = parameter_synonym.parameter
+
+				if parameter:
+					print('Распознан параметр: {} = {}.'.format(parameter.name, value))
+					parameter.setValue(product = product, value = value)
+
+
+
+
 		except:
 			return False
 

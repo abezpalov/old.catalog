@@ -1,0 +1,64 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Каталог: Типы данных параметров{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_parametertype %}
+
+<!-- Панель кнопок -->
+<div class="row collapse">
+	<button data-do="open-new-parameter-type" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип данных параметров</button>
+</div>
+
+{% endif %}
+
+{% if perms.catalog.add_parametertype or perms.catalog.change_parametertype or perms.catalog.delete_parametertype %}
+
+<!-- Таблица со списком производителей -->
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Псевдоним</th>
+			<th>Статус</th>
+		</tr>
+		{% for parameter_type in parameter_types %}
+		<tr data-parameter-type="{{ parameter_type.id }}">
+			<td>{{ forloop.counter }}</td>
+			<td><a data-do="open-edit-parameter-type" data-id="{{ parameter_type.id }}" data-parameter-type-name="{{ parameter_type.id }}">{{ parameter_type.name }}</a></td>
+			<td><a data-parameter-type-alias="{{ parameter_type.id }}">{{ parameter_type.alias }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="parameter-type-{{ parameter_type.id }}-state" data-id="{{ parameter_type.id }}" data-do="switch-parameter-type-state" data-parameter-type-state="{{ parameter_type.id }}" type="checkbox"{% if parameter_type.state %} checked{% endif %}>
+					<label for="parameter-type-{{ parameter_type.id }}-state"></label>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/edit-parameter-type.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/edit-parameter-type.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

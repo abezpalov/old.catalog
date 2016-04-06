@@ -1,14 +1,15 @@
 {% if perms.catalog.add_parameter %}
 
-// Открытие окна редактирования производителя (новый)
+
 $("body").delegate("[data-do='open-new-parameter']", "click", function(){
 
 	// Заполняем значение полей
-	$('#modal-edit-parameter-header').text('Добавить производителя');
+	$('#modal-edit-parameter-header').text('Добавить параметр');
 	$('#edit-parameter-id').val('0');
 	$('#edit-parameter-name').val('');
 	$('#edit-parameter-alias').val('');
-	$('#edit-parameter-description').val('');
+	$('#edit-parameter-parameter-type').val('');
+	$('#edit-parameter-order').val('0');
 	$('#edit-parameter-state').prop('checked', false);
 
 	// Открываем модальное окно
@@ -21,7 +22,6 @@ $("body").delegate("[data-do='open-new-parameter']", "click", function(){
 {% if perms.catalog.change_parameter %}
 
 
-// Открытие окна редактирования производителя (существующий)
 $("body").delegate("[data-do='open-edit-parameter']", "click", function(){
 
 	// Получаем информацию о производителе
@@ -35,11 +35,12 @@ $("body").delegate("[data-do='open-edit-parameter']", "click", function(){
 
 				// Заполняем значение полей
 				$('#modal-edit-parameter-header').text('Редактировать параметр');
-				$('#edit-parameter-id').val(data.parameter_id);
-				$('#edit-parameter-name').val(data.parameter_name);
-				$('#edit-parameter-alias').val(data.parameter_alias);
-				$('#edit-parameter-description').val(data.parameter_description);
-				$('#edit-parameter-state').prop('checked', data.parameter_state);
+				$('#edit-parameter-id').val(data.parameter.id);
+				$('#edit-parameter-name').val(data.parameter.name);
+				$('#edit-parameter-alias').val(data.parameter.alias);
+				$('#edit-parameter-parameter-type').val(data.parameter.parameter_type.id);
+				$('#edit-parameter-order').val(data.parameter.order);
+				$('#edit-parameter-state').prop('checked', data.parameter.state);
 
 				// Открываем окно
 				$('#modal-edit-parameter').foundation('reveal', 'open');
@@ -48,14 +49,14 @@ $("body").delegate("[data-do='open-edit-parameter']", "click", function(){
 
 				// Показываем сообщение с ошибкой
 				var notification = new NotificationFx({
-					wrapper: document.body,
-					message: '<p>' + data.message + '</p>',
-					layout:  'growl',
-					effect:  'genie',
-					type:    data.status,
-					ttl:     3000,
-					onClose: function() { return false; },
-					onOpen:  function() { return false; }
+					wrapper : document.body,
+					message : '<p>' + data.message + '</p>',
+					layout  : 'growl',
+					effect  : 'genie',
+					type    : data.status,
+					ttl     : 3000,
+					onClose : function() { return false; },
+					onOpen  : function() { return false; }
 				});
 				notification.show();
 			}
@@ -66,17 +67,17 @@ $("body").delegate("[data-do='open-edit-parameter']", "click", function(){
 });
 
 
-// Сохранение производителя
 $("body").delegate("[data-do='edit-parameter-save']", "click", function(){
 
 	// Отправляем запрос
 	$.post("/catalog/ajax/save-parameter/", {
-		parameter_id:           $('#edit-parameter-id').val(),
-		parameter_name:         $('#edit-parameter-name').val(),
-		parameter_alias:        $('#edit-parameter-alias').val(),
-		parameter_description:  $('#edit-parameter-description').val(),
-		parameter_state:        $('#edit-parameter-state').prop('checked'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+		parameter_id                : $('#edit-parameter-id').val(),
+		parameter_name              : $('#edit-parameter-name').val(),
+		parameter_alias             : $('#edit-parameter-alias').val(),
+		parameter_parameter_type_id : $('#edit-parameter-parameter-type').val(),
+		parameter_order             : $('#edit-parameter-order').val(),
+		parameter_state             : $('#edit-parameter-state').prop('checked'),
+		csrfmiddlewaretoken         : '{{ csrf_token }}'
 	},
 	function(data) {
 		if (null != data.status) {
@@ -85,12 +86,12 @@ $("body").delegate("[data-do='edit-parameter-save']", "click", function(){
 			var notification = new NotificationFx({
 				wrapper : document.body,
 				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
+				layout  : 'growl',
+				effect  : 'genie',
+				type    : data.status,
+				ttl     : 3000,
 				onClose : function() { return false; },
-				onOpen : function() { return false; }
+				onOpen  : function() { return false; }
 			});
 			notification.show();
 
@@ -104,7 +105,8 @@ $("body").delegate("[data-do='edit-parameter-save']", "click", function(){
 				$('#edit-parameter-id').val('0');
 				$('#edit-parameter-name').val('');
 				$('#edit-parameter-alias').val('');
-				$('#edit-parameter-description').val('');
+				$('#edit-parameter-parameter-type').val('');
+				$('#edit-parameter-order').val('0');
 				$('#edit-parameter-state').prop('checked', false);
 
 				// Закрываем окно
@@ -117,14 +119,14 @@ $("body").delegate("[data-do='edit-parameter-save']", "click", function(){
 });
 
 
-// Отмена редактирования производителя
 $("body").delegate("[data-do='edit-parameter-cancel']", "click", function(){
 
 	// Заполняем значение полей
 	$('#edit-parameter-id').val('0');
 	$('#edit-parameter-name').val('');
 	$('#edit-parameter-alias').val('');
-	$('#edit-parameter-description').val('');
+	$('#edit-parameter-data-type').val('');
+	$('#edit-parameter-order').val('0');
 	$('#edit-parameter-state').prop('checked', false);
 
 	// Закрываем окно
@@ -138,7 +140,6 @@ $("body").delegate("[data-do='edit-parameter-cancel']", "click", function(){
 {% if perms.catalog.delete_parameter %}
 
 
-// Открытие модального окна удаления производителя
 $("body").delegate("[data-do='open-parameter-trash']", "click", function(){
 
 	// Заполняем значение полей
@@ -151,7 +152,6 @@ $("body").delegate("[data-do='open-parameter-trash']", "click", function(){
 });
 
 
-// Удаление производителя
 $("body").delegate("[data-do='trash-parameter']", "click", function(){
 
 	// Отправляем запрос
@@ -166,12 +166,12 @@ $("body").delegate("[data-do='trash-parameter']", "click", function(){
 			var notification = new NotificationFx({
 				wrapper : document.body,
 				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
+				layout  : 'growl',
+				effect  : 'genie',
+				type    : data.status,
+				ttl     : 3000,
 				onClose : function() { return false; },
-				onOpen : function() { return false; }
+				onOpen  : function() { return false; }
 			});
 			notification.show();
 
@@ -191,7 +191,6 @@ $("body").delegate("[data-do='trash-parameter']", "click", function(){
 {% if perms.catalog.change_parameter %}
 
 
-// Смена статуса производителя
 $("body").delegate("[data-do='switch-parameter-state']", "click", function(){
 
 	// Отправляем запрос

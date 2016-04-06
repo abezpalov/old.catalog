@@ -129,8 +129,26 @@ urlpatterns = patterns('',
 	# TODO
 
 
+	# Parameter Type
+	# ex: /catalog/parameter-types/
+	url(r'^parameter-types/$', views.parameterTypes, name='parameterTypes'),
+	# ex: /catalog/parameter-type/text/
+	url(r'^parameter-type/(?P<alias>[a-zA-Z0-9_-]+)/$', views.parameterType, name='parameterType'),
+	# AJAX
+	url(r'^ajax/get-parameter-type/$', views.ajaxGetParameterType, name='ajaxGetParameterType'),
+	url(r'^ajax/save-parameter-type/$', views.ajaxSaveParameterType, name='ajaxSaveParameterType'),
+	url(r'^ajax/switch-parameter-type-state/$', views.ajaxSwitchParameterTypeState, name='ajaxSwitchParameterTypeState'),
+
+
 	# Parameter
-	# TODO
+	# ex: /catalog/parameters/
+	url(r'^parameters/$', views.parameters, name='parameters'),
+	# ex: /catalog/parameter/massa/
+	url(r'^parameter/(?P<alias>[a-zA-Z0-9_-]+)/$', views.parameter, name='parameter'),
+	# AJAX
+	url(r'^ajax/get-parameter/$', views.ajaxGetParameter, name='ajaxGetParameter'),
+	url(r'^ajax/save-parameter/$', views.ajaxSaveParameter, name='ajaxSaveParameter'),
+	url(r'^ajax/switch-parameter-state/$', views.ajaxSwitchParameterState, name='ajaxSwitchParameterState'),
 
 
 	# Parameter to Category
