@@ -10,7 +10,7 @@ $("body").delegate("[data-do='open-new-parameter']", "click", function(){
 	$('#edit-parameter-alias').val('');
 	$('#edit-parameter-parameter-type').val('');
 	$('#edit-parameter-order').val('0');
-	$('#edit-parameter-state').prop('checked', false);
+	$('#edit-parameter-state').prop('checked', true);
 
 	// Открываем модальное окно
 	$('#modal-edit-parameter').foundation('reveal', 'open');
@@ -192,37 +192,17 @@ $("body").delegate("[data-do='trash-parameter']", "click", function(){
 
 
 $("body").delegate("[data-do='switch-parameter-state']", "click", function(){
-
-	// Отправляем запрос
 	$.post("/catalog/ajax/switch-parameter-state/", {
-		parameter_id        : $(this).data('id'),
-		parameter_state     : $(this).prop('checked'),
-		csrfmiddlewaretoken : '{{ csrf_token }}'
-	},
+		id                  : $(this).data('id'),
+		state               : $(this).prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'},
 	function(data) {
-		if (null != data.status) {
-
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout  : 'growl',
-				effect  : 'genie',
-				type    : data.status,
-				ttl     : 3000,
-				onClose : function() { return false; },
-				onOpen  : function() { return false; }
-			});
-			notification.show();
-
-			// Проверем успешность запроса
-			if ('success' != data.status){
-				setTimeout(function () {location.reload();}, 3000);
-			}
+		if ('success' != data.status) {
+			return true;
+		} else {
+			return false;
 		}
 	}, "json");
-
-	return true;
 });
 
 {% endif %}

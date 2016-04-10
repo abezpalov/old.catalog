@@ -3,14 +3,12 @@
 
 $("body").delegate("[data-do='open-new-parameter-type']", "click", function(){
 
-	// Заполняем значение полей
 	$('#modal-edit-parameter-type-header').text('Добавить тип данных параметров');
 	$('#edit-parameter-type-id').val('0');
 	$('#edit-parameter-type-name').val('');
 	$('#edit-parameter-type-alias').val('');
-	$('#edit-parameter-type-state').prop('checked', false);
+	$('#edit-parameter-type-state').prop('checked', true);
 
-	// Открываем модальное окно
 	$('#modal-edit-parameter-type').foundation('reveal', 'open');
 	return false;
 });
@@ -22,40 +20,21 @@ $("body").delegate("[data-do='open-new-parameter-type']", "click", function(){
 
 $("body").delegate("[data-do='open-edit-parameter-type']", "click", function(){
 
-	// Получаем информацию о производителе
 	$.post("/catalog/ajax/get-parameter-type/", {
-		parameter_type_id   : $(this).data('id'),
+		id                  : $(this).data('id'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
-			if ('success' == data.status){
+		if ('success' == data.status){
 
-				// Заполняем значение полей
-				$('#modal-edit-parameter-type-header').text('Редактировать тип данных параметров');
-				$('#edit-parameter-type-id').val(data.parameter_type.id);
-				$('#edit-parameter-type-name').val(data.parameter_type.name);
-				$('#edit-parameter-type-alias').val(data.parameter_type.alias);
-				$('#edit-parameter-type-state').prop('checked', data.parameter_type.state);
+			$('#modal-edit-parameter-type-header').text('Редактировать тип данных параметров');
+			$('#edit-parameter-type-id').val(data.parameter_type.id);
+			$('#edit-parameter-type-name').val(data.parameter_type.name);
+			$('#edit-parameter-type-alias').val(data.parameter_type.alias);
+			$('#edit-parameter-type-state').prop('checked', data.parameter_type.state);
 
-				// Открываем окно
-				$('#modal-edit-parameter-type').foundation('reveal', 'open');
+			$('#modal-edit-parameter-type').foundation('reveal', 'open');
 
-			} else {
-
-				// Показываем сообщение с ошибкой
-				var notification = new NotificationFx({
-					wrapper : document.body,
-					message : '<p>' + data.message + '</p>',
-					layout  : 'growl',
-					effect  : 'genie',
-					type    : data.status,
-					ttl     : 3000,
-					onClose : function() { return false; },
-					onOpen  : function() { return false; }
-				});
-				notification.show();
-			}
 		}
 	}, "json");
 
@@ -65,7 +44,6 @@ $("body").delegate("[data-do='open-edit-parameter-type']", "click", function(){
 
 $("body").delegate("[data-do='edit-parameter-type-save']", "click", function(){
 
-	// Отправляем запрос
 	$.post("/catalog/ajax/save-parameter-type/", {
 		parameter_type_id        : $('#edit-parameter-type-id').val(),
 		parameter_type_name      : $('#edit-parameter-type-name').val(),
@@ -74,46 +52,28 @@ $("body").delegate("[data-do='edit-parameter-type-save']", "click", function(){
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
 
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout  : 'growl',
-				effect  : 'genie',
-				type    : data.status,
-				ttl     : 3000,
-				onClose : function() { return false; },
-				onOpen  : function() { return false; }
-			});
-			notification.show();
+		if ('success' == data.status){
 
-			if ('success' == data.status){
+			o = data.parameter_type;
 
-				// Обновлем информацию на странице
-				$("[data-parameter-type-name='" + $('#edit-parameter-type-id').val() + "']").text($('#edit-parameter-type-name').val());
-				$("[data-parameter-type-state='" + $('#edit-parameter-type-id').val() + "']").prop('checked', $('#edit-parameter-type-state').prop('checked'));
+			$("[data-parameter-type-name='" + o.id + "']").text(o.name);
+			$("[data-parameter-type-state='" + o.id + "']").prop('checked', o.state);
 
-				// Заполняем значение полей
-				$('#edit-parameter-type-id').val('0');
-				$('#edit-parameter-type-name').val('');
-				$('#edit-parameter-type-alias').val('');
-				$('#edit-parameter-type-state').prop('checked', false);
+			$('#edit-parameter-type-id').val('0');
+			$('#edit-parameter-type-name').val('');
+			$('#edit-parameter-type-alias').val('');
+			$('#edit-parameter-type-state').prop('checked', false);
 
-				// Закрываем окно
-				$('#modal-edit-parameter-type').foundation('reveal', 'close');
-			}
+			$('#modal-edit-parameter-type').foundation('reveal', 'close');
 		}
 	}, "json");
-
 	return false;
 });
 
 
 $("body").delegate("[data-do='edit-parameter-type-cancel']", "click", function(){
 
-	// Заполняем значение полей
 	$('#edit-parameter-type-id').val('0');
 	$('#edit-parameter-type-name').val('');
 	$('#edit-parameter-type-alias').val('');
@@ -121,7 +81,6 @@ $("body").delegate("[data-do='edit-parameter-type-cancel']", "click", function()
 	$('#edit-parameter-type-order').val('0');
 	$('#edit-parameter-type-state').prop('checked', false);
 
-	// Закрываем окно
 	$('#modal-edit-parameter-type').foundation('reveal', 'close');
 
 	return false;
@@ -134,10 +93,8 @@ $("body").delegate("[data-do='edit-parameter-type-cancel']", "click", function()
 
 $("body").delegate("[data-do='open-parameter-type-trash']", "click", function(){
 
-	// Заполняем значение полей
 	$('#trash-parameter-type-id').val($(this).data('id'));
 
-	// Открываем окно
 	$('#modal-trash-parameter-type').foundation('reveal', 'open');
 
 	return false;
@@ -184,37 +141,17 @@ $("body").delegate("[data-do='trash-parameter-type']", "click", function(){
 
 
 $("body").delegate("[data-do='switch-parameter-type-state']", "click", function(){
-
-	// Отправляем запрос
 	$.post("/catalog/ajax/switch-parameter-type-state/", {
-		parameter_type_id    : $(this).data('id'),
-		parameter_type_state : $(this).prop('checked'),
-		csrfmiddlewaretoken  : '{{ csrf_token }}'
-	},
+		id                  : $(this).data('id'),
+		state               : $(this).prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'},
 	function(data) {
-		if (null != data.status) {
-
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout  : 'growl',
-				effect  : 'genie',
-				type    : data.status,
-				ttl     : 3000,
-				onClose : function() { return false; },
-				onOpen  : function() { return false; }
-			});
-			notification.show();
-
-			// Проверем успешность запроса
-			if ('success' != data.status){
-				setTimeout(function () {location.reload();}, 3000);
-			}
+		if ('success' != data.status) {
+			return true;
+		} else {
+			return false;
 		}
 	}, "json");
-
-	return true;
 });
 
 {% endif %}

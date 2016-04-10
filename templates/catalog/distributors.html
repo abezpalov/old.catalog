@@ -23,7 +23,7 @@
 			<td><a data-do="open-edit-distributor" data-id="{{ distributor.id }}" data-distributor-name="{{ distributor.id }}">{{ distributor.name }}</a></td>
 			<td>
 				<div class="switch small">
-					<input id="distributor-{{ distributor.id }}-state" data-do="switch-distributor-state" data-id="{{ distributor.id }}" data-distributor-state="{{ distributor.id }}" type="checkbox"{% if distributor.state %} checked{% endif %}>
+					<input id="distributor-{{ distributor.id }}-state" data-do="switch-state-distributor" data-id="{{ distributor.id }}" data-distributor-state="{{ distributor.id }}" type="checkbox"{% if distributor.state %} checked{% endif %}>
 					<label for="distributor-{{ distributor.id }}-state"></label>
 				</div>
 			</td>

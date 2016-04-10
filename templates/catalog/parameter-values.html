@@ -1,0 +1,66 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Каталог: Значение параметров{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row collapse">
+{% if perms.catalog.add_parameter %}
+	<button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button>
+{% endif %}
+{% if perms.catalog.add_parametervalue %}
+	<button data-do="open-new-parameter-value" class="secondary expand"><i class="fa fa-pencil"></i> Добавить значение параметра</button>
+{% endif %}
+</div>
+
+
+{% if perms.catalog.add_parametervalue or perms.catalog.change_parametervalue or perms.catalog.delete_parametervalue %}
+
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Параметр</th>
+			<th>Значение</th>
+			<th>Статус</th>
+		</tr>
+		{% for parameter_value in parameter_values %}
+		<tr data-parameter-value="{{ parameter_value.id }}">
+			<td>{{ forloop.counter }}</td>
+			<td><a data-parameter-value-parameter="{{ parameter_value.id }}">{{ parameter_value.parameter.name }}</a></td>
+			<td><a data-do="open-edit-parameter-value" data-id="{{ parameter_value.id }}" data-parameter-value-value-search="{{ parameter_value.id }}">{{ parameter_value.value_search }}</a></td>
+			<td>
+				<div class="switch small">
+					<input id="parameter-{{ parameter.id }}-state" data-id="{{ parameter.id }}" data-do="switch-parameter-state" data-parameter-state="{{ parameter.id }}" type="checkbox"{% if parameter.state %} checked{% endif %}>
+					<label for="parameter-{{ parameter.id }}-state"></label>
+				</div>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/edit-parameter.html" %}
+{% include "catalog/modal/edit-parameter-value.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/edit-parameter.js" %}
+{% include "catalog/js/edit-parameter-value.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

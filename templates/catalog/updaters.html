@@ -26,7 +26,7 @@
 			<td><a data-do="open-edit-distributor" data-id="{{ updater.distributor.id }}" data-distributor-name="{{ updater.distributor.id }}">{{ updater.distributor.name }}</a></td>
 			<td>
 				<div class="switch small">
-					<input id="updater-{{ updater.id }}-state" data-do="switch-updater-state" data-id="{{ updater.id }}" data-updater-state="{{ updater.id }}" type="checkbox"{% if updater.state %} checked{% endif %}>
+					<input id="updater-{{ updater.id }}-state" data-do="switch-state-updater" data-id="{{ updater.id }}" data-updater-state="{{ updater.id }}" type="checkbox"{% if updater.state %} checked{% endif %}>
 					<label for="updater-{{ updater.id }}-state"></label>
 				</div>
 			</td>

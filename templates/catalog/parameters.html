@@ -7,14 +7,14 @@
 
 {% block content %}
 
-{% if perms.catalog.add_parameter %}
 
 <!-- Панель кнопок -->
 <div class="row collapse">
-	<button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button>
+	<ul class="button-group even-2">
+	{% if perms.catalog.add_parameter %}<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>{% endif %}
+	{% if perms.catalog.add_parametertype %}<li><button data-do="open-new-parameter-type" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип параметра</button></li>{% endif %}
+	</ul>
 </div>
-
-{% endif %}
 
 {% if perms.catalog.add_parameter or perms.catalog.change_parameter or perms.catalog.delete_parameter %}
 
@@ -54,11 +54,13 @@
 {% endif %}
 
 {% include "catalog/modal/edit-parameter.html" %}
+{% include "catalog/modal/edit-parameter-type.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
 {% include "catalog/js/edit-parameter.js" %}
+{% include "catalog/js/edit-parameter-type.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

@@ -6,21 +6,15 @@ urlpatterns = patterns('',
 
 
 	# Connector
-	# TODO
 
 
 	# Distributor
-	# ex: /catalog/distributors/
 	url(r'^distributors/$', views.distributors, name='distributors'),
-	# ex: /catalog/distributor/ocs/
-	url(r'^distributor/(?P<alias>[a-zA-Z0-9_-]+)/$', views.distributor, name='distributor'),
 	# AJAX
-	url(r'^ajax/get-distributor/$', views.ajaxGetDistributor, name='ajaxGetDistributor'),
 	url(r'^ajax/save-distributor/$', views.ajaxSaveDistributor, name='ajaxSaveDistributor'),
-	url(r'^ajax/switch-distributor-state/$', views.ajaxSwitchDistributorState, name='ajaxSwitchDistributorState'),
 
 
-	# Updater
+	# Updater TODO Refactoring
 	# ex: /catalog/updaters/
 	url(r'^updaters/$', views.updaters, name='updaters'),
 	# ex: /catalog/updater/ocs/
@@ -31,7 +25,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/switch-updater-state/$', views.ajaxSwitchUpdaterState, name='ajaxSwitchUpdaterState'),
 
 
-	# Stock
+	# Stock TODO Refactoring
 	# ex: /catalog/stocks/
 	url(r'^stocks/$', views.stocks, name='stocks'),
 	# ex: /catalog/stock/ocs-stock-samara/
@@ -42,7 +36,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/switch-stock-state/$', views.ajaxSwitchStockState, name='ajaxSwitchStockState'),
 
 
-	# Category
+	# Category TODO Refactoring
 	# ex: /catalog/categories/
 	url(r'^categories/$', views.categories, name='categories'),
 	# ex: /catalog/category/98/
@@ -54,7 +48,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/delete-category/$', views.ajaxDeleteCategory, name='ajaxDeleteCategory'),
 
 
-	# Vendor
+	# Vendor TODO Refactoring
 	# ex: /catalog/vendors/
 	url(r'^vendors/$', views.vendors, name='vendors'),
 	# ex: /catalog/vendor/fujitsu/
@@ -69,7 +63,7 @@ urlpatterns = patterns('',
 	# TODO
 
 
-	# Price Types
+	# Price Types TODO Refactoring
 	# ex: /catalog/price-types/
 	url(r'^price-types/$', views.priceTypes, name='priceTypes'),
 	# ex: /catalog/price-type/ddp/
@@ -80,7 +74,7 @@ urlpatterns = patterns('',
 	url(r'^ajax/switch-price-type-state/$', views.ajaxSwitchPriceTypeState, name='ajaxSwitchPriceTypeState'),
 
 
-	# Currency
+	# Currency TODO Refactoring
 	# ex: /catalog/currencies/
 	url(r'^currencies/$', views.currencies, name='currencies'),
 	# AJAX
@@ -98,7 +92,7 @@ urlpatterns = patterns('',
 
 
 	# Product
-	# ex: /catalog/
+	# ex: /catalog/ TODO Refactoring
 	url(r'^$', views.products, name='products'),
 	# ex: /catalog/products/c/456-y/fujitsu/search/vfy-rx300/
 	url(r'^products(/c/(?P<category>[0-9]+)-(?P<childs>[yn]{1})){0,1}(/(?P<vendor>[a-zA-Z0-9_-]+)){0,1}(/search/(?P<search>[\S\s]+)){0,1}/page/(?P<page>[0-9]+)/$', views.products, name='products'),
@@ -118,78 +112,84 @@ urlpatterns = patterns('',
 
 
 	# Party Hystory
-	# TODO
 
 
 	# Price Hystory
-	# TODO
 
 
 	# Quantity Hystory
-	# TODO
 
 
-	# Parameter Type
+	# Parameter Type TODO Refactoring
 	# ex: /catalog/parameter-types/
 	url(r'^parameter-types/$', views.parameterTypes, name='parameterTypes'),
-	# ex: /catalog/parameter-type/text/
-	url(r'^parameter-type/(?P<alias>[a-zA-Z0-9_-]+)/$', views.parameterType, name='parameterType'),
 	# AJAX
 	url(r'^ajax/get-parameter-type/$', views.ajaxGetParameterType, name='ajaxGetParameterType'),
 	url(r'^ajax/save-parameter-type/$', views.ajaxSaveParameterType, name='ajaxSaveParameterType'),
 	url(r'^ajax/switch-parameter-type-state/$', views.ajaxSwitchParameterTypeState, name='ajaxSwitchParameterTypeState'),
 
 
-	# Parameter
+	# Parameter TODO Refactoring
 	# ex: /catalog/parameters/
 	url(r'^parameters/$', views.parameters, name='parameters'),
-	# ex: /catalog/parameter/massa/
-	url(r'^parameter/(?P<alias>[a-zA-Z0-9_-]+)/$', views.parameter, name='parameter'),
 	# AJAX
 	url(r'^ajax/get-parameter/$', views.ajaxGetParameter, name='ajaxGetParameter'),
 	url(r'^ajax/save-parameter/$', views.ajaxSaveParameter, name='ajaxSaveParameter'),
 	url(r'^ajax/switch-parameter-state/$', views.ajaxSwitchParameterState, name='ajaxSwitchParameterState'),
 
 
+	# Parameter Value TODO Refactoring
+	# ex: /catalog/parameter-values/
+	url(r'^parameter-values/$', views.parameterValues, name='parameterValues'),
+	# AJAX
+	url(r'^ajax/get-parameter-value/$', views.ajaxGetParameterValue, name='ajaxGetParameterValue'),
+	url(r'^ajax/save-parameter-value/$', views.ajaxSaveParameterValue, name='ajaxSaveParameterValue'),
+
+
+	# Parameter Value Synonym TODO Refactoring
+	# ex: /catalog/parameter-value-synonyms/
+	url(r'^parameter-value-synonyms/$', views.parametervaluesynonyms, name='parametervaluesynonyms'),
+	# ex: /catalog/parameter-value-synonyms/1/2/none/
+	url(r'^parameter-value-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<parameter_selected>[a-zA-Z0-9_-]+)/$', views.parametervaluesynonyms, name='parametervaluesynonyms'),
+	# AJAX
+	url(r'^ajax/save-parameter-value-synonym/$', views.ajaxSaveParameterValueSynonym, name='ajaxSaveParameterValueSynonym'),
+
+
 	# Parameter to Category
-	# TODO
 
 
 	# Parameter to Product
-	# TODO
 
 
-	# Parameter Synonym
-	# TODO
+	# Parameter Synonym TODO Refactoring
 	# ex: /catalog/parameter-synonyms/
 	url(r'^parameter-synonyms/$', views.parametersynonyms, name='parametersynonyms'),
 	# ex: /catalog/parameter-synonyms/1/2/none/
 	url(r'^parameter-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<parameter_selected>[a-zA-Z0-9_-]+)/$', views.parametersynonyms, name='parametersynonyms'),
 	# AJAX
-	url(r'^ajax/get-parameter-synonym/$', views.ajaxGetParameterSynonym, name='ajaxGetParameterSynonym'),
 	url(r'^ajax/save-parameter-synonym/$', views.ajaxSaveParameterSynonym, name='ajaxSaveParameterSynonym'),
-	url(r'^ajax/delete-parameter-synonym/$', views.ajaxDeleteParameterSynonym, name='ajaxDeleteParameterSynonym'),
-	url(r'^ajax/link-parameter-synonym-same-parameter/$', views.ajaxLinkParameterSynonymSameParameter, name='ajaxLinkParameterSynonymSameParameter'),
 
-	# Category Synonym
+	# Category Synonym TODO Refactoring
 	# ex: /catalog/category-synonyms/
 	url(r'^category-synonyms/$', views.categorysynonyms, name='categorysynonyms'),
 	# ex: /catalog/category-synonyms/1/2/none/
 	url(r'^category-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<category_selected>[a-zA-Z0-9_-]+)/$', views.categorysynonyms, name='categorysynonyms'),
 	# AJAX
-	url(r'^ajax/get-category-synonym/$', views.ajaxGetCategorySynonym, name='ajaxGetCategorySynonym'),
 	url(r'^ajax/save-category-synonym/$', views.ajaxSaveCategorySynonym, name='ajaxSaveCategorySynonym'),
-	url(r'^ajax/delete-category-synonym/$', views.ajaxDeleteCategorySynonym, name='ajaxDeleteCategorySynonym'),
 
 
-	# Vendor Synonym
+	# Vendor Synonym TODO Refactoring
 	# ex: /catalog/vendor-synonyms/
 	url(r'^vendor-synonyms/$', views.vendorsynonyms, name='vendorsynonyms'),
 	# ex: /catalog/vendor-synonyms/1/2/none/
 	url(r'^vendor-synonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<distributor_selected>[a-zA-Z0-9_-]+)/(?P<vendor_selected>[a-zA-Z0-9_-]+)/$', views.vendorsynonyms, name='vendorsynonyms'),
 	# AJAX
-	url(r'^ajax/get-vendor-synonym/$', views.ajaxGetVendorSynonym, name='ajaxGetVendorSynonym'),
 	url(r'^ajax/save-vendor-synonym/$', views.ajaxSaveVendorSynonym, name='ajaxSaveVendorSynonym'),
-	url(r'^ajax/delete-vendor-synonym/$', views.ajaxDeleteVendorSynonym, name='ajaxDeleteVendorSynonym'),
-	url(r'^ajax/link-vendor-synonym-same-vendor/$', views.ajaxLinkVendorSynonymSameVendor, name='ajaxLinkVendorSynonymSameVendor'),
+
+	# AJAX
+	url(r'^ajax/get/(?P<model_name>[a-zA-Z0-9_-]+)/$', views.ajaxGet, name='ajaxGet'),
+	url(r'^ajax/switch-state/(?P<model_name>[a-zA-Z0-9_-]+)/$', views.ajaxSwitchState, name='ajaxSwitchState'),
+	url(r'^ajax/delete/(?P<model_name>[a-zA-Z0-9_-]+)/$', views.ajaxDelete, name='ajaxDelete'),
+
+
 )

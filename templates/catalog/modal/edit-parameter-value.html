@@ -1,0 +1,37 @@
+{% if perms.catalog.change_parametervalue or perms.catalog.add_parametervalue %}
+<div id="modal-edit-parameter-value" class="reveal-modal large" data-reveal>
+
+	<h2 id="modal-edit-parameter-value-header">&ndsp;</h2>
+
+	<input id="edit-parameter-value-id" type="hidden" value="0">
+
+	<label>Параметр
+		<select id="edit-parameter-value-parameter">
+			<option value="0" selected> - Не определён (None) - </option>
+			{% for parameter in parameters %}
+			<option value="{{ parameter.id }}">{{ parameter.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
+	<label>Значение параметра (текстовое)
+		<input id="edit-parameter-value-value-text" type="text" value="">
+	</label>
+
+
+	<label>Порядковый номер
+		<input id="edit-parameter-value-order" type="text" value="">
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-parameter-value-state" type="checkbox">
+			<label for="edit-parameter-value-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-parameter-value-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-parameter-value-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}

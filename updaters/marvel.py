@@ -191,32 +191,37 @@ class Runner:
 				end     = '"}]}')
 
 		# Выполняем запрос
-		r = s.post(url, cookies = self.cookies, verify = False, timeout = 300)
-
-		# Обрабатываем ответ
-		if 'json' == request_format:
-			import json
-			data = json.loads(r.text)
-			if data['Header']['Key']: self.key = data['Header']['Key']
-			if data['Header']['Code'] != 0:
-				if data['Header']['Message']:
-					Log.objects.add(
-					subject     = "catalog.updater.{}".format(self.updater.alias),
-					channel     = "error",
-					title       = "?",
-					description = data['Header']['Message'])
-				else:
-					Log.objects.add(
-					subject     = "catalog.updater.{}".format(self.updater.alias),
-					channel     = "error",
-					title       = "?",
-					description = "Невнятный ответ сервера")
-				return False
-			else:
-				return data['Body']
-		else:
-			print('Ошибка: используется неподдерживаемый формат.')
+		try:
+			r = s.post(url, cookies = self.cookies, verify = False, timeout = 300)
+		except:
+			print('Нет соединения')
 			return False
+		else:
+
+			# Обрабатываем ответ
+			if 'json' == request_format:
+				import json
+				data = json.loads(r.text)
+				if data['Header']['Key']: self.key = data['Header']['Key']
+				if data['Header']['Code'] != 0:
+					if data['Header']['Message']:
+						Log.objects.add(
+						subject     = "catalog.updater.{}".format(self.updater.alias),
+						channel     = "error",
+						title       = "?",
+						description = data['Header']['Message'])
+					else:
+						Log.objects.add(
+						subject     = "catalog.updater.{}".format(self.updater.alias),
+						channel     = "error",
+						title       = "?",
+						description = "Невнятный ответ сервера")
+					return False
+				else:
+					return data['Body']
+			else:
+				print('Ошибка: используется неподдерживаемый формат.')
+				return False
 
 
 	def parseCategories(self, data):
@@ -321,8 +326,16 @@ class Runner:
 
 	def parseParameters(self, data, product):
 
+		print('parseParameters')
+
 		try:
 			ps = data['CategoryItem'][0]['ExtendedInfo']['Parameter']
+
+		except:
+			print('return False')
+			return False
+
+		else:
 
 			for p in ps:
 
@@ -338,13 +351,12 @@ class Runner:
 
 				if parameter:
 					print('Распознан параметр: {} = {}.'.format(parameter.name, value))
-					parameter.setValue(product = product, value = value)
+					parameter_to_product = ParameterToProduct.objects.take(
+						parameter = parameter,
+						product   = product)
+					parameter_to_product.setValue(value = value)
 
-
-
-
-		except:
-			return False
+			return True
 
 
 	def fixPrice(self, price):

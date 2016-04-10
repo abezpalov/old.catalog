@@ -3,6 +3,27 @@ from django.db import models
 from django.utils import timezone
 
 
+class ConnectorManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
+
+	def take(self, *args, **kwargs):
+		try:
+			result = self.get(alias = alias)
+		except Connector.DoesNotExist:
+			result = Connector(
+				alias    = alias,
+				name     = name,
+				created  = timezone.now(),
+				modified = timezone.now())
+			result.save()
+		return result
+
+
 class Connector(models.Model):
 
 	name     = models.CharField(max_length = 100)
@@ -13,6 +34,23 @@ class Connector(models.Model):
 	created  = models.DateTimeField()
 	modified = models.DateTimeField()
 
+	objects  = ConnectorManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['alias']    = self.alias
+		result['login']    = self.login
+		result['password'] = self.password
+		result['state']    = self.state
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -22,17 +60,23 @@ class Connector(models.Model):
 
 class DistributorManager(models.Manager):
 
-	def take(self, alias, name):
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
+
+	def take(self, *args, **kwargs):
 		try:
-			distributor = self.get(alias = alias)
+			result = self.get(alias = alias)
 		except Distributor.DoesNotExist:
-			distributor = Distributor(
+			result = Distributor(
 				alias    = alias,
 				name     = name,
 				created  = timezone.now(),
 				modified = timezone.now())
-			distributor.save()
-		return distributor
+			result.save()
+		return result
 
 
 class Distributor(models.Model):
@@ -47,6 +91,23 @@ class Distributor(models.Model):
 
 	objects     = DistributorManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']          = self.id
+		result['name']        = self.name
+		result['alias']       = self.alias
+		result['description'] = self.description
+		result['state']       = self.state
+		result['created']     = str(self.created)
+		result['modified']    = str(self.modified)
+
+		try:    result['connector'] = self.connector.getDicted()
+		except: result['connector'] = None
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -55,6 +116,12 @@ class Distributor(models.Model):
 
 
 class UpdaterManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, alias, name, distributor = None):
 		try:
@@ -85,6 +152,25 @@ class Updater(models.Model):
 
 	objects     = UpdaterManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['alias']    = self.alias
+		result['login']    = self.login
+		result['password'] = self.password
+		result['state']    = self.state
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+		result['updated']  = str(self.updated)
+
+		try:    result['distributor'] = self.distributor.getDicted()
+		except: result['distributor'] = None
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -93,6 +179,12 @@ class Updater(models.Model):
 
 
 class StockManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20,
 			distributor=None):
@@ -124,6 +216,24 @@ class Stock(models.Model):
 
 	objects           = StockManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']                = self.id
+		result['name']              = self.name
+		result['alias']             = self.alias
+		result['delivery_time_min'] = self.delivery_time_min
+		result['delivery_time_max'] = self.delivery_time_max
+		result['state']             = self.state
+		result['created']           = str(self.created)
+		result['modified']          = str(self.modified)
+
+		try:    result['distributor'] = self.distributor.getDicted()
+		except: result['distributor'] = None
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -132,6 +242,12 @@ class Stock(models.Model):
 
 
 class CategoryManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def getCategoryTree(self, tree, parent = None):
 		"Функция: дерево категорий (используется рекурсия)."
@@ -214,6 +330,27 @@ class Category(models.Model):
 
 	objects     = CategoryManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']          = self.id
+		result['name']        = self.name
+		result['name_search'] = self.name_search
+		result['alias']       = self.alias
+		result['description'] = self.description
+		result['level']       = self.level
+		result['order']       = self.order
+		result['path']        = self.path
+		result['state']       = self.state
+		result['created']     = str(self.created)
+		result['modified']    = str(self.modified)
+
+		try:    result['parent'] = self.parent.getDicted()
+		except: result['parent'] = None
+
+		return result
+
 	def __str__(self):
 		return self.name_search
 
@@ -222,6 +359,12 @@ class Category(models.Model):
 
 
 class VendorManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, alias, name):
 		try:
@@ -243,6 +386,20 @@ class Vendor(models.Model):
 
 	objects     = VendorManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']          = self.id
+		result['name']        = self.name
+		result['alias']       = self.alias
+		result['description'] = self.description
+		result['state']       = self.state
+		result['created']     = str(self.created)
+		result['modified']    = str(self.modified)
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -251,6 +408,12 @@ class Vendor(models.Model):
 
 
 class UnitManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, alias, name):
 		try:
@@ -275,6 +438,19 @@ class Unit(models.Model):
 
 	objects  = UnitManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['alias']    = self.alias
+		result['state']    = self.state
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -283,6 +459,12 @@ class Unit(models.Model):
 
 
 class PriceTypeManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, alias, name):
 		try:
@@ -308,6 +490,20 @@ class PriceType(models.Model):
 
 	objects    = PriceTypeManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']         = self.id
+		result['name']       = self.name
+		result['alias']      = self.alias
+		result['state']      = self.state
+		result['multiplier'] = str(self.multiplier)
+		result['created']    = str(self.created)
+		result['modified']   = str(self.modified)
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -316,6 +512,12 @@ class PriceType(models.Model):
 
 
 class CurrencyManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, alias, name, full_name, rate = 1, quantity = 1):
 		try:
@@ -345,6 +547,22 @@ class Currency(models.Model):
 
 	objects   = CurrencyManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']        = self.id
+		result['name']      = self.name
+		result['full_name'] = self.full_name
+		result['alias']     = self.alias
+		result['rate']      = str(self.rate)
+		result['quantity']  = str(self.quantity)
+		result['state']     = self.state
+		result['created']   = str(self.created)
+		result['modified']  = str(self.modified)
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -360,6 +578,29 @@ class Price(models.Model):
 	state      = models.BooleanField(default = True)
 	created    = models.DateTimeField()
 	modified   = models.DateTimeField()
+
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['price']    = str(self.price)
+		result['fixed']    = self.fixed
+		result['state']    = self.state
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		try:    result['price_type'] = self.price_type.getDicted()
+		except: result['price_type'] = None
+
+		try:    result['currency'] = self.currency.getDicted()
+		except: result['currency'] = None
+
+		result['price_str'] = self._get_price_str()
+		result['price_xml'] = self._get_price_xml()
+
+		return result
 
 	def _get_price_str(self):
 
@@ -412,11 +653,36 @@ class Quantity(models.Model):
 	created    = models.DateTimeField()
 	modified   = models.DateTimeField()
 
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']         = self.id
+		result['on_stock']   = self.on_stock
+		result['on_transit'] = self.on_transit
+		result['on_factory'] = self.on_factory
+		result['fixed']      = self.fixed
+		result['state']      = self.state
+		result['created']    = str(self.created)
+		result['modified']   = str(self.modified)
+
+		try:    result['unit'] = self.unit.getDicted()
+		except: result['unit'] = None
+
+		return result
+
 	class Meta:
 		ordering = ['-created']
 
 
 class ProductManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, article, vendor, name, category = None, unit = None,
 			description = None):
@@ -494,6 +760,40 @@ class Product(models.Model):
 	modified    = models.DateTimeField()
 
 	objects     = ProductManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']          = self.id
+		result['name']        = self.name
+		result['name_search'] = self.name_search
+		result['article']     = self.article
+		result['description'] = self.description
+		result['edited']      = self.edited
+		result['state']       = self.state
+		result['created']     = str(self.created)
+		result['modified']    = str(self.modified)
+
+		try:    result['vendor']   = self.vendor.getDicted()
+		except: result['vendor']   = None
+
+		try:    result['category'] = self.category.getDicted()
+		except: result['category'] = None
+
+		try:    result['unit']     = self.unit.getDicted()
+		except: result['unit']     = None
+
+		try:    result['duble']    = self.duble.getDicted()
+		except: result['duble']    = None
+
+		try:    result['price']    = self.price.getDicted()
+		except: result['price']    = None
+
+		try:    result['quantity'] = self.quantity.getDicted()
+		except: result['quantity'] = None
+
+		return result
 
 	def __str__(self):
 		return self.name
@@ -600,6 +900,12 @@ class Product(models.Model):
 
 class PartyManager(models.Manager):
 
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
+
 	def make(self, product, stock, article = None,
 			price = None, price_type = None, currency = None,
 			price_out = None, price_type_out = None, currency_out = None,
@@ -657,6 +963,48 @@ class Party(models.Model):
 	modified       = models.DateTimeField()
 
 	objects        = PartyManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']        = self.id
+		result['article']   = self.article
+		result['price']     = str(self.price)
+		result['price_out'] = self.price_out
+		result['quantity']  = self.description
+		result['comment']   = self.comment
+		result['state']     = self.state
+		result['created']   = str(self.created)
+		result['modified']  = str(self.modified)
+
+		try:    result['product']        = self.product.getDicted()
+		except: result['product']        = None
+
+		try:    result['stock']          = self.stock.getDicted()
+		except: result['stock']          = None
+
+		try:    result['price_type']     = self.price_type.getDicted()
+		except: result['price_type']     = None
+
+		try:    result['currency']       = self.currency.getDicted()
+		except: result['currency']       = None
+
+		try:    result['price_type_out'] = self.price_type_out.getDicted()
+		except: result['price_type_out'] = None
+
+		try:    result['currency_out']   = self.currency_out.getDicted()
+		except: result['currency_out']   = None
+
+		try:    result['unit']           = self.unit.getDicted()
+		except: result['unit']           = None
+
+		result['price_str']     = self._get_price_str()
+		result['price_xml']     = self._get_price_xml()
+		result['price_out_str'] = self._get_price_out_str()
+		result['price_out_xml'] = self._get_price_out_xml()
+
+		return result
 
 	def _get_price_str(self):
 
@@ -740,6 +1088,41 @@ class PartyHystory(models.Model):
 	comment        = models.TextField()
 	date           = models.DateField()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']        = self.id
+		result['article']   = self.article
+		result['price']     = str(self.price)
+		result['price_out'] = self.price_out
+		result['quantity']  = self.description
+		result['comment']   = self.comment
+		result['date']      = str(self.date)
+
+		try:    result['product']        = self.product.getDicted()
+		except: result['product']        = None
+
+		try:    result['stock']          = self.stock.getDicted()
+		except: result['stock']          = None
+
+		try:    result['price_type']     = self.price_type.getDicted()
+		except: result['price_type']     = None
+
+		try:    result['currency']       = self.currency.getDicted()
+		except: result['currency']       = None
+
+		try:    result['price_type_out'] = self.price_type_out.getDicted()
+		except: result['price_type_out'] = None
+
+		try:    result['currency_out']   = self.currency_out.getDicted()
+		except: result['currency_out']   = None
+
+		try:    result['unit']           = self.unit.getDicted()
+		except: result['unit']           = None
+
+		return result
+
 	class Meta:
 		ordering = ['-date']
 
@@ -752,6 +1135,25 @@ class PriceHystory(models.Model):
 	price_type = models.ForeignKey(PriceType, null = True, default = None)
 	currency   = models.ForeignKey(Currency, null = True, default = None)
 	date       = models.DateField()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']    = self.id
+		result['price'] = str(self.price)
+		result['date']  = str(self.date)
+
+		try:    result['product']    = self.product.getDicted()
+		except: result['product']    = None
+
+		try:    result['price_type'] = self.price_type.getDicted()
+		except: result['price_type'] = None
+
+		try:    result['currency']   = self.currency.getDicted()
+		except: result['currency']   = None
+
+		return result
 
 	class Meta:
 		ordering = ['-date']
@@ -767,11 +1169,39 @@ class QuantityHystory(models.Model):
 	unit       = models.ForeignKey(Unit, null = True, default = None)
 	date       = models.DateField()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']         = self.id
+		result['on_stock']   = self.on_stock
+		result['on_transit'] = self.on_transit
+		result['on_factory'] = self.on_factory
+		result['date']       = str(self.date)
+
+		try:    result['product'] = self.product.getDicted()
+		except: result['product'] = None
+
+		try:    result['unit']    = self.unit.getDicted()
+		except: result['unit']    = None
+
+		return result
+
 	class Meta:
 		ordering = ['-date']
 
 
+class ParameterTypeManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
+
+
 class ParameterType(models.Model):
+
 	name      = models.CharField(max_length = 100, unique = True)
 	alias     = models.CharField(max_length = 100, unique = True)
 	order     = models.IntegerField(default = 0)
@@ -779,11 +1209,36 @@ class ParameterType(models.Model):
 	created   = models.DateTimeField()
 	modified  = models.DateTimeField()
 
+	objects   = ParameterTypeManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['alias']    = self.alias
+		result['order']    = self.order
+		result['state']    = self.state
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		return result
+
 	def __str__(self):
 		return self.alias
 
 	class Meta:
 		ordering = ['name']
+
+
+class ParameterManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 
 class Parameter(models.Model):
@@ -796,55 +1251,152 @@ class Parameter(models.Model):
 	created        = models.DateTimeField()
 	modified       = models.DateTimeField()
 
+	objects        = ParameterManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['alias']    = self.alias
+		result['order']    = self.order
+		result['state']    = self.state
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		try:    result['parameter_type'] = self.parameter_type.getDicted()
+		except: result['parameter_type'] = None
+
+		return result
+
 	def __str__(self):
 		return self.name
 
 	class Meta:
 		ordering = ['order', 'name']
 
-	def setValue(self, product, value):
 
-		from catalog.models import ParameterToProduct
+class ParameterValueManager(models.Manager):
 
-		# Получаем запись
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
+
+
+class ParameterValue(models.Model):
+
+	parameter    = models.ForeignKey(Parameter)
+	value_text   = models.CharField(max_length = 100)
+	value_search = models.CharField(max_length = 100, null = True, default = None)
+	order        = models.IntegerField()
+	state        = models.BooleanField(default = True)
+	created      = models.DateTimeField()
+	modified     = models.DateTimeField()
+
+	objects      = ParameterValueManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']           = self.id
+		result['parameter']    = self.parameter
+		result['value_text']   = self.value_text
+		result['value_search'] = self.value_search
+		result['order']        = self.order
+		result['state']        = self.state
+		result['created']      = str(self.created)
+		result['modified']     = str(self.modified)
+
+		try:    result['parameter'] = self.parameter.getDicted()
+		except: result['parameter'] = None
+
+		return result
+
+	def __str__(self):
+		return self.value
+
+	class Meta:
+		ordering = ['order', 'value_search']
+
+
+class ParameterValueSynonymManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
+
+
+class ParameterValueSynonym(models.Model):
+
+	name            = models.CharField(max_length = 1024)
+	updater         = models.ForeignKey(Updater, null = True, default = None)
+	distributor     = models.ForeignKey(Distributor, null = True, default = None)
+	parameter       = models.ForeignKey(Parameter)
+	parameter_value = models.ForeignKey(ParameterValue)
+	created         = models.DateTimeField()
+	modified        = models.DateTimeField()
+
+	objects         = ParameterValueSynonymManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		try:    result['updater']         = self.updater.getDicted()
+		except: result['updater']         = None
+
+		try:    result['distributor']     = self.distributor.getDicted()
+		except: result['distributor']     = None
+
+		try:    result['parameter']       = self.parameter.getDicted()
+		except: result['parameter']       = None
+
+		try:    result['parameter_value'] = self.parameter_value.getDicted()
+		except: result['parameter_value'] = None
+
+		return result
+
+	def __str__(self):
+		return self.name
+
+	class Meta:
+		ordering = ['name']
+
+
+class ParameterToProductManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
+
+	def take(self, parameter, product):
+
 		try:
-			parameter_to_product = ParameterToProduct.objects.get(
-				parameter = self,
+			parameter_to_product = self.get(
+				parameter = parameter,
 				product   = product)
 		except ParameterToProduct.DoesNotExist:
 			parameter_to_product = ParameterToProduct(
-				parameter = self,
-				product   = product)
-
-		# Тип данных
-
-		if self.parameter_type.alias == 'text':
-
-			print('text')
-
-			parameter_to_product.value_text   = value
-			parameter_to_product.value_search = value[:100]
+				parameter = parameter,
+				product   = product,
+				created   = timezone.now(),
+				modified  = timezone.now())
 			parameter_to_product.save()
 
-			print("parameter_to_product.value_text = {}".format(parameter_to_product.value_text))
-
-		elif self.parameter_type.alias == 'months':
-
-			print('months')
-
-			if 'Y' in value:                                                    # Входные данные в годах
-				value = int(value.replace('Y', '').strip())*12
-				parameter_to_product.value_text    = "{} месяцев".format(value)
-				parameter_to_product.value_search  = parameter_to_product.value_text[:100]
-				parameter_to_product.value_integer = value
-
-			print("parameter_to_product.value_text = {}".format(parameter_to_product.value_text))
-
-
-
-
-
-
+		return parameter_to_product
 
 
 class ParameterToProduct(models.Model):
@@ -856,12 +1408,93 @@ class ParameterToProduct(models.Model):
 	value_search  = models.CharField(max_length = 100, null = True, default = None)
 	value_integer = models.IntegerField(null = True, default = None)
 	value_decimal = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	value_list    = models.ForeignKey(ParameterValue, null = True, default = None)
 	state         = models.BooleanField(default = True)
 	created       = models.DateTimeField()
 	modified      = models.DateTimeField()
 
+	objects       = ParameterToProductManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']            = self.id
+		result['value_text']    = self.value_text
+		result['value_search']  = self.value_search
+		result['value_integer'] = self.value_integer
+		result['value_decimal'] = str(self.value_decimal)
+		result['state']         = self.state
+		result['created']       = str(self.created)
+		result['modified']      = str(self.modified)
+
+		try:    result['parameter']       = self.parameter.getDicted()
+		except: result['parameter']       = None
+
+		try:    result['product']         = self.product.getDicted()
+		except: result['product']         = None
+
+		try:    result['value_list']      = self.value_list.getDicted()
+		except: result['value_list']      = None
+
+		try:    result['parameter_value'] = self.parameter_value.getDicted()
+		except: result['parameter_value'] = None
+
+		return result
+
+	def __str__(self):
+		return '{} - {} {}'.format(
+			self.parameter.name,
+			Self.product.vendor.name,
+			self.product.arvicle)
+
 	class Meta:
 		ordering = ['created']
+		db_table = 'catalog_parameter_to_product'
+
+
+	def setValue(self, value):
+
+		print('setValue')
+
+		if 'text' == self.parameter.parameter_type.alias:
+
+			print('text')
+
+			self.value_text   = value
+			self.value_search = value[:100]
+			self.save()
+
+			print("{} = {}".format(self.parameter.name, self.value_search))
+
+		elif 'months' == self.parameter.parameter_type.alias:
+
+			print('months')
+
+			if 'Y' in value:                                                    # Входные данные в годах
+				value = int(value.replace('Y', '').strip())*12
+				self.value_text    = "{} месяцев".format(value)
+				self.value_search  = self.value_text[:100]
+				self.value_integer = value
+				self.save()
+			else:
+				print('Что делать со значением [{}]?'.format(value))
+
+			print("{} = {}".format(self.parameter.name, self.value_search))
+
+		elif 'list' == self.parameter.parameter_type.alias:
+
+			print('list')
+
+			# TODO
+			# TODO
+			# TODO
+			# TODO
+			# TODO
+			# TODO
+			# TODO
+			# TODO
+			# TODO
 
 
 class ParameterToCategory(models.Model):
@@ -874,11 +1507,42 @@ class ParameterToCategory(models.Model):
 	created   = models.DateTimeField()
 	modified  = models.DateTimeField()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['order']    = self.order
+		result['state']    = self.state
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		try:    result['parameter']       = self.parameter.getDicted()
+		except: result['parameter']       = None
+
+		try:    result['category']        = self.category.getDicted()
+		except: result['category']        = None
+
+		try:    result['value_list']      = self.value_list.getDicted()
+		except: result['value_list']      = None
+
+		try:    result['parameter_value'] = self.parameter_value.getDicted()
+		except: result['parameter_value'] = None
+
+		return result
+
 	class Meta:
 		ordering = ['created']
+		db_table = 'catalog_parameter_to_category'
 
 
 class ParameterSynonymManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, name, updater = None, distributor = None, parameter = None):
 		name = name.strip()
@@ -910,6 +1574,26 @@ class ParameterSynonym(models.Model):
 
 	objects     = ParameterSynonymManager()
 
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		try:    result['updater']     = self.updater.getDicted()
+		except: result['updater']     = None
+
+		try:    result['distributor'] = self.distributor.getDicted()
+		except: result['distributor'] = None
+
+		try:    result['parameter']   = self.parameter.getDicted()
+		except: result['parameter']   = None
+
+		return result
+
 	def __str__(self):
 		return self.name
 
@@ -918,6 +1602,12 @@ class ParameterSynonym(models.Model):
 
 
 class CategorySynonymManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, name, updater = None, distributor = None, category = None):
 		name = name.strip()
@@ -946,7 +1636,28 @@ class CategorySynonym(models.Model):
 	category    = models.ForeignKey(Category, null = True, default = None)
 	created     = models.DateTimeField()
 	modified    = models.DateTimeField()
+
 	objects     = CategorySynonymManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		try:    result['updater']     = self.updater.getDicted()
+		except: result['updater']     = None
+
+		try:    result['distributor'] = self.distributor.getDicted()
+		except: result['distributor'] = None
+
+		try:    result['category']    = self.category.getDicted()
+		except: result['category']    = None
+
+		return result
 
 	def __str__(self):
 		return self.name
@@ -956,6 +1667,12 @@ class CategorySynonym(models.Model):
 
 
 class VendorSynonymManager(models.Manager):
+
+	def getAllDicted(self):
+		result = []
+		for o in self.all():
+			result.append(o.getDicted)
+		return result
 
 	def take(self, name, updater = None, distributor = None, vendor = None):
 		name = name.strip()
@@ -984,7 +1701,28 @@ class VendorSynonym(models.Model):
 	vendor      = models.ForeignKey(Vendor, null = True, default = None)
 	created     = models.DateTimeField()
 	modified    = models.DateTimeField()
+
 	objects     = VendorSynonymManager()
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+
+		try:    result['updater']     = self.updater.getDicted()
+		except: result['updater']     = None
+
+		try:    result['distributor'] = self.distributor.getDicted()
+		except: result['distributor'] = None
+
+		try:    result['vendor']      = self.vendor.getDicted()
+		except: result['vendor']      = None
+
+		return result
 
 	def __str__(self):
 		return self.name
@@ -1001,10 +1739,57 @@ class UpdaterTask(models.Model):
 	subject  = models.CharField(max_length = 1024)
 	created  = models.DateTimeField()
 	modified = models.DateTimeField()
-	objects  = VendorSynonymManager()
+	complite = models.BooleanField(default = False)
+
+	def getDicted(self):
+
+		result = {}
+
+		result['id']       = self.id
+		result['name']     = self.name
+		result['subject']  = self.subject
+		result['created']  = str(self.created)
+		result['modified'] = str(self.modified)
+		result['complite'] = self.complite
+
+		try:    result['updater'] = self.updater.getDicted()
+		except: result['updater'] = None
+
+		return result
 
 	def __str__(self):
 		return self.name
 
 	class Meta:
 		ordering = ['created']
+
+
+
+
+models = {
+	'connector'             : Connector,
+	'distributor'           : Distributor,
+	'updater'               : Updater,
+	'stock'                 : Stock,
+	'category'              : Category,
+	'vendor'                : Vendor,
+	'unit'                  : Unit,
+	'pricetype'             : PriceType,
+	'currency'              : Currency,
+	'price'                 : Price,
+	'quantity'              : Quantity,
+	'product'               : Product,
+	'party'                 : Party,
+	'partyhystory'          : PartyHystory,
+	'pricehystory'          : PriceHystory,
+	'quantityhystory'       : QuantityHystory,
+	'parametertype'         : ParameterType,
+	'parameter'             : Parameter,
+	'parametervalue'        : ParameterValue,
+	'parametervaluesynonym' : ParameterValueSynonym,
+	'parametertoproduct'    : ParameterToProduct,
+	'parametertocategory'   : ParameterToCategory,
+	'parametersynonym'      : ParameterSynonym,
+	'catagorysynonym'       : CategorySynonym,
+	'vendorsynonym'         : VendorSynonym,
+	'updatertask'           : UpdaterTask}
