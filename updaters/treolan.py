@@ -16,7 +16,7 @@ class Runner:
 			'product' : 0,
 			'party'   : 0}
 		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
-		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?Template=&Commodity=true&IncludeFullPriceList=false&OrderBy=0&Groups=23318&IncludeSubGroups=true&Condition=0&PriceMin=&PriceMax=&Currency=RUB&WithMarketingProgramsOnly=false&AvailableAtStockOnly=false&AdditionalParamsStr=%5B%5D&AdditionalParams=&AddParamsShow=&GetExcel=&FromLeftCol=false&CatalogProductsOnly=true&RusDescription=false&skip=0&take=50&LoadResults=false&DemoOnly=false&ShowHpCarePack=false&showActualGoods=false'
+		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?Template=&Commodity=true&IncludeFullPriceList=false&OrderBy=0&Groups=&Vendors=&IncludeSubGroups=false&Condition=0&PriceMin=&PriceMax=&Currency=0&AvailableAtStockOnly=false&AdditionalParamsStr=&AdditionalParams=&AddParamsShow=&GetExcel=false&FromLeftCol=false&CatalogProductsOnly=true&RusDescription=false&skip=0&take=50&LoadResults=false&DemoOnly=false&ShowHpCarePack=false&MpTypes=-1&showActualGoods=false'
 
 		# Поставщик
 		self.distributor = Distributor.objects.take(
