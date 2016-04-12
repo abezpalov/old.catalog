@@ -9,7 +9,6 @@
 
 {% if perms.catalog.add_distributor or perms.catalog.change_distributor or perms.catalog.delete_distributor %}
 
-<!-- Таблица со списком поставщиков -->
 <div class="row collapse">
 	<table>
 		<tr>
@@ -18,7 +17,7 @@
 			<th>Статус</th>
 		</tr>
 		{% for distributor in distributors %}
-		<tr>
+		<tr data-distributor="{{ distributor.id }}">
 			<td>{{ forloop.counter }}</td>
 			<td><a data-do="open-edit-distributor" data-id="{{ distributor.id }}" data-distributor-name="{{ distributor.id }}">{{ distributor.name }}</a></td>
 			<td>

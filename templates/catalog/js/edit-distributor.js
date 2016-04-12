@@ -4,7 +4,7 @@ $("body").delegate("[data-do='open-edit-distributor']", "click", function(){
 	model_name = 'distributor'
 
 	$.post('/catalog/ajax/get/' + model_name + '/', {
-		id                  : $(this).data('id'),
+		id : $(this).data('id'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
@@ -31,12 +31,12 @@ $("body").delegate("[data-do='edit-distributor-save']", "click", function(){
 	model_name = 'distributor'
 
 	$.post("/catalog/ajax/save-distributor/", {
-		distributor_id:          $('#edit-' + model_name + '-id').val(),
-		distributor_name:        $('#edit-' + model_name + '-name').val(),
-		distributor_alias:       $('#edit-' + model_name + '-alias').val(),
-		distributor_description: $('#edit-' + model_name + '-description').val(),
-		distributor_state:       $('#edit-' + model_name + '-state').prop('checked'),
-		csrfmiddlewaretoken:     '{{ csrf_token }}'
+		id          : $('#edit-' + model_name + '-id').val(),
+		name        : $('#edit-' + model_name + '-name').val(),
+		alias       : $('#edit-' + model_name + '-alias').val(),
+		description : $('#edit-' + model_name + '-description').val(),
+		state       : $('#edit-' + model_name + '-state').prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
 
@@ -119,8 +119,8 @@ $("body").delegate("[data-do='switch-state-distributor']", "click", function(){
 	model_name = 'distributor'
 
 	$.post('/catalog/ajax/switch-state/' + model_name + '/', {
-		id                  : $(this).data('id'),
-		state               : $(this).prop('checked'),
+		id    : $(this).data('id'),
+		state : $(this).prop('checked'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {

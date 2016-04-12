@@ -5,24 +5,38 @@ from django.utils import timezone
 
 class ConnectorManager(models.Manager):
 
+
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
 			result.append(o.getDicted)
 		return result
 
+
 	def take(self, *args, **kwargs):
+
+		alias = str(kwargs.get('alias', '')).strip()
+		name  = str(kwargs.get('name', '')).strip()
+
+		if not alias:
+			return None
+
 		try:
 			result = self.get(alias = alias)
-		except Connector.DoesNotExist:
+
+		except self.DoesNotExist:
+
+			if not name:
+				return None
+
 			result = Connector(
 				alias    = alias,
 				name     = name,
 				created  = timezone.now(),
 				modified = timezone.now())
 			result.save()
-		return result
 
+		return result
 
 class Connector(models.Model):
 
@@ -35,6 +49,7 @@ class Connector(models.Model):
 	modified = models.DateTimeField()
 
 	objects  = ConnectorManager()
+
 
 	def getDicted(self):
 
@@ -60,22 +75,37 @@ class Connector(models.Model):
 
 class DistributorManager(models.Manager):
 
+
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
 			result.append(o.getDicted)
 		return result
 
+
 	def take(self, *args, **kwargs):
+
+		alias = str(kwargs.get('alias', '')).strip()
+		name  = str(kwargs.get('name', '')).strip()
+
+		if not alias:
+			return None
+
 		try:
 			result = self.get(alias = alias)
-		except Distributor.DoesNotExist:
-			result = Distributor(
+
+		except self.DoesNotExist:
+
+			if not name:
+				return None
+
+			result = Connector(
 				alias    = alias,
 				name     = name,
 				created  = timezone.now(),
 				modified = timezone.now())
 			result.save()
+
 		return result
 
 
@@ -90,6 +120,7 @@ class Distributor(models.Model):
 	modified    = models.DateTimeField()
 
 	objects     = DistributorManager()
+
 
 	def getDicted(self):
 
@@ -108,8 +139,10 @@ class Distributor(models.Model):
 
 		return result
 
+
 	def __str__(self):
 		return self.name
+
 
 	class Meta:
 		ordering = ['name']

@@ -4,7 +4,7 @@ from django.template import RequestContext, loader
 import math
 
 
-# Connector TODO
+# Connector
 
 
 # Distributor
@@ -27,71 +27,6 @@ def distributors(request):
 	return render(request, 'catalog/distributors.html', locals())
 
 
-def ajaxSaveDistributor(request):
-	"AJAX-представление: Save Distributor."
-
-	# Импортируем
-	import json
-	import unidecode
-	from django.utils import timezone
-	from catalog.models import Distributor
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status = 400)
-
-	# Проверяем права доступа
-	try:
-		distributor = Distributor.objects.get(id = request.POST.get('distributor_id'))
-		if not request.user.has_perm('catalog.change_distributor'):
-			return HttpResponse(status = 403)
-	except Distributor.DoesNotExist:
-		distributor = Distributor()
-		if not request.user.has_perm('catalog.add_distributor'):
-			return HttpResponse(status = 403)
-		distributor.created = timezone.now()
-
-	# name
-	if not request.POST.get('distributor_name').strip():
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка: отсутствует наименование поставщика.'}
-		return HttpResponse(json.dumps(result), 'application/javascript')
-	distributor.name   = request.POST.get('distributor_name').strip()[:100]
-
-	# alias
-	if request.POST.get('distributor_alias').strip():
-		distributor.alias = unidecode.unidecode(request.POST.get('distributor_alias')).strip()[:100]
-	else:
-		distributor.alias = unidecode.unidecode(request.POST.get('distributor_name')).strip()[:100]
-
-	# description
-	if request.POST.get('distributor_description').strip():
-		distributor.description = request.POST.get('distributor_description').strip()
-	else:
-		distributor.description = ''
-
-	# state
-	if request.POST.get('distributor_state') == 'true':
-		distributor.state = True
-	else:
-		distributor.state = False
-
-	# modified
-	distributor.modified = timezone.now()
-
-	# Сохраняем
-	distributor.save()
-
-	# Возвращаем ответ
-	result = {
-		'status'      : 'success',
-		'distributor' : distributor.getDicted(),
-		'message'     : 'Поставщик {} сохранён.'.format(distributor.name)}
-
-	return HttpResponse(json.dumps(result), 'application/javascript')
-
-
 # Updater
 
 
@@ -112,171 +47,6 @@ def updaters(request):
 	return render(request, 'catalog/updaters.html', locals())
 
 
-def updater(request, alias):
-	"Представление: загрузчик."
-
-	# Проверяем права доступа
-	if request.user.has_perm('catalog.add_updater')\
-	or request.user.has_perm('catalog.change_updater')\
-	or request.user.has_perm('catalog.delete_updater'):
-
-		# Импортируем
-		from catalog.models import Updater
-
-		# Получаем объект
-		updater = Updater.objects.get(alias=alias)
-
-	return render(request, 'catalog/updater.html', locals())
-
-
-def ajaxGetUpdater(request):
-	"AJAX-представление: Get Updater."
-
-	# Импортируем
-	import json
-	from catalog.models import Updater
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
-
-	# Проверяем права доступа
-	if not request.user.has_perm('catalog.change_updater'):
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка 403: отказано в доступе.'}
-		return HttpResponse(json.dumps(result), 'application/javascript')
-
-	# Получаем объект
-	try:
-		updater = Updater.objects.get(id = request.POST.get('updater_id'))
-
-		result = {
-			'status':           'success',
-			'message':          'Данные загрузчика получены.',
-			'updater_id':       updater.id,
-			'updater_name':     updater.name,
-			'updater_alias':    updater.alias,
-			'updater_login':    updater.login,
-			'updater_password': updater.password,
-			'updater_state':    updater.state}
-
-	except Updater.DoesNotExist:
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка: загрузчик отсутствует в базе.'}
-
-	return HttpResponse(json.dumps(result), 'application/javascript')
-
-
-def ajaxSaveUpdater(request):
-	"AJAX-представление: Save Updater."
-
-	# Импортируем
-	import json
-	import unidecode
-	from django.utils import timezone
-	from catalog.models import Updater
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status = 400)
-
-	# Проверяем права доступа
-	try:
-		updater = Updater.objects.get(id = request.POST.get('updater_id'))
-		if not request.user.has_perm('catalog.change_updater'):
-			return HttpResponse(status = 403)
-	except Updater.DoesNotExist:
-		updater = Updater()
-		if not request.user.has_perm('catalog.add_updater'):
-			return HttpResponse(status = 403)
-		updater.created = timezone.now()
-
-	# name
-	if not request.POST.get('updater_name').strip():
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка: отсутствует наименование загрузчика.'}
-		return HttpResponse(json.dumps(result), 'application/javascript')
-	updater.name   = request.POST.get('updater_name').strip()[:100]
-
-	# alias
-	if request.POST.get('updater_alias').strip():
-		updater.alias = unidecode.unidecode(request.POST.get('updater_alias')).strip()[:100]
-	else:
-		updater.alias = unidecode.unidecode(request.POST.get('updater_name')).strip()[:100]
-
-	# login
-	if request.POST.get('updater_login').strip():
-		updater.login = request.POST.get('updater_login').strip()
-	else:
-		updater.login = ''
-
-	# password
-	if request.POST.get('updater_password').strip():
-		updater.password = request.POST.get('updater_password').strip()
-	else:
-		updater.password = ''
-
-	# state
-	if request.POST.get('updater_state') == 'true':
-		updater.state = True
-	else:
-		updater.state = False
-
-	# modified
-	updater.modified = timezone.now()
-
-	# Сохраняем
-	updater.save()
-
-	# Возвращаем ответ
-	result = {
-		'status': 'success',
-		'message': 'Загрузчик {} сохранён.'.format(updater.name)}
-
-	return HttpResponse(json.dumps(result), 'application/javascript')
-
-
-def ajaxSwitchUpdaterState(request):
-	"AJAX-представление: Switch Updater State."
-
-	# Импортируем
-	import json
-	from datetime import datetime
-	from catalog.models import Updater
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
-
-	# Проверяем права доступа
-	if not request.user.has_perm('catalog.change_updater'):
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка 403: отказано в доступе.'}
-		return HttpResponse(json.dumps(result), 'application/javascript')
-
-	# Проверяем корректность вводных данных
-	if not request.POST.get('updater_id') or not request.POST.get('updater_state'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			updater = Updater.objects.get(id=request.POST.get('updater_id'))
-			if request.POST.get('updater_state') == 'true':
-				updater.state = True
-			else:
-				updater.state = False
-			updater.save()
-			result = {'status': 'success', 'message': 'Статус загрузчика {} изменен на {}.'.format(updater.name, updater.state)}
-		except Updater.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Загрузчик с идентификатором {} отсутствует в базе.'.format(request.POST.get('updater_id'))}
-
-	# Возвращаем ответ
-	return HttpResponse(json.dumps(result), 'application/javascript')
-
-
 # Stock
 
 
@@ -295,171 +65,6 @@ def stocks(request):
 		stocks = Stock.objects.all().order_by('alias')
 
 	return render(request, 'catalog/stocks.html', locals())
-
-
-def stock(request, alias):
-	"Представление: склад."
-
-	# Импортируем
-	from catalog.models import Stock
-
-	# Проверяем права доступа
-	if request.user.has_perm('catalog.add_stock')\
-	or request.user.has_perm('catalog.change_stock')\
-	or request.user.has_perm('catalog.delete_stock'):
-
-		# Получаем список
-		stock = Stock.objects.get(alias=alias)
-
-	return render(request, 'catalog/stock.html', locals())
-
-
-def ajaxGetStock(request):
-	"AJAX-представление: Get Stock."
-
-	# Импортируем
-	import json
-	from catalog.models import Stock
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
-
-	# Проверяем права доступа
-	if not request.user.has_perm('catalog.change_stock'):
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка 403: отказано в доступе.'}
-		return HttpResponse(json.dumps(result), 'application/javascript')
-
-	# Получаем объект
-	try:
-		stock = Stock.objects.get(id = request.POST.get('stock_id'))
-
-		result = {
-			'status':                  'success',
-			'message':                 'Данные загрузчика получены.',
-			'stock_id':                stock.id,
-			'stock_name':              stock.name,
-			'stock_alias':             stock.alias,
-			'stock_delivery_time_min': stock.delivery_time_min,
-			'stock_delivery_time_max': stock.delivery_time_max,
-			'stock_state':             stock.state}
-
-	except Stock.DoesNotExist:
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка: склад отсутствует в базе.'}
-
-	return HttpResponse(json.dumps(result), 'application/javascript')
-
-
-def ajaxSaveStock(request):
-	"AJAX-представление: Save Stock."
-
-	# Импортируем
-	import json
-	import unidecode
-	from django.utils import timezone
-	from catalog.models import Stock
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status = 400)
-
-	# Проверяем права доступа
-	try:
-		stock = Stock.objects.get(id = request.POST.get('stock_id'))
-		if not request.user.has_perm('catalog.change_stock'):
-			return HttpResponse(status = 403)
-	except Stock.DoesNotExist:
-		stock = Stock()
-		if not request.user.has_perm('catalog.add_stock'):
-			return HttpResponse(status = 403)
-		stock.created = timezone.now()
-
-	# name
-	if not request.POST.get('stock_name').strip():
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка: отсутствует наименование склада.'}
-		return HttpResponse(json.dumps(result), 'application/javascript')
-	stock.name   = request.POST.get('stock_name').strip()[:100]
-
-	# alias
-	if request.POST.get('stock_alias').strip():
-		stock.alias = unidecode.unidecode(request.POST.get('stock_alias')).strip()[:100]
-	else:
-		stock.alias = unidecode.unidecode(request.POST.get('stock_name')).strip()[:100]
-
-	# delivery_time_min
-	if request.POST.get('stock_delivery_time_min').strip():
-		stock.delivery_time_min = request.POST.get('stock_delivery_time_min').strip()
-	else:
-		stock.delivery_time_min = ''
-
-	# delivery_time_max
-	if request.POST.get('stock_delivery_time_max').strip():
-		stock.delivery_time_max = request.POST.get('stock_delivery_time_max').strip()
-	else:
-		stock.delivery_time_max = ''
-
-	# state
-	if request.POST.get('stock_state') == 'true':
-		stock.state = True
-	else:
-		stock.state = False
-
-	# modified
-	stock.modified = timezone.now()
-
-	# Сохраняем
-	stock.save()
-
-	# Возвращаем ответ
-	result = {
-		'status': 'success',
-		'message': 'Склад {} сохранён.'.format(stock.name)}
-
-	return HttpResponse(json.dumps(result), 'application/javascript')
-
-
-def ajaxSwitchStockState(request):
-	"AJAX-представление: Switch Stock State."
-
-	# Импортируем
-	import json
-	from datetime import datetime
-	from catalog.models import Stock
-
-	# Проверяем тип запроса
-	if (not request.is_ajax()) or (request.method != 'POST'):
-		return HttpResponse(status=400)
-
-	# Проверяем права доступа
-	if not request.user.has_perm('catalog.change_stock'):
-		result = {
-			'status': 'alert',
-			'message': 'Ошибка 403: отказано в доступе.'}
-		return HttpResponse(json.dumps(result), 'application/javascript')
-
-	# Проверяем корректность вводных данных
-	if not request.POST.get('stock_id') or not request.POST.get('stock_state'):
-		result = {'status': 'warning', 'message': 'Пожалуй, вводные данные не корректны.'}
-	else:
-		try:
-			stock = Stock.objects.get(id=request.POST.get('stock_id'))
-			if request.POST.get('stock_state') == 'true':
-				stock.state = True
-			else:
-				stock.state = False
-			stock.save()
-			result = {'status': 'success', 'message': 'Статус склада {} изменен на {}.'.format(stock.name, stock.state)}
-		except Stock.DoesNotExist:
-			result = {'status': 'alert', 'message': 'Склад с идентификатором {} отсутствует в базе.'.format(request.POST.get('stock_id'))}
-
-	# Возвращаем ответ
-	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 # Category
@@ -3100,7 +2705,115 @@ def ajaxGet(request, *args, **kwargs):
 def ajaxSave(request, *args, **kwargs):
 	"AJAX-представление: Save Object."
 
-	pass
+
+	import json
+	import unidecode
+	from django.utils import timezone
+	import catalog.models
+
+	model = catalog.models.models[kwargs['model_name']]
+
+	if (not request.is_ajax()) or (request.method != 'POST'):
+		return HttpResponse(status = 400)
+
+	try:
+		o = model.objects.get(id = request.POST.get('id'))
+		if not request.user.has_perm('catalog.change_{}'.format(kwargs['model_name'])):
+			return HttpResponse(status = 403)
+	except model.DoesNotExist:
+		o = model()
+		if not request.user.has_perm('catalog.add_{}'.format(kwargs['model_name'])):
+			return HttpResponse(status = 403)
+		o.created = timezone.now()
+
+	for key in request.POST:
+
+		if 'name' == key:
+			o.name = request.POST[key].strip()
+
+			if request.POST.get('alias', '').strip():
+				o.alias = unidecode.unidecode(request.POST.get('alias')).strip()[:100]
+			else:
+				o.alias = unidecode.unidecode(request.POST.get(key)).strip()[:100]
+
+			if request.POST.get('name_search', '').strip():
+				o.name_search = request.POST.get('name_search')[:512]
+			else:
+				o.name_search = request.POST.get(key)[:512]
+
+		elif 'description' == key:
+			o.description = request.POST.get(key, '').strip()
+
+		elif 'login' == key:
+			o.login = request.POST.get(key, '').strip()
+
+		elif 'password' == key:
+			o.password = request.POST.get(key, '').strip()
+
+		elif 'state' == key:
+			if 'true' == request.POST.get(key, 'true'):
+				o.state = True
+			else:
+				o.state = False
+
+		elif 'delivery_time_min' == key:
+			try:
+				o.delivery_time_min = int(request.POST.get(key, 0))
+			except Exception:
+				o.delivery_time_min = 0
+
+		elif 'delivery_time_max' == key:
+			try:
+				o.delivery_time_max = int(request.POST.get(key, 0))
+			except Exception:
+				o.delivery_time_max = 0
+
+#		elif 'level' == key:
+#			try:
+#				o.level = int(request.POST.get(key, 0))
+#			except Exception:
+#				o.level = 0
+
+#		elif 'order' == key:
+#			try:
+#				o.order = int(request.POST.get(key, 0))
+#			except Exception:
+#				o.order = 0
+
+		elif 'connector' == key:
+			try:
+				m = catalog.models.models[key]
+				o.connector = m.objects.get(id = request.POST.get(key, ''))
+			except Exception:
+				o.connector = None
+
+		elif 'distributor' == key:
+			try:
+				m = catalog.models.models[key]
+				o.distributor = m.objects.get(id = request.POST.get(key, ''))
+			except Exception:
+				o.distributor = None
+
+		elif 'parent' == key and 'category' == model_name:
+			try:
+				m = catalog.models.models[model_name]
+				o.parent = m.objects.get(id = request.POST.get(key, ''))
+			except Exception:
+				o.parent = None
+
+
+
+
+
+
+	o.modified = timezone.now()
+	o.save()
+
+	result = {
+		'status'             : 'success',
+		kwargs['model_name'] : o.getDicted()}
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 def ajaxSwitchState(request, *args, **kwargs):

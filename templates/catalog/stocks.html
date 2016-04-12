@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Склады{% endblock %}
+{% block title %}Anodos.Catalog: Склады{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -7,9 +7,8 @@
 
 {% block content %}
 
-{% if perms.catalog.change_stock or perms.catalog.add_stock %}
+{% if perms.catalog.add_stock or perms.catalog.change_stock or perms.catalog.delete_stock %}
 
-<!-- Таблица со списком складов -->
 <div class="row collapse">
 	<table>
 		<tr>
@@ -20,10 +19,10 @@
 			<th>Сроки поставки (дни)</th>
 		</tr>
 		{% for stock in stocks %}
-		<tr>
+		<tr data-stock="{{ stock.id }}">
 			<td>{{ forloop.counter }}</td>
 			<td><a data-do="open-edit-stock" data-id="{{ stock.id }}" data-stock-name="{{ stock.id }}">{{ stock.name }}</a></td>
-			<td><a data-do="open-edit-distributor" data-id="{{ stock.distributor.id }}" data-distributor-name="{{ stock.distributor.id }}">{{ stock.distributor.name }}</a></td>
+			<td><a data-do="open-edit-distributor" data-id="{{ stock.distributor.id }}" data-stock-distributor="{{ stock.id }}" data-distributor-name="{{ stock.distributor.id }}">{{ stock.distributor.name }}</a></td>
 			<td>
 				<div class="switch small">
 					<input id="stock-{{ stock.id }}-state" data-do="switch-stock-state" data-id="{{ stock.id }}" data-stock-state="{{ stock.id }}" type="checkbox"{% if stock.state %} checked{% endif %}>

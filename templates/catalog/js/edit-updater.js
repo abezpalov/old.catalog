@@ -4,7 +4,7 @@ $("body").delegate("[data-do='open-edit-updater']", "click", function(){
 	model_name = 'updater'
 
 	$.post('/catalog/ajax/get/' + model_name + '/', {
-		id                  : $(this).data('id'),
+		id : $(this).data('id'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
@@ -25,18 +25,19 @@ $("body").delegate("[data-do='open-edit-updater']", "click", function(){
 });
 {% endif %}
 
+
 {% if perms.catalog.change_updater %}
 $("body").delegate("[data-do='edit-updater-save']", "click", function(){
 
 	model_name = 'updater'
 
-	$.post("/catalog/ajax/save-updater/", {
-		updater_id:          $('#edit-' + model_name + '-id').val(),
-		updater_name:        $('#edit-' + model_name + '-name').val(),
-		updater_alias:       $('#edit-' + model_name + '-alias').val(),
-		updater_login:       $('#edit-' + model_name + '-login').val(),
-		updater_password:    $('#edit-' + model_name + '-password').val(),
-		updater_state:       $('#edit-' + model_name + '-state').prop('checked'),
+	$.post('/catalog/ajax/save/' + model_name + '/', {
+		id       : $('#edit-' + model_name + '-id').val(),
+		name     : $('#edit-' + model_name + '-name').val(),
+		alias    : $('#edit-' + model_name + '-alias').val(),
+		login    : $('#edit-' + model_name + '-login').val(),
+		password : $('#edit-' + model_name + '-password').val(),
+		state    : $('#edit-' + model_name + '-state').prop('checked'),
 		csrfmiddlewaretoken: '{{ csrf_token }}'
 	},
 	function(data) {
@@ -120,8 +121,8 @@ $("body").delegate("[data-do='switch-state-updater']", "click", function(){
 	model_name = 'updater'
 
 	$.post('/catalog/ajax/switch-state/' + model_name + '/', {
-		id                  : $(this).data('id'),
-		state               : $(this).prop('checked'),
+		id    : $(this).data('id'),
+		state : $(this).prop('checked'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
