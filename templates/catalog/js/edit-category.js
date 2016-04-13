@@ -1,265 +1,190 @@
+// Open New
 {% if perms.catalog.add_category %}
-
-// Открытие окна редактирования категории (новая)
 $("body").delegate("[data-do='open-new-category']", "click", function(){
 
-	// Заполняем значение полей
-	$('#modal-edit-category-header').text('Добавить категорию');
-	$('#edit-category-id').val('0');
-	$('#edit-category-name').val('');
-	$('#edit-category-alias').val('');
-	$('#edit-category-parent').val('0');
-	$('#edit-category-description').val('');
-	$('#edit-category-state').prop('checked', false);
+	model_name = 'category';
 
-	// Открываем модальное окно
-	$('#modal-edit-category').foundation('reveal', 'open');
+	$('#modal-edit-' + model_name + '-header').text('Добавить категорию');
+
+	$('#edit-' + model_name + '-id').val('0');
+	$('#edit-' + model_name + '-name').val('');
+	$('#edit-' + model_name + '-alias').val('');
+	$('#edit-' + model_name + '-parent').val('0');
+	$('#edit-' + model_name + '-description').val('');
+	$('#edit-' + model_name + '-state').prop('checked', false);
+
+	$('#modal-edit-' + model_name).foundation('reveal', 'open');
+
 	return false;
 });
-
 {% endif %}
 
+
+// Open Edit
 {% if perms.catalog.change_category %}
-
-
-// Открытие окна редактирования категории (существующая)
 $("body").delegate("[data-do='open-edit-category']", "click", function(){
 
-	// Получаем информацию о категории
-	$.post("/catalog/ajax/get-category/", {
-		category_id:         $(this).data('id'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	model_name = 'category';
+
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
-			if ('success' == data.status){
+		if ('success' == data.status){
 
-				// Заполняем значение полей
-				$('#modal-edit-category-header').text('Редактировать категорию');
-				$('#edit-category-id').val(data.category['id']);
-				$('#edit-category-name').val(data.category['name'])
-				$('#edit-category-alias').val(data.category['alias'])
-				$('#edit-category-parent').val(data.category['parent']['id'])
-				$('#edit-category-description').val(data.category['description'])
-				$('#edit-category-state').prop('checked', data.category['state'])
+			$('#modal-edit-' + model_name + '-header').text('Редактировать категорию');
 
-				// Открываем окно
-				$('#modal-edit-category').foundation('reveal', 'open');
-
+			$('#edit-' + model_name + '-id').val(data[model_name]['id']);
+			$('#edit-' + model_name + '-name').val(data[model_name]['name']);
+			$('#edit-' + model_name + '-alias').val(data[model_name]['alias']);
+			if (data[model_name]['parent']) {
+				$('#edit-' + model_name + '-parent').val(data[model_name]['parent']['id']);
 			} else {
-
-				// Показываем сообщение с ошибкой
-				var notification = new NotificationFx({
-					wrapper: document.body,
-					message: '<p>' + data.message + '</p>',
-					layout:  'growl',
-					effect:  'genie',
-					type:    data.status,
-					ttl:     3000,
-					onClose: function() { return false; },
-					onOpen:  function() { return false; }
-				});
-				notification.show();
+				$('#edit-' + model_name + '-parent').val(0);
 			}
+			$('#edit-' + model_name + '-description').val(data[model_name]['description']);
+			$('#edit-' + model_name + '-state').prop('checked', data[model_name]['state']);
+
+			$('#modal-edit-' + model_name).foundation('reveal', 'open');
 		}
 	}, "json");
 
 	return false;
 });
+{% endif %}
 
 
-// Сохранение категории
+// Save
+{% if perms.catalog.change_category %}
 $("body").delegate("[data-do='edit-category-save']", "click", function(){
 
-	// Отправляем запрос
-	$.post("/catalog/ajax/save-category/", {
-		category_id:           $('#edit-category-id').val(),
-		category_name:         $('#edit-category-name').val(),
-		category_alias:        $('#edit-category-alias').val(),
-		category_parent_id:    $('#edit-category-parent').val(),
-		category_description:  $('#edit-category-description').val(),
-		category_state:        $('#edit-category-state').prop('checked'),
-		csrfmiddlewaretoken:  '{{ csrf_token }}'
+	model_name = 'category';
+
+	$.post('/catalog/ajax/save/' + model_name + '/', {
+		id          : $('#edit-' + model_name + '-id').val(),
+		name        : $('#edit-' + model_name + '-name').val(),
+		alias       : $('#edit-' + model_name + '-alias').val(),
+		parent_id   : $('#edit-' + model_name + '-parent').val(),
+		description : $('#edit-' + model_name + '-description').val(),
+		state       : $('#edit-' + model_name + '-state').prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
 
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
+		if ('success' == data.status){
 
-			if ('success' == data.status){
+			$('[data-' + model_name + '-name="' + data[model_name]['id'] + '"]').text(data[model_name]['name_leveled']);
+			$('[data-' + model_name + '-state="' + data[model_name]['id'] + '"]').prop('checked', data[model_name]['state']);
 
-				// Обновлем информацию на странице
-				$("[data-category-name='" + $('#edit-category-id').val() + "']").text($('#edit-category-name').val());
-				$("[data-category-state='" + $('#edit-category-id').val() + "']").prop('checked', $('#edit-category-state').prop('checked'));
+			$('#edit-' + model_name + '-id').val('0');
+			$('#edit-' + model_name + '-name').val('');
+			$('#edit-' + model_name + '-alias').val('');
+			$('#edit-' + model_name + '-parent').val('');
+			$('#edit-' + model_name + '-description').val('');
+			$('#edit-' + model_name + '-state').prop('checked', false);
 
-				// Заполняем значение полей
-				$('#edit-category-id').val('0');
-				$('#edit-category-name').val('');
-				$('#edit-category-alias').val('');
-				$('#edit-category-parent').val('');
-				$('#edit-category-description').val('');
-				$('#edit-category-state').prop('checked', false);
-
-				// Обновляем страницу
+			if (true == data.reload){
 				setTimeout(function () {location.reload();}, 3000);
-
-				// Закрываем окно
-				$('#modal-edit-category').foundation('reveal', 'close');
 			}
+
+			$('#modal-edit-' + model_name).foundation('reveal', 'close');
 		}
 	}, "json");
 
 	return false;
 });
+{% endif %}
 
 
-// Отмена редактирования категории
+// Cancel Edit
+{% if perms.catalog.change_category %}
 $("body").delegate("[data-do='edit-category-cancel']", "click", function(){
 
-	// Заполняем значение полей
-	$('#edit-category-id').val('0');
-	$('#edit-category-name').val('');
-	$('#edit-category-alias').val('');
-	$('#edit-category-parent').val('0');
-	$('#edit-category-description').val('');
-	$('#edit-category-state').prop('checked', false);
+	model_name = 'category';
 
-	// Закрываем окно
-	$('#modal-edit-category').foundation('reveal', 'close');
+	$('#edit-' + model_name + '-id').val('0');
+	$('#edit-' + model_name + '-name').val('');
+	$('#edit-' + model_name + '-alias').val('');
+	$('#edit-' + model_name + '-parent').val('0');
+	$('#edit-' + model_name + '-description').val('');
+	$('#edit-' + model_name + '-state').prop('checked', false);
+
+	$('#modal-edit-' + model_name).foundation('reveal', 'close');
 
 	return false;
 });
-
 {% endif %}
 
+
+// Open Delete
 {% if perms.catalog.delete_category %}
-
-
-// Открытие модального окна удаления категории
 $("body").delegate("[data-do='open-delete-category']", "click", function(){
 
-	// Получаем информацию о категории
-	$.post("/catalog/ajax/get-category/", {
-		category_id:         $(this).data('id'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	model_name = 'category';
+
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
-			if ('success' == data.status){
+		if ('success' == data.status){
 
-				// Заполняем значение полей
-				$('#delete-category-id').val(data.category['id']);
-				$('#delete-category-name').text(data.category['name'])
+			$('#delete-' + model_name + '-id').val(data[model_name]['id']);
+			$('#delete-' + model_name + '-name').text(data[model_name]['name'])
 
-				// Открываем окно
-				$('#modal-delete-category').foundation('reveal', 'open');
-
-			} else {
-
-				// Показываем сообщение с ошибкой
-				var notification = new NotificationFx({
-					wrapper: document.body,
-					message: '<p>' + data.message + '</p>',
-					layout:  'growl',
-					effect:  'genie',
-					type:    data.status,
-					ttl:     3000,
-					onClose: function() { return false; },
-					onOpen:  function() { return false; }
-				});
-				notification.show();
-			}
+			$('#modal-delete-' + model_name).foundation('reveal', 'open');
 		}
 	}, "json");
 
 	return false;
 });
-
-
-// Удаление категории
-$("body").delegate("[data-do='delete-category-apply']", "click", function(){
-
-	// Отправляем запрос
-	$.post("/catalog/ajax/delete-category/", {
-		category_id:         $('#delete-category-id').val(),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
-	},
-	function(data) {
-		if (null != data.status) {
-
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
-
-			// Закрываем окно
-			$('#modal-delete-category').foundation('reveal', 'close');
-
-			// Обновляем страницу
-			setTimeout(function () {location.reload();}, 3000);
-		}
-	}, "json");
-
-	return false;
-});
-
 {% endif %}
 
-{% if perms.catalog.change_category %}
 
+// Delete
+{% if perms.catalog.delete_category %}
+$("body").delegate("[data-do='delete-category-apply']", "click", function(){
 
-// Смена статуса производителя
-$("body").delegate("[data-do='switch-category-state']", "click", function(){
+	model_name = 'category';
 
-	// Отправляем запрос
-	$.post("/catalog/ajax/switch-category-state/", {
-		category_id:         $(this).data('id'),
-		category_state:      $(this).prop('checked'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	$.post('/catalog/ajax/delete/' + model_name + '/', {
+		id : $('#delete-' + model_name + '-id').val(),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
+		if ('success' == data.status) {
 
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
+			$('[data-' + model_name + '="' + data['id'] + '"]').empty();
 
-			// Проверем успешность запроса
-			if ('success' != data.status){
-				setTimeout(function () {location.reload();}, 3000);
-			}
+			$('#modal-delete-' + model_name).foundation('reveal', 'close');
+		}
+	}, "json");
+
+	return false;
+});
+{% endif %}
+
+
+// Switch State
+{% if perms.catalog.change_category %}
+$("body").delegate("[data-do='switch-category-state']", "click", function(){
+
+	model_name = 'category';
+
+	$.post('/catalog/ajax/switch-state/' + model_name + '/', {
+		id    : $(this).data(model_name + '-id'),
+		state : $(this).prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status) {
+			return false;
+		} else {
+			return true;
 		}
 	}, "json");
 
 	return true;
 });
-
 {% endif %}

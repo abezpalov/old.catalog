@@ -367,17 +367,18 @@ class Category(models.Model):
 
 		result = {}
 
-		result['id']          = self.id
-		result['name']        = self.name
-		result['name_search'] = self.name_search
-		result['alias']       = self.alias
-		result['description'] = self.description
-		result['level']       = self.level
-		result['order']       = self.order
-		result['path']        = self.path
-		result['state']       = self.state
-		result['created']     = str(self.created)
-		result['modified']    = str(self.modified)
+		result['id']           = self.id
+		result['name']         = self.name
+		result['name_search']  = self.name_search
+		result['name_leveled'] = '— ' * self.level + self.name
+		result['alias']        = self.alias
+		result['description']  = self.description
+		result['level']        = self.level
+		result['order']        = self.order
+		result['path']         = self.path
+		result['state']        = self.state
+		result['created']      = str(self.created)
+		result['modified']     = str(self.modified)
 
 		try:    result['parent'] = self.parent.getDicted()
 		except: result['parent'] = None
@@ -1823,6 +1824,6 @@ models = {
 	'parametertoproduct'    : ParameterToProduct,
 	'parametertocategory'   : ParameterToCategory,
 	'parametersynonym'      : ParameterSynonym,
-	'catagorysynonym'       : CategorySynonym,
+	'categorysynonym'       : CategorySynonym,
 	'vendorsynonym'         : VendorSynonym,
 	'updatertask'           : UpdaterTask}
