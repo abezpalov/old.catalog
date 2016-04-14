@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos.Catalog: синонимы параметров{% endblock %}
+{% block title %}Anodos.Catalog: Синонимы параметров{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -7,25 +7,22 @@
 
 {% block content %}
 
-{% if perms.catalog.add_parametersynonym %}
-
-<!-- Панель кнопок -->
 <div class="row collapse">
-	<ul class="button-group even-2">
-		<li><button data-do="open-new-parameter-synonym" class="secondary expand"><i class="fa fa-pencil"></i> Добавить синоним</button></li>
-		<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>
+	<ul class="button-group even-3">
+		{% if perms.catalog.add_parametersynonym %}<li><button data-do="open-new-parametersynonym" class="secondary expand"><i class="fa fa-pencil"></i> Добавить синоним</button></li>{% endif %}
+		{% if perms.catalog.add_parameter %}<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>{% endif %}
+		{% if perms.catalog.add_parametertype %}<li><button data-do="open-new-parametertype" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип данных параметров</button></li>{% endif %}
 	</ul>
 </div>
 
-{% endif %}
-
 {% if perms.catalog.add_parametersynonym or perms.catalog.change_parametersynonym %}
 
-<!-- Форма фильтра вывода -->
 <div class="row collapse">
 	<div class="small-4 columns">
 		<label>Загрузчик
-			<select id="filter-updater" data-do="filter-parameter-synonyms">
+			<select
+				id="filter-updater"
+				data-do="filter-parametersynonyms">
 				<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
 				<option value="0"{% if updater_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
 				{% for updater in updaters %}
@@ -36,7 +33,9 @@
 	</div>
 	<div class="small-4 columns">
 		<label>Поставщик
-			<select id="filter-distributor" data-do="filter-parameter-synonyms">
+			<select
+				id="filter-distributor"
+				data-do="filter-parametersynonyms">
 				<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
 				<option value="0"{% if distributor_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
 				{% for distributor in distributors %}
@@ -47,7 +46,9 @@
 	</div>
 	<div class="small-4 columns">
 		<label>Параметр
-			<select id="filter-parameter" data-do="filter-parameter-synonyms">
+			<select
+				id="filter-parameter"
+				data-do="filter-parametersynonyms">
 				<option value="all"{% if parameter_selected == 'all' %} selected{% endif %}> - Все параметры - </option>
 				<option value="0"{% if parameter_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
 				{% for parameter in parameters %}
@@ -58,7 +59,6 @@
 	</div>
 </div>
 
-<!-- Таблица со списком синонимов -->
 <div class="row collapse">
 	<table>
 		<tr>
@@ -69,24 +69,43 @@
 			<th>Параметр</th>
 			<th>Управление</th>
 		</tr>
-		{% for parameter_synonym in parameter_synonyms %}
-		<tr data-parameter-synonym="{{ parameter_synonym.id }}">
+		{% for parametersynonym in parametersynonyms %}
+		<tr data-parametersynonym="{{ parametersynonym.id }}">
 			<td>{{ forloop.counter }}</td>
 			<td>
-				<a data-do="open-edit-parameter-synonym" data-id="{{ parameter_synonym.id }}" data-parameter-synonym-name="parameter_synonym.id">{{ parameter_synonym.name }}</a>
+				<a
+					data-do = "open-edit-parametersynonym"
+					data-parametersynonym-id = "{{ parametersynonym.id }}"
+					data-parametersynonym-name = "{{ parametersynonym.id }}">{{ parametersynonym.name }}</a>
 			</td>
 			<td class="hide-for-small-only">
-				<a data-do="open-edit-updater" data-id="{{ parameter_synonym.updater.id }}" data-updater-name="parameter_synonym.updater.id">{{ parameter_synonym.updater.name }}</a>
+				<a
+					data-do = "open-edit-updater"
+					data-updater-id = "{{ parametersynonym.updater.id }}"
+					data-updater-name = "{{ parametersynonym.updater.id }}"
+					data-parametersynonym-updater-name = "{{ parametersynonym.id }}">{{ parametersynonym.updater.name }}</a>
 			</td>
 			<td class="hide-for-small-only">
-				<a data-do="open-edit-distributor" data-id="{{ parameter_synonym.distributor.id }}" data-distributor-name="parameter_synonym.distributor.id">{{ parameter_synonym.distributor.name }}</a>
+				<a
+					data-do = "open-edit-distributor"
+					data-distributor-id = "{{ parametersynonym.distributor.id }}"
+					data-distributor-name = "{{ parametersynonym.distributor.id }}"
+					data-parametersynonym-distributor-name = "{{ parametersynonym.id }}">{{ parametersynonym.distributor.name }}</a>
 			</td>
 			<td class="hide-for-small-only">
-				<a data-do="open-edit-parameter" data-id="{{ parameter_synonym.parameter.id }}" data-parameter-name="{{ parameter_synonym.parameter.id }}" data-parameter-synonym-id="{{ parameter_synonym.id }}">{{ parameter_synonym.parameter.name }}</a>
+				<a
+					data-do = "open-edit-parameter"
+					data-parameter-id = "{{ parametersynonym.parameter.id }}"
+					data-parameter-name="{{ parametersynonym.parameter.id }}"
+					data-parametersynonym-parameter-name = "{{ parametersynonym.id }}">{{ parametersynonym.parameter.name }}</a>
 			</td>
 			<td>
-				<button class="tiny" data-do="link-parameter-synonym-same-parameter" data-id="{{ parameter_synonym.id }}"><i class="fa fa-link"></i></button>
-				<button class="tiny alert" data-do="open-delete-parameter-synonym" data-id="{{ parameter_synonym.id }}"><i class="fa fa-trash"></i></button>
+				<button class = "tiny"
+					data-do = "link-parametersynonym-same-parameter"
+					data-parametersynonym-id = "{{ parametersynonym.id }}"><i class="fa fa-link"></i></button>
+				<button class = "tiny alert"
+					data-do = "open-delete-parametersynonym"
+					data-parametersynonym-id = "{{ parametersynonym.id }}"><i class="fa fa-trash"></i></button>
 			</td>
 		</tr>
 		{% endfor %}
@@ -103,18 +122,20 @@
 
 {% endif %}
 
-{% include "catalog/modal/edit-parameter-synonym.html" %}
+{% include "catalog/modal/edit-parametersynonym.html" %}
+{% include "catalog/modal/edit-parameter.html" %}
+{% include "catalog/modal/edit-parametertype.html" %}
 {% include "catalog/modal/edit-updater.html" %}
 {% include "catalog/modal/edit-distributor.html" %}
-{% include "catalog/modal/edit-parameter.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/edit-parameter-synonym.js" %}
+{% include "catalog/js/edit-parametersynonym.js" %}
+{% include "catalog/js/edit-parameter.js" %}
+{% include "catalog/js/edit-parametertype.js" %}
 {% include "catalog/js/edit-updater.js" %}
 {% include "catalog/js/edit-distributor.js" %}
-{% include "catalog/js/edit-parameter.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

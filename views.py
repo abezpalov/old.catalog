@@ -315,7 +315,7 @@ def parametervaluesynonyms(request, updater_selected = 'all', distributor_select
 def parametersynonyms(request, updater_selected = 'all', distributor_selected = 'all', parameter_selected = 'all'):
 	"Представление: список синонимов параметров."
 
-	from catalog.models import ParameterSynonym, Parameter, Updater, Distributor
+	from catalog.models import ParameterSynonym, Parameter, Updater, Distributor, ParameterType
 
 	if updater_selected != 'all':
 		updater_selected = int(updater_selected)
@@ -328,32 +328,33 @@ def parametersynonyms(request, updater_selected = 'all', distributor_selected = 
 	or request.user.has_perm('catalog.change_parametersynonym')\
 	or request.user.has_perm('catalog.delete_parametersynonym'):
 
-		parameter_synonyms = ParameterSynonym.objects.select_related().all().order_by('name')
+		parametersynonyms = ParameterSynonym.objects.select_related().all().order_by('name')
 
 		if updater_selected and updater_selected != 'all':
-			parameter_synonyms = parameter_synonyms.select_related().filter(
+			parametersynonyms = parametersynonyms.select_related().filter(
 				updater = updater_selected)
 		if not updater_selected:
-			parameter_synonyms = parameter_synonyms.select_related().filter(
+			parametersynonyms = parametersynonyms.select_related().filter(
 				updater = None)
 
 		if distributor_selected and distributor_selected != 'all':
-			parameter_synonyms = parameter_synonyms.select_related().filter(
+			parametersynonyms = parametersynonyms.select_related().filter(
 				distributor = distributor_selected)
 		if not distributor_selected:
-			parameter_synonyms = parameter_synonyms.select_related().filter(
+			parametersynonyms = parametersynonyms.select_related().filter(
 				distributor = None)
 
 		if parameter_selected and parameter_selected != 'all':
-			parameter_synonyms = parameter_synonyms.select_related().filter(
+			parametersynonyms = parametersynonyms.select_related().filter(
 				parameter = parameter_selected)
 		if not parameter_selected:
-			parameter_synonyms = parameter_synonyms.select_related().filter(
+			parametersynonyms = parametersynonyms.select_related().filter(
 				parameter = None)
 
-		updaters = Updater.objects.select_related().all().order_by('name')
-		distributors = Distributor.objects.select_related().all().order_by('name')
-		parameters = Parameter.objects.select_related().all().order_by('name')
+		updaters = Updater.objects.select_related().all()
+		distributors = Distributor.objects.select_related().all()
+		parameters = Parameter.objects.select_related().all()
+		parametertypes = ParameterType.objects.select_related().all()
 
 	return render(request, 'catalog/parametersynonyms.html', locals())
 
@@ -653,22 +654,23 @@ def ajax_save(request, *args, **kwargs):
 				o.duble = None
 
 		elif key == 'parametertype_id':
+			result['parametertype_id'] = request.POST.get(key, '')
 			try:
-				m = catalog.models.models[key]
+				m = catalog.models.models['parametertype']
 				o.parametertype = m.objects.get(id = request.POST.get(key, ''))
 			except Exception:
 				o.parametertype = None
 
 		elif key == 'parameter_id':
 			try:
-				m = catalog.models.models[key]
+				m = catalog.models.models['parameter']
 				o.parameter = m.objects.get(id = request.POST.get(key, ''))
 			except Exception:
 				o.parameter = None
 
 		elif key == 'parametervalue_id':
 			try:
-				m = catalog.models.models[key]
+				m = catalog.models.models['parametervalue']
 				o.parametervalue = m.objects.get(id = request.POST.get(key, ''))
 			except Exception:
 				o.parametervalue = None
@@ -685,7 +687,7 @@ def ajax_switch_state(request, *args, **kwargs):
 	"AJAX-представление: Switch State."
 
 	import json
-	from datetime import datetime
+	from django.utils import timezone
 	import catalog.models
 
 	model = catalog.models.models[kwargs['model_name']]
@@ -698,7 +700,7 @@ def ajax_switch_state(request, *args, **kwargs):
 
 	try:
 		o = model.objects.get(id = request.POST.get('id'))
-	except model.DoesNotExist:
+	except Exception:
 		result = {
 			'status'  : 'alert',
 			'message' : 'Объект с идентификатором {} отсутствует в базе.'.format(
@@ -709,6 +711,7 @@ def ajax_switch_state(request, *args, **kwargs):
 			o.state = True
 		else:
 			o.state = False
+		o.modified = timezone.now()
 		o.save()
 
 		result = {
@@ -733,7 +736,7 @@ def ajax_delete(request, *args, **kwargs):
 
 	try:
 		m = model.objects.get(id = request.POST.get('id'))
-	except model.DoesNotExist:
+	except Exception:
 		result = {
 			'status'  : 'alert',
 			'message' : 'Ошибка: объект отсутствует в базе.',
@@ -743,8 +746,8 @@ def ajax_delete(request, *args, **kwargs):
 		result = {
 			'status' : 'success',
 			'id'     : request.POST.get('id')}
-	finally:
-		return HttpResponse(json.dumps(result), 'application/javascript')
+
+	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
 # TODO Need refactoring
@@ -752,22 +755,22 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 	"AJAX-представление: Link Model to Same Foreign."
 
 	import json
-	import unidecode
+	from django.utils import timezone
 	import catalog.models
 
 	if (not request.is_ajax()) or (request.method != 'POST'):
 		return HttpResponse(status=400)
 
-	if not request.user.has_perm('catalog.change_{}'.format(model_name))\
-	or not request.user.has_perm('catalog.add_{}'.format(foreign_name)):
+	if not request.user.has_perm('catalog.change_{}'.format(kwargs['model_name']))\
+	or not request.user.has_perm('catalog.add_{}'.format(kwargs['model_name'])):
 		return HttpResponse(status = 403)
 
-	model   = catalog.models.models[model_name]
-	foreign = catalog.models.models[foreign_name]
+	model   = catalog.models.models[kwargs['model_name']]
+	foreign = catalog.models.models[kwargs['foreign_name']]
 
 	try:
 		o = model.objects.get(id = request.POST.get('id'))
-	except model.DoesNotExist:
+	except Exception:
 		result = {
 			'status': 'alert',
 			'message': 'Ошибка: объект отсутствует в базе.'}
@@ -779,7 +782,7 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 
 	try:
 		f = foreign.objects.get(alias = alias)
-	except foreign.DoesNotExist:
+	except Exception:
 		f = foreign()
 		f.name = name
 		f.alias = alias
@@ -787,10 +790,14 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 		f.modified = timezone.now()
 		f.save()
 
-	if   'vendor'         == foreign_name: o.vendor   = f
-	elif 'category'       == foreign_name: o.category = f
-	elif 'parameter'      == foreign_name: o.parameter = f
-	elif 'parametervalue' == foreign_name: o.parameter_value = f
+	if kwargs['foreign_name'] == 'vendor':
+		o.vendor   = f
+	elif kwargs['foreign_name'] == 'category':
+		o.category = f
+	elif kwargs['foreign_name'] == 'parameter':
+		o.parameter = f
+	elif kwargs['foreign_name'] == 'parametervalue':
+		o.parametervalue = f
 
 	o.modified = timezone.now()
 	o.save()
@@ -904,6 +911,8 @@ def fix_alias(alias, model_name = None):
 	alias = alias.replace(' ', '-')
 	alias = alias.replace('&', 'and')
 	alias = alias.replace('\'', '')
+	alias = alias.replace('(', '')
+	alias = alias.replace(')', '')
 
 	alias = alias.strip()[:100]
 

@@ -1,23 +1,23 @@
 // Filter
-$("body").delegate("[data-do='filter-categorysynonyms']", "click", function(){
-	location.href = "/catalog/categorysynonyms/" + $("#filter-updater").val() + "/" + $("#filter-distributor").val() + "/" + $("#filter-category").val() + "/";
+$("body").delegate("[data-do='filter-parametersynonyms']", "click", function(){
+	location.href = "/catalog/parametersynonyms/" + $("#filter-updater").val() + "/" + $("#filter-distributor").val() + "/" + $("#filter-parameter").val() + "/";
 	return true;
 });
 
 
 // Open New
-{% if perms.catalog.add_categorysynonym %}
-$("body").delegate("[data-do='open-new-categorysynonym']", "click", function(){
+{% if perms.catalog.add_parametersynonym %}
+$("body").delegate("[data-do='open-new-parametersynonym']", "click", function(){
 
-	model_name = 'categorysynonym';
+	model_name = 'parametersynonym';
 
-	$('#modal-edit-' + model_name + '-header').text('Добавить синоним категории');
+	$('#modal-edit-' + model_name + '-header').text('Добавить синоним параметра');
 
 	$('#edit-' + model_name + '-id').val('0');
 	$('#edit-' + model_name + '-name').val('');
 	$('#edit-' + model_name + '-updater').val('0');
 	$('#edit-' + model_name + '-distributor').val('0');
-	$('#edit-' + model_name + '-category').val('0');
+	$('#edit-' + model_name + '-parameter').val('0');
 
 	$('#modal-edit-' + model_name).foundation('reveal', 'open');
 
@@ -27,10 +27,10 @@ $("body").delegate("[data-do='open-new-categorysynonym']", "click", function(){
 
 
 // Open Edit
-{% if perms.catalog.change_categorysynonym %}
-$("body").delegate("[data-do='open-edit-categorysynonym']", "click", function(){
+{% if perms.catalog.change_parametersynonym %}
+$("body").delegate("[data-do='open-edit-parametersynonym']", "click", function(){
 
-	model_name = 'categorysynonym';
+	model_name = 'parametersynonym';
 
 	$.post('/catalog/ajax/get/' + model_name + '/', {
 		id : $(this).data(model_name + '-id'),
@@ -39,7 +39,7 @@ $("body").delegate("[data-do='open-edit-categorysynonym']", "click", function(){
 	function(data) {
 		if ('success' == data.status){
 
-			$('#modal-edit-' + model_name + '-header').text('Редактировать синоним категории');
+			$('#modal-edit-' + model_name + '-header').text('Редактировать синоним параметра');
 
 			$('#edit-' + model_name + '-id').val(data[model_name]['id']);
 			$('#edit-' + model_name + '-name').val(data[model_name]['name'])
@@ -53,12 +53,14 @@ $("body").delegate("[data-do='open-edit-categorysynonym']", "click", function(){
 			} else {
 				$('#edit-' + model_name + '-distributor').val(0);
 			}
-			if (data[model_name]['category']) {
-				$('#edit-' + model_name + '-category').val(data[model_name]['category']['id']);
+			if (data[model_name]['parameter']) {
+				$('#edit-' + model_name + '-parameter').val(data[model_name]['parameter']['id']);
 			} else {
-				$('#edit-' + model_name + '-category').val(0);
+				$('#edit-' + model_name + '-parameter').val(0);
 			}
-			$('#modal-edit-categorysynonym').foundation('reveal', 'open');
+
+			$('#modal-edit-' + model_name).foundation('reveal', 'open');
+
 		}
 	}, "json");
 
@@ -68,17 +70,17 @@ $("body").delegate("[data-do='open-edit-categorysynonym']", "click", function(){
 
 
 // Save
-{% if perms.catalog.change_categorysynonym %}
-$("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
+{% if perms.catalog.change_parametersynonym %}
+$("body").delegate("[data-do='edit-parametersynonym-save']", "click", function(){
 
-	model_name = 'categorysynonym';
+	model_name = 'parametersynonym';
 
 	$.post('/catalog/ajax/save/' + model_name + '/', {
 		id             : $('#edit-' + model_name + '-id').val(),
 		name           : $('#edit-' + model_name + '-name').val(),
 		updater_id     : $('#edit-' + model_name + '-updater').val(),
 		distributor_id : $('#edit-' + model_name + '-distributor').val(),
-		category_id    : $('#edit-' + model_name + '-category').val(),
+		parameter_id   : $('#edit-' + model_name + '-parameter').val(),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
@@ -107,21 +109,21 @@ $("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
 				$('[data-' + model_name + '-distributor-name="' + data[model_name]['id'] + '"]').data('distributor-name', '0');
 			}
 
-			if (data[model_name]['category']) {
-				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').text(data[model_name]['category']['name']);
-				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').data('category-id', data[model_name]['category']['id']);
-				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').data('category-name', data[model_name]['category']['id']);
+			if (data[model_name]['parameter']) {
+				$('[data-' + model_name + '-parameter-name="' + data[model_name]['id'] + '"]').text(data[model_name]['parameter']['name']);
+				$('[data-' + model_name + '-parameter-name="' + data[model_name]['id'] + '"]').data('parameter-id', data[model_name]['parameter']['id']);
+				$('[data-' + model_name + '-parameter-name="' + data[model_name]['id'] + '"]').data('parameter-name', data[model_name]['parameter']['id']);
 			} else {
-				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').text('');
-				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').data('category-id', '0');
-				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').data('category-name', '0');
+				$('[data-' + model_name + '-parameter-name="' + data[model_name]['id'] + '"]').text('');
+				$('[data-' + model_name + '-parameter-name="' + data[model_name]['id'] + '"]').data('parameter-id', '0');
+				$('[data-' + model_name + '-parameter-name="' + data[model_name]['id'] + '"]').data('parameter-name', '0');
 			}
 
 			$('#edit-' + model_name + '-id').val('0');
 			$('#edit-' + model_name + '-name').val('');
 			$('#edit-' + model_name + '-updater').val('0');
 			$('#edit-' + model_name + '-distributor').val('0');
-			$('#edit-' + model_name + '-category').val('0');
+			$('#edit-' + model_name + '-parameter').val('0');
 
 			$('#modal-edit-' + model_name).foundation('reveal', 'close');
 		}
@@ -133,8 +135,8 @@ $("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
 
 
 // Cancel Edit
-{% if perms.catalog.change_categorysynonym %}
-$("body").delegate("[data-do='edit-categorysynonym-cancel']", "click", function(){
+{% if perms.catalog.change_parametersynonym %}
+$("body").delegate("[data-do='edit-parametersynonym-cancel']", "click", function(){
 
 	model_name = 'categorysynonym';
 
@@ -143,7 +145,7 @@ $("body").delegate("[data-do='edit-categorysynonym-cancel']", "click", function(
 	$('#edit-' + model_name + '-name').val('');
 	$('#edit-' + model_name + '-updater').val('0');
 	$('#edit-' + model_name + '-distributor').val('0');
-	$('#edit-' + model_name + '-category').val('0');
+	$('#edit-' + model_name + '-parameter').val('0');
 
 	$('#modal-edit-' + model_name).foundation('reveal', 'close');
 
@@ -153,10 +155,10 @@ $("body").delegate("[data-do='edit-categorysynonym-cancel']", "click", function(
 
 
 // Open Delete
-{% if perms.catalog.delete_categorysynonym %}
-$("body").delegate("[data-do='open-delete-categorysynonym']", "click", function(){
+{% if perms.catalog.delete_parametersynonym %}
+$("body").delegate("[data-do='open-delete-parametersynonym']", "click", function(){
 
-	model_name = 'categorysynonym';
+	model_name = 'parametersynonym';
 
 	$.post('/catalog/ajax/get/' + model_name + '/', {
 		id : $(this).data(model_name + '-id'),
@@ -178,10 +180,10 @@ $("body").delegate("[data-do='open-delete-categorysynonym']", "click", function(
 
 
 // Delete
-{% if perms.catalog.delete_categorysynonym %}
-$("body").delegate("[data-do='delete-categorysynonym-apply']", "click", function(){
+{% if perms.catalog.delete_parametersynonym %}
+$("body").delegate("[data-do='delete-parametersynonym-apply']", "click", function(){
 
-	model_name = 'categorysynonym';
+	model_name = 'parametersynonym';
 
 	$.post('/catalog/ajax/delete/' + model_name + '/', {
 		id : $('#delete-' + model_name + '-id').val(),
@@ -202,10 +204,10 @@ $("body").delegate("[data-do='delete-categorysynonym-apply']", "click", function
 
 
 // Cancel Delete
-{% if perms.catalog.delete_categorysynonym %}
-$("body").delegate("[data-do='delete-categorysynonym-cancel']", "click", function(){
+{% if perms.catalog.delete_parametersynonym %}
+$("body").delegate("[data-do='delete-parametersynonym-cancel']", "click", function(){
 
-	model_name = 'categorysynonym';
+	model_name = 'parametersynonym';
 
 	$('#delete-' + model_name + '-id').val(0);
 
@@ -214,3 +216,28 @@ $("body").delegate("[data-do='delete-categorysynonym-cancel']", "click", functio
 	return false;
 });
 {% endif %}
+
+
+// Link Same Foreign
+$("body").delegate("[data-do='link-parametersynonym-same-parameter']", "click", function(){
+
+	model_name   = 'parametersynonym';
+	foreign_name = 'parameter';
+
+	parameter_synonym_id = $(this).data('id');
+	$.post('/catalog/ajax/link/' + model_name + '/same/' + foreign_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('succes' == data.status) {
+
+			$('[data-' + model_name + '-id="' + parameter_synonym_id + '"]').text(data[model_name]['name']);
+			$('[data-' + model_name + '-id="' + parameter_synonym_id + '"]').data('id', data[model_name]['id']);
+			$('[data-' + model_name + '-id="' + parameter_synonym_id + '"]').data('parameter-name', data[model_name]['id']);
+
+			// TODO
+		}
+	}, "json");
+	return false;
+});

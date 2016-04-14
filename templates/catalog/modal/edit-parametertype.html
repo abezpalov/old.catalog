@@ -1,0 +1,42 @@
+{% if perms.catalog.change_parametertype or perms.catalog.add_parametertype %}
+<div id="modal-edit-parametertype" class="reveal-modal large" data-reveal>
+
+	<h2 id="modal-edit-parametertype-header"> </h2>
+
+	<input id="edit-parametertype-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-parametertype-name" type="text" value="">
+	</label>
+
+	<label>Псевдоним (служебное поле)
+		<input id="edit-parametertype-alias" type="text" value="">
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-parametertype-state" type="checkbox">
+			<label for="edit-parametertype-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-parametertype-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-parametertype-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}
+
+{% if perms.catalog.delete_parametertype %}
+<div id="modal-delete-parametertype" class="reveal-modal" data-reveal>
+
+	<h2>Удалить тип данных параметров?</h2>
+
+	<input id="delete-parametertype-id" type="hidden" value="0">
+
+	<p id="delete-parametertype-name"></p>
+
+	<button data-do="delete-parametertype-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-parametertype-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}

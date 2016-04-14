@@ -7,36 +7,54 @@
 
 {% block content %}
 
-
-<!-- Панель кнопок -->
 <div class="row collapse">
 	<ul class="button-group even-2">
 	{% if perms.catalog.add_parameter %}<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>{% endif %}
-	{% if perms.catalog.add_parametertype %}<li><button data-do="open-new-parameter-type" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип параметра</button></li>{% endif %}
+	{% if perms.catalog.add_parametertype %}<li><button data-do="open-new-parametertype" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип параметра</button></li>{% endif %}
 	</ul>
 </div>
 
 {% if perms.catalog.add_parameter or perms.catalog.change_parameter or perms.catalog.delete_parameter %}
 
-<!-- Таблица со списком производителей -->
 <div class="row collapse">
 	<table>
 		<tr>
 			<th class="text-center">#</th>
 			<th>Наименование</th>
 			<th>Тип данных</th>
-			<th>Статус</th>
+			<th colspan = "2">Статус</th>
 		</tr>
 		{% for parameter in parameters %}
-		<tr data-parameter="{{ parameter.id }}">
+		<tr data-parameter = "{{ parameter.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a data-do="open-edit-parameter" data-id="{{ parameter.id }}" data-parameter-name="{{ parameter.id }}">{{ parameter.name }}</a></td>
-			<td><a data-parameter-type="{{ parameter.id }}">{{ parameter.parameter_type.name }}</a></td>
 			<td>
-				<div class="switch small">
-					<input id="parameter-{{ parameter.id }}-state" data-id="{{ parameter.id }}" data-do="switch-parameter-state" data-parameter-state="{{ parameter.id }}" type="checkbox"{% if parameter.state %} checked{% endif %}>
-					<label for="parameter-{{ parameter.id }}-state"></label>
+				<a
+					data-do = "open-edit-parameter"
+					data-parameter-id = "{{ parameter.id }}"
+					data-parameter-name = "{{ parameter.id }}">{{ parameter.name }}</a></td>
+			<td>
+				<a
+					data-do = "open-edit-parametertype"
+					data-parametertype-id = "{{ parameter.parametertype.id }}"
+					data-parametertype-name = "{{ parameter.parametertype.id }}"
+					data-parameter-parametertype-name = "{{ parameter.id }}">{{ parameter.parametertype.name }}</a></td>
+			<td>
+				<div class = "switch small">
+					<input
+						id = "parameter-{{ parameter.id }}-state"
+						data-do = "switch-parameter-state"
+						data-parameter-id = "{{ parameter.id }}"
+						data-parameter-state = "{{ parameter.id }}"
+						type = "checkbox"{% if parameter.state %} checked{% endif %}>
+					<label for = "parametertype-{{ parameter.id }}-state"></label>
 				</div>
+			</td>
+			<td>
+				<button class = "tiny secondary"
+					data-do = "open-delete-parameter"
+					data-parameter-id = "{{ parameter.id }}">
+					<i class="fa fa-trash"></i>
+				</button>
 			</td>
 		</tr>
 		{% endfor %}
@@ -54,13 +72,13 @@
 {% endif %}
 
 {% include "catalog/modal/edit-parameter.html" %}
-{% include "catalog/modal/edit-parameter-type.html" %}
+{% include "catalog/modal/edit-parametertype.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
 {% include "catalog/js/edit-parameter.js" %}
-{% include "catalog/js/edit-parameter-type.js" %}
+{% include "catalog/js/edit-parametertype.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

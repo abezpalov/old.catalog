@@ -166,6 +166,21 @@ $("body").delegate("[data-do='delete-category-apply']", "click", function(){
 {% endif %}
 
 
+// Cancel Delete
+{% if perms.catalog.delete_category %}
+$("body").delegate("[data-do='delete-category-cancel']", "click", function(){
+
+	model_name = 'category';
+
+	$('#delete-' + model_name + '-id').val(0);
+
+	$('#modal-delete-' + model_name).foundation('reveal', 'close');
+
+	return false;
+});
+{% endif %}
+
+
 // Switch State
 {% if perms.catalog.change_category %}
 $("body").delegate("[data-do='switch-category-state']", "click", function(){

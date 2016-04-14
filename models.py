@@ -1277,13 +1277,13 @@ class ParameterManager(models.Manager):
 
 class Parameter(models.Model):
 
-	name           = models.CharField(max_length = 100, unique = True)
-	alias          = models.CharField(max_length = 100, unique = True)
-	parameter_type = models.ForeignKey(ParameterType, null = True, default = None)
-	order          = models.IntegerField(default = 0)
-	state          = models.BooleanField(default = True)
-	created        = models.DateTimeField()
-	modified       = models.DateTimeField()
+	name          = models.CharField(max_length = 100, unique = True)
+	alias         = models.CharField(max_length = 100, unique = True)
+	parametertype = models.ForeignKey(ParameterType, null = True, default = None)
+	order         = models.IntegerField(default = 0)
+	state         = models.BooleanField(default = True)
+	created       = models.DateTimeField()
+	modified      = models.DateTimeField()
 
 	objects        = ParameterManager()
 
@@ -1299,8 +1299,8 @@ class Parameter(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['parameter_type'] = self.parameter_type.getDicted()
-		except: result['parameter_type'] = None
+		try:    result['parametertype'] = self.parametertype.getDicted()
+		except: result['parametertype'] = None
 
 		return result
 
@@ -1368,15 +1368,15 @@ class ParameterValueSynonymManager(models.Manager):
 
 class ParameterValueSynonym(models.Model):
 
-	name            = models.CharField(max_length = 1024)
-	updater         = models.ForeignKey(Updater, null = True, default = None)
-	distributor     = models.ForeignKey(Distributor, null = True, default = None)
-	parameter       = models.ForeignKey(Parameter)
-	parameter_value = models.ForeignKey(ParameterValue)
-	created         = models.DateTimeField()
-	modified        = models.DateTimeField()
+	name           = models.CharField(max_length = 1024)
+	updater        = models.ForeignKey(Updater, null = True, default = None)
+	distributor    = models.ForeignKey(Distributor, null = True, default = None)
+	parameter      = models.ForeignKey(Parameter)
+	parametervalue = models.ForeignKey(ParameterValue)
+	created        = models.DateTimeField()
+	modified       = models.DateTimeField()
 
-	objects         = ParameterValueSynonymManager()
+	objects        = ParameterValueSynonymManager()
 
 	def getDicted(self):
 

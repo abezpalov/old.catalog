@@ -1,7 +1,7 @@
 {% if perms.catalog.change_distributor or perms.catalog.add_distributor %}
 <div id="modal-edit-distributor" class="reveal-modal large" data-reveal>
 
-	<h2 id="modal-edit-distributor-header">&ndsp;</h2>
+	<h2 id="modal-edit-distributor-header"> </h2>
 
 	<input id="edit-distributor-id" type="hidden" value="0">
 
@@ -26,6 +26,21 @@
 
 	<button data-do="edit-distributor-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
 	<button data-do="edit-distributor-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}
+
+{% if perms.catalog.delete_distributor %}
+<div id="modal-delete-distributor" class="reveal-modal" data-reveal>
+
+	<h2>Удалить поставщика?</h2>
+
+	<input id="delete-distributor-id" type="hidden" value="0">
+
+	<p id="delete-distributor-name"></p>
+
+	<button data-do="delete-distributor-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-distributor-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}

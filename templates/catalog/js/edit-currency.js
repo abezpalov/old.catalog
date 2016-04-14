@@ -166,6 +166,21 @@ $("body").delegate("[data-do='delete-currency-apply']", "click", function(){
 {% endif %}
 
 
+// Cancel Delete
+{% if perms.catalog.delete_currency %}
+$("body").delegate("[data-do='delete-currency-cancel']", "click", function(){
+
+	model_name = 'currency';
+
+	$('#delete-' + model_name + '-id').val(0);
+
+	$('#modal-delete-' + model_name).foundation('reveal', 'close');
+
+	return false;
+});
+{% endif %}
+
+
 // Switch State
 {% if perms.catalog.change_currency %}
 $("body").delegate("[data-do='switch-currency-state']", "click", function(){

@@ -13,14 +13,14 @@
 {% endif %}
 </div>
 
-{% if perms.catalog.change_category or perms.catalog.add_category %}
+{% if perms.catalog.add_category or perms.catalog.change_category or perms.catalog.delete_category %}
 
 <div class="row collapse">
 	<table>
 		<tr>
 			<th class="text-center">#</th>
 			<th>Наименование</th>
-			<th colspan="2">Статус</th>
+			<th colspan = "2">Статус</th>
 		</tr>
 		{% for category in categories %}
 		<tr data-category = "{{ category.id }}">
