@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Валюты{% endblock %}
+{% block title %}Anodos.Catalog: Валюты{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -7,9 +7,14 @@
 
 {% block content %}
 
+<div class="row collapse">
+{% if perms.catalog.add_currency %}
+	<button data-do="open-new-currency" class="secondary expand"><i class="fa fa-pencil"></i> Добавить валюту</button>
+{% endif %}
+</div>
+
 {% if perms.catalog.add_currency or perms.catalog.change_currency or perms.catalog.delete_currency %}
 
-<!-- Таблица со списком типов цен -->
 <div class="row collapse">
 	<table>
 		<tr>
@@ -21,13 +26,26 @@
 			<th>Количество</th>
 		</tr>
 		{% for currency in currencies %}
-		<tr>
+		<tr data-currency = "{{ currency.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a data-do="open-edit-currency" data-id="{{ currency.id }}" data-currency-full-name="{{ currency.id }}">{{ currency.full_name }}</a></td>
-			<td><a data-do="open-edit-currency" data-id="{{ currency.id }}" data-currency-alias="{{ currency.id }}">{{ currency.alias }}</a></td>
+			<td>
+				<a
+					data-do="open-edit-currency"
+					data-currency-id="{{ currency.id }}"
+					data-currency-full-name="{{ currency.id }}">{{ currency.full_name }}</a></td>
+			<td>
+				<a
+					data-do="open-edit-currency"
+					data-currency-id="{{ currency.id }}"
+					data-currency-alias="{{ currency.id }}">{{ currency.alias }}</a></td>
 			<td>
 				<div class="switch small">
-					<input id="currency-{{ currency.id }}-state" data-do="switch-currency-state" data-id="{{ currency.id }}" data-currency-state="{{ currency.id }}" type="checkbox"{% if currency.state %} checked{% endif %}>
+					<input
+						id="currency-{{ currency.id }}-state"
+						data-do="switch-currency-state"
+						data-currency-id="{{ currency.id }}"
+						data-currency-state="{{ currency.id }}"
+						type="checkbox"{% if currency.state %} checked{% endif %}>
 					<label for="currency-{{ currency.id }}-state"></label>
 				</div>
 			</td>

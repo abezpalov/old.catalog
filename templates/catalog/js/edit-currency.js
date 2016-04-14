@@ -1,268 +1,190 @@
+// Open New
 {% if perms.catalog.add_currency %}
-
-// Открытие окна редактирования валюты (новая)
 $("body").delegate("[data-do='open-new-currency']", "click", function(){
 
-	// Заполняем значение полей
-	$('#modal-edit-currency-header').text('Добавить валюту');
-	$('#edit-currency-id').val('0');
-	$('#edit-currency-name').val('');
-	$('#edit-currency-fulle-name').val('');
-	$('#edit-currency-alias').val('');
-	$('#edit-currency-rate').val('0.0');
-	$('#edit-currency-quantity').val('0');
-	$('#edit-currency-state').prop('checked', false);
+	model_name = 'currency';
 
-	// Открываем модальное окно
-	$('#modal-edit-currency').foundation('reveal', 'open');
+	$('#modal-edit-' + model_name +'-header').text('Добавить валюту');
+
+	$('#edit-' + model_name +'-id').val('0');
+	$('#edit-' + model_name +'-name').val('');
+	$('#edit-' + model_name +'-fulle-name').val('');
+	$('#edit-' + model_name +'-alias').val('');
+	$('#edit-' + model_name +'-rate').val('0.0');
+	$('#edit-' + model_name +'-quantity').val('0');
+	$('#edit-' + model_name +'-state').prop('checked', false);
+
+	$('#modal-edit-' + model_name).foundation('reveal', 'open');
+
 	return false;
 });
-
 {% endif %}
 
+
+// Open Edit
 {% if perms.catalog.change_currency %}
-
-
-// Открытие окна редактирования валюты (существующая)
 $("body").delegate("[data-do='open-edit-currency']", "click", function(){
 
-	// Получаем информацию о категории
-	$.post("/catalog/ajax/get-currency/", {
-		currency_id:         $(this).data('id'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	model_name = 'currency';
+
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
-			if ('success' == data.status){
+		if ('success' == data.status){
 
-				// Заполняем значение полей
-				$('#modal-edit-currency-header').text('Редактировать валюту');
-				$('#edit-currency-id').val(data.currency['id']);
-				$('#edit-currency-name').val(data.currency['name']);
-				$('#edit-currency-full-name').val(data.currency['full_name']);
-				$('#edit-currency-alias').val(data.currency['alias']);
-				$('#edit-currency-rate').val(data.currency['rate']);
-				$('#edit-currency-quantity').val(data.currency['quantity']);
-				$('#edit-currency-state').prop('checked', data.currency['state']);
+			$('#modal-edit-' + model_name +'-header').text('Редактировать валюту');
 
-				// Открываем окно
-				$('#modal-edit-currency').foundation('reveal', 'open');
+			$('#edit-' + model_name +'-id').val(data.currency['id']);
+			$('#edit-' + model_name +'-name').val(data.currency['name']);
+			$('#edit-' + model_name +'-full-name').val(data.currency['full_name']);
+			$('#edit-' + model_name +'-alias').val(data.currency['alias']);
+			$('#edit-' + model_name +'-rate').val(data.currency['rate']);
+			$('#edit-' + model_name +'-quantity').val(data.currency['quantity']);
+			$('#edit-' + model_name +'-state').prop('checked', data.currency['state']);
 
-			} else {
-
-				// Показываем сообщение с ошибкой
-				var notification = new NotificationFx({
-					wrapper: document.body,
-					message: '<p>' + data.message + '</p>',
-					layout:  'growl',
-					effect:  'genie',
-					type:    data.status,
-					ttl:     3000,
-					onClose: function() { return false; },
-					onOpen:  function() { return false; }
-				});
-				notification.show();
-			}
+			$('#modal-edit-' + model_name).foundation('reveal', 'open');
 		}
 	}, "json");
 
 	return false;
 });
+{% endif %}
 
 
-// Сохранение
+// Save
+{% if perms.catalog.change_currency %}
 $("body").delegate("[data-do='edit-currency-save']", "click", function(){
 
-	// Отправляем запрос
-	$.post("/catalog/ajax/save-currency/", {
-		currency_id:           $('#edit-currency-id').val(),
-		currency_name:         $('#edit-currency-name').val(),
-		currency_full_name:    $('#edit-currency-full-name').val(),
-		currency_alias:        $('#edit-currency-alias').val(),
-		currency_rate:         $('#edit-currency-rate').val(),
-		currency_quantity:     $('#edit-currency-quantity').val(),
-		currency_state:        $('#edit-currency-state').prop('checked'),
-		csrfmiddlewaretoken:  '{{ csrf_token }}'
+	model_name = 'currency';
+
+	$.post('/catalog/ajax/save/' + model_name +'/', {
+		id        : $('#edit-' + model_name +'-id').val(),
+		name      : $('#edit-' + model_name +'-name').val(),
+		full_name : $('#edit-' + model_name +'-full-name').val(),
+		alias     : $('#edit-' + model_name +'-alias').val(),
+		rate      : $('#edit-' + model_name +'-rate').val(),
+		quantity  : $('#edit-' + model_name +'-quantity').val(),
+		state     : $('#edit-' + model_name +'-state').prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
 
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
+		if ('success' == data.status){
 
-			if ('success' == data.status){
+			$('[data-' + model_name +'-full-name="' + data[model_name]['id'] + '"]').text(data[model_name]['full_name']);
+			$('[data-' + model_name +'-alias="' + data[model_name]['id'] + '"]').text(data[model_name]['alias']);
+			$('[data-' + model_name +'-state="' + data[model_name]['id'] + '"]').prop('checked', data[model_name]['state']);
+			$('[data-' + model_name +'-rate="' + data[model_name]['id'] + '"]').text(data[model_name]['rate']);
+			$('[data-' + model_name +'-quantity="' + data[model_name]['id'] + '"]').text(data[model_name]['quantity']);
 
-				// Обновлем информацию на странице
-				$("[data-currency-full-name='" + $('#edit-currency-id').val() + "']").text($('#edit-currency-full-name').val());
-				$("[data-currency-alias='" + $('#edit-currency-id').val() + "']").text($('#edit-currency-alias').val());
-				$("[data-currency-state='" + $('#edit-currency-id').val() + "']").prop('checked', $('#edit-currency-state').prop('checked'));
+			$('#edit-' + model_name +'-id').val('0');
+			$('#edit-' + model_name +'-name').val('');
+			$('#edit-' + model_name +'-fulle-name').val('');
+			$('#edit-' + model_name +'-alias').val('');
+			$('#edit-' + model_name +'-rate').val('0.0');
+			$('#edit-' + model_name +'-quantity').val('0.0');
+			$('#edit-' + model_name +'-state').prop('checked', false);
 
-				// Заполняем значение полей
-				$('#edit-currency-id').val('0');
-				$('#edit-currency-name').val('');
-				$('#edit-currency-fulle-name').val('');
-				$('#edit-currency-alias').val('');
-				$('#edit-currency-rate').val('0.0');
-				$('#edit-currency-quantity').val('0.0');
-				$('#edit-currency-state').prop('checked', false);
-
-				// Закрываем окно
-				$('#modal-edit-currency').foundation('reveal', 'close');
-			}
+			$('#modal-edit-' + model_name).foundation('reveal', 'close');
 		}
 	}, "json");
 
 	return false;
 });
+{% endif %}
 
 
-// Отмена редактирования категории
+// Cancel Edit
+{% if perms.catalog.change_category %}
 $("body").delegate("[data-do='edit-currency-cancel']", "click", function(){
 
-	// Заполняем значение полей
-	$('#edit-currency-id').val('0');
-	$('#edit-currency-name').val('');
-	$('#edit-currency-fulle-name').val('');
-	$('#edit-currency-alias').val('');
-	$('#edit-currency-rate').val('0.0');
-	$('#edit-currency-quantity').val('0');
-	$('#edit-currency-state').prop('checked', false);
+	model_name = 'currency';
 
-	// Закрываем окно
-	$('#modal-edit-currency').foundation('reveal', 'close');
+	$('#edit-' + model_name + '-id').val('0');
+	$('#edit-' + model_name + '-name').val('');
+	$('#edit-' + model_name + '-fulle-name').val('');
+	$('#edit-' + model_name + '-alias').val('');
+	$('#edit-' + model_name + '-rate').val('0.0');
+	$('#edit-' + model_name + '-quantity').val('0');
+	$('#edit-' + model_name + '-state').prop('checked', false);
+
+	$('#modal-edit-' + model_name).foundation('reveal', 'close');
 
 	return false;
 });
-
 {% endif %}
 
+
+// Open Delete
 {% if perms.catalog.delete_currency %}
-
-
-// Открытие модального окна удаления категории
 $("body").delegate("[data-do='open-delete-currency']", "click", function(){
 
-	// Получаем информацию о категории
-	$.post("/catalog/ajax/get-currency/", {
-		currency_id:         $(this).data('id'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	model_name = 'currency';
+
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
-			if ('success' == data.status){
+		if ('success' == data.status){
 
-				// Заполняем значение полей
-				$('#delete-currency-id').val(data.currency['id']);
-				$('#delete-currency-full-name').text(data.currency['full_name'])
+			$('#delete-' + model_name + '-id').val(data[model_name]['id']);
+			$('#delete-' + model_name + '-name').text(data[model_name]['name'])
 
-				// Открываем окно
-				$('#modal-delete-currency').foundation('reveal', 'open');
-
-			} else {
-
-				// Показываем сообщение с ошибкой
-				var notification = new NotificationFx({
-					wrapper: document.body,
-					message: '<p>' + data.message + '</p>',
-					layout:  'growl',
-					effect:  'genie',
-					type:    data.status,
-					ttl:     3000,
-					onClose: function() { return false; },
-					onOpen:  function() { return false; }
-				});
-				notification.show();
-			}
+			$('#modal-delete-' + model_name).foundation('reveal', 'open');
 		}
 	}, "json");
 
 	return false;
 });
-
-
-// Удаление производителя
-$("body").delegate("[data-do='delete-currency-apply']", "click", function(){
-
-	// Отправляем запрос
-	$.post("/catalog/ajax/delete-currency/", {
-		currency_id:         $('#delete-currency-id').val(),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
-	},
-	function(data) {
-		if (null != data.status) {
-
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
-
-			// Закрываем окно
-			$('#modal-delete-currency').foundation('reveal', 'close');
-
-			// Обновляем страницу
-			setTimeout(function () {location.reload();}, 3000);
-		}
-	}, "json");
-
-	return false;
-});
-
 {% endif %}
 
-{% if perms.catalog.change_currency %}
 
+// Delete
+{% if perms.catalog.delete_currency %}
+$("body").delegate("[data-do='delete-currency-apply']", "click", function(){
 
-// Смена статуса производителя
-$("body").delegate("[data-do='switch-currency-state']", "click", function(){
+	model_name = 'currency';
 
-	// Отправляем запрос
-	$.post("/catalog/ajax/switch-currency-state/", {
-		currency_id:         $(this).data('id'),
-		currency_state:      $(this).prop('checked'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	$.post('/catalog/ajax/delete/' + model_name + '/', {
+		id : $('#delete-' + model_name + '-id').val(),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
+		if ('success' == data.status) {
 
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
+			$('[data-' + model_name + '="' + data['id'] + '"]').empty();
 
-			// Проверем успешность запроса
-			if ('success' != data.status){
-				setTimeout(function () {location.reload();}, 3000);
-			}
+			$('#modal-delete-' + model_name).foundation('reveal', 'close');
+		}
+	}, "json");
+
+	return false;
+});
+{% endif %}
+
+
+// Switch State
+{% if perms.catalog.change_currency %}
+$("body").delegate("[data-do='switch-currency-state']", "click", function(){
+
+	model_name = 'currency';
+
+	$.post('/catalog/ajax/switch-state/' + model_name + '/', {
+		id    : $(this).data(model_name + '-id'),
+		state : $(this).prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status) {
+			return false;
+		} else {
+			return true;
 		}
 	}, "json");
 
 	return true;
 });
-
 {% endif %}

@@ -509,7 +509,7 @@ def ajax_save(request, *args, **kwargs):
 				break
 
 			if request.POST.get('alias', '').strip():
-				o.alias = fix_alias(request.POST.get('alias'))
+				o.alias = fix_alias(request.POST.get('alias'), model_name = kwargs['model_name'])
 			else:
 				o.alias = fix_alias(request.POST.get(key))
 
@@ -565,7 +565,7 @@ def ajax_save(request, *args, **kwargs):
 			except Exception:
 				o.rate = 1.0
 
-		elif key == 'quantity' and model_name == 'currency':
+		elif key == 'quantity' and kwargs['model_name'] == 'currency':
 			try:
 				o.quantity = float(request.POST.get(key).strip().replace(',', '.').replace(' ', ''))
 			except Exception:
@@ -890,11 +890,14 @@ def ajax_get_parties(request):
 	return HttpResponse(result, 'application/javascript')
 
 
-def fix_alias(alias):
+def fix_alias(alias, model_name = None):
 
 	import unidecode
 
-	alias = alias.lower()
+	if model_name == 'currency':
+		alias = alias.upper()
+	else:
+		alias = alias.lower()
 
 	alias = unidecode.unidecode(alias)
 

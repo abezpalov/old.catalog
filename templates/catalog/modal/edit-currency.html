@@ -1,7 +1,7 @@
 {% if perms.catalog.add_currency or perms.catalog.change_currency %}
 <div id="modal-edit-currency" class="reveal-modal large" data-reveal>
 
-	<h2 id="modal-edit-currency-header">&ndsp;</h2>
+	<h2 id="modal-edit-currency-header"> </h2>
 
 	<input id="edit-currency-id" type="hidden" value="0">
 
@@ -34,6 +34,21 @@
 
 	<button data-do="edit-currency-save"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
 	<button data-do="edit-currency-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}
+
+{% if perms.catalog.delete_currency %}
+<div id="modal-delete-currency" class="reveal-modal" data-reveal>
+
+	<h2>Удалить валюту?</h2>
+
+	<input id="delete-currency-id" type="hidden" value="0">
+
+	<p id="delete-currency-name"></p>
+
+	<button data-do="delete-currency-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-currency-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}
