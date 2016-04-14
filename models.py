@@ -9,7 +9,7 @@ class ConnectorManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 
@@ -79,7 +79,7 @@ class DistributorManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 
@@ -153,7 +153,7 @@ class UpdaterManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, alias, name, distributor = None):
@@ -216,7 +216,7 @@ class StockManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20,
@@ -279,7 +279,7 @@ class CategoryManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def getCategoryTree(self, tree, parent = None):
@@ -397,7 +397,7 @@ class VendorManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, alias, name):
@@ -446,7 +446,7 @@ class UnitManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, alias, name):
@@ -497,7 +497,7 @@ class PriceTypeManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, alias, name):
@@ -550,7 +550,7 @@ class CurrencyManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, alias, name, full_name, rate = 1, quantity = 1):
@@ -715,7 +715,7 @@ class ProductManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, article, vendor, name, category = None, unit = None,
@@ -937,7 +937,7 @@ class PartyManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def make(self, product, stock, article = None,
@@ -1230,7 +1230,7 @@ class ParameterTypeManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 
@@ -1271,7 +1271,7 @@ class ParameterManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 
@@ -1316,7 +1316,7 @@ class ParameterValueManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 
@@ -1362,7 +1362,7 @@ class ParameterValueSynonymManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 
@@ -1413,7 +1413,7 @@ class ParameterToProductManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, parameter, product):
@@ -1575,7 +1575,7 @@ class ParameterSynonymManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, name, updater = None, distributor = None, parameter = None):
@@ -1640,7 +1640,7 @@ class CategorySynonymManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, name, updater = None, distributor = None, category = None):
@@ -1705,7 +1705,7 @@ class VendorSynonymManager(models.Manager):
 	def getAllDicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted)
+			result.append(o.getDicted())
 		return result
 
 	def take(self, name, updater = None, distributor = None, vendor = None):
