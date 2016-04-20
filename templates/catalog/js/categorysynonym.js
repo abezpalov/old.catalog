@@ -1,11 +1,11 @@
-// Filter
-$("body").delegate("[data-do='filter-categorysynonyms']", "click", function(){
+{% if perms.catalog.add_categorysynonym or perms.catalog.change_categorysynonym or perms.catalog.delete_categorysynonym %}
+$("body").delegate("[data-do='filter-categorysynonyms']", "change", function(){
 	location.href = "/catalog/categorysynonyms/" + $("#filter-updater").val() + "/" + $("#filter-distributor").val() + "/" + $("#filter-category").val() + "/";
 	return true;
 });
+{% endif %}
 
 
-// Open New
 {% if perms.catalog.add_categorysynonym %}
 $("body").delegate("[data-do='open-new-categorysynonym']", "click", function(){
 
@@ -26,7 +26,6 @@ $("body").delegate("[data-do='open-new-categorysynonym']", "click", function(){
 {% endif %}
 
 
-// Open Edit
 {% if perms.catalog.change_categorysynonym %}
 $("body").delegate("[data-do='open-edit-categorysynonym']", "click", function(){
 
@@ -61,13 +60,11 @@ $("body").delegate("[data-do='open-edit-categorysynonym']", "click", function(){
 			$('#modal-edit-categorysynonym').foundation('reveal', 'open');
 		}
 	}, "json");
-
 	return false;
 });
 {% endif %}
 
 
-// Save
 {% if perms.catalog.change_categorysynonym %}
 $("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
 
@@ -132,7 +129,6 @@ $("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
 {% endif %}
 
 
-// Cancel Edit
 {% if perms.catalog.change_categorysynonym %}
 $("body").delegate("[data-do='edit-categorysynonym-cancel']", "click", function(){
 
@@ -152,7 +148,6 @@ $("body").delegate("[data-do='edit-categorysynonym-cancel']", "click", function(
 {% endif %}
 
 
-// Open Delete
 {% if perms.catalog.delete_categorysynonym %}
 $("body").delegate("[data-do='open-delete-categorysynonym']", "click", function(){
 
@@ -177,7 +172,6 @@ $("body").delegate("[data-do='open-delete-categorysynonym']", "click", function(
 {% endif %}
 
 
-// Delete
 {% if perms.catalog.delete_categorysynonym %}
 $("body").delegate("[data-do='delete-categorysynonym-apply']", "click", function(){
 
@@ -201,7 +195,6 @@ $("body").delegate("[data-do='delete-categorysynonym-apply']", "click", function
 {% endif %}
 
 
-// Cancel Delete
 {% if perms.catalog.delete_categorysynonym %}
 $("body").delegate("[data-do='delete-categorysynonym-cancel']", "click", function(){
 

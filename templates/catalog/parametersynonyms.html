@@ -122,20 +122,20 @@
 
 {% endif %}
 
-{% include "catalog/modal/edit-parametersynonym.html" %}
-{% include "catalog/modal/edit-parameter.html" %}
-{% include "catalog/modal/edit-parametertype.html" %}
-{% include "catalog/modal/edit-updater.html" %}
-{% include "catalog/modal/edit-distributor.html" %}
+{% include "catalog/modal/parametersynonym.html" %}
+{% include "catalog/modal/parameter.html" %}
+{% include "catalog/modal/parametertype.html" %}
+{% include "catalog/modal/updater.html" %}
+{% include "catalog/modal/distributor.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/edit-parametersynonym.js" %}
-{% include "catalog/js/edit-parameter.js" %}
-{% include "catalog/js/edit-parametertype.js" %}
-{% include "catalog/js/edit-updater.js" %}
-{% include "catalog/js/edit-distributor.js" %}
+{% include "catalog/js/parametersynonym.js" %}
+{% include "catalog/js/parameter.js" %}
+{% include "catalog/js/parametertype.js" %}
+{% include "catalog/js/updater.js" %}
+{% include "catalog/js/distributor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

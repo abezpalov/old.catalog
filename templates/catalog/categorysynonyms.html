@@ -92,14 +92,14 @@
 				<a
 					data-do = "open-edit-distributor"
 					data-distributor-id = "{{ categorysynonym.distributor.id }}"
-					data-distributor-name = "categorysynonym.distributor.id"
+					data-distributor-name = "{{ categorysynonym.distributor.id }}"
 					data-categorysynonym-distributor-name = "{{ categorysynonym.id }}">{{ categorysynonym.distributor.name }}</a>
 			</td>
 			<td class = "hide-for-small-only">
 				<a
 					data-do = "open-edit-category"
-					data-categorysynonym-id = "{{ categorysynonym.category.id }}"
-					data-category-name = "categorysynonym.category.id"
+					data-category-id = "{{ categorysynonym.category.id }}"
+					data-category-name = "{{ categorysynonym.category.id }}"
 					data-categorysynonym-category-name = "{{ categorysynonym.id }}">{{ categorysynonym.category.name }}</a>
 			</td>
 			<td>
@@ -122,18 +122,18 @@
 
 {% endif %}
 
-{% include "catalog/modal/edit-categorysynonym.html" %}
-{% include "catalog/modal/edit-updater.html" %}
-{% include "catalog/modal/edit-distributor.html" %}
-{% include "catalog/modal/edit-category.html" %}
+{% include "catalog/modal/categorysynonym.html" %}
+{% include "catalog/modal/updater.html" %}
+{% include "catalog/modal/distributor.html" %}
+{% include "catalog/modal/category.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/edit-categorysynonym.js" %}
-{% include "catalog/js/edit-updater.js" %}
-{% include "catalog/js/edit-distributor.js" %}
-{% include "catalog/js/edit-category.js" %}
+{% include "catalog/js/categorysynonym.js" %}
+{% include "catalog/js/updater.js" %}
+{% include "catalog/js/distributor.js" %}
+{% include "catalog/js/category.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

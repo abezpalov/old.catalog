@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Каталог товаров и услуг{% endblock %}
+{% block title %}Anodos.Catalog: Товары и услуги{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -30,7 +30,7 @@
 		</tr>
 		{% for product in products %}
 		{% ifchanged product.category %}
-		<tr><td colspan="8"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
+		<tr><td colspan="10"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-product = "{{ product.id }}">
 			<td>{{ product.n }}</td>
@@ -56,6 +56,28 @@
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_stock %}{% if product.quantity.on_stock == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_stock }}{% endif %}{% endif %}</td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_transit %}{% if product.quantity.on_transit == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_transit }}{% endif %}{% endif %}</td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_factory %}{% if product.quantity.on_factory == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_factory }}{% endif %}{% endif %}</td>
+			{% if perms.catalog.change_product %}
+			<td>
+				<div class = "switch small">
+					<input
+						id = "product-{{ product.id }}-state"
+						data-do = "switch-product-state"
+						data-product-id = "{{ product.id }}"
+						data-product-state = "{{ product.id }}"
+						type = "checkbox"{% if product.state %} checked{% endif %}>
+					<label for = "product-{{ product.id }}-state"></label>
+				</div>
+			</td>
+			{% endif %}
+			{% if perms.catalog.delete_product %}
+			<td>
+				<button class = "tiny secondary"
+					data-do = "open-delete-product"
+					data-product-id = "{{ product.id }}">
+					<i class="fa fa-trash"></i>
+				</button>
+			</td>
+			{% endif %}
 		</tr>
 		{% endfor %}
 	</table>
@@ -78,18 +100,14 @@
 	{% endif %}
 </div>
 
-{% include "catalog/modal/filter-products.html" %}
-{% include "catalog/modal/edit-product.html" %}
-{% include "catalog/modal/edit-vendor.html" %}
-{% include "catalog/modal/view-parties.html" %}
+{% include "catalog/modal/product.html" %}
+{% include "catalog/modal/vendor.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/filter-products.js" %}
-{% include "catalog/js/edit-product.js" %}
-{% include "catalog/js/edit-vendor.js" %}
-{% include "catalog/js/view-parties.js" %}
+{% include "catalog/js/product.js" %}
+{% include "catalog/js/vendor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

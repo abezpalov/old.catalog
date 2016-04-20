@@ -6,10 +6,10 @@ from django.utils import timezone
 class ConnectorManager(models.Manager):
 
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 
@@ -38,6 +38,7 @@ class ConnectorManager(models.Manager):
 
 		return result
 
+
 class Connector(models.Model):
 
 	name     = models.CharField(max_length = 100)
@@ -51,7 +52,7 @@ class Connector(models.Model):
 	objects  = ConnectorManager()
 
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -76,10 +77,10 @@ class Connector(models.Model):
 class DistributorManager(models.Manager):
 
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 
@@ -122,7 +123,7 @@ class Distributor(models.Model):
 	objects     = DistributorManager()
 
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -134,7 +135,7 @@ class Distributor(models.Model):
 		result['created']     = str(self.created)
 		result['modified']    = str(self.modified)
 
-		try:    result['connector'] = self.connector.getDicted()
+		try:    result['connector'] = self.connector.get_dicted()
 		except: result['connector'] = None
 
 		return result
@@ -150,10 +151,10 @@ class Distributor(models.Model):
 
 class UpdaterManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, alias, name, distributor = None):
@@ -185,7 +186,7 @@ class Updater(models.Model):
 
 	objects     = UpdaterManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -199,7 +200,7 @@ class Updater(models.Model):
 		result['modified'] = str(self.modified)
 		result['updated']  = str(self.updated)
 
-		try:    result['distributor'] = self.distributor.getDicted()
+		try:    result['distributor'] = self.distributor.get_dicted()
 		except: result['distributor'] = None
 
 		return result
@@ -213,10 +214,10 @@ class Updater(models.Model):
 
 class StockManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, alias, name, delivery_time_min = 10, delivery_time_max = 20,
@@ -249,7 +250,7 @@ class Stock(models.Model):
 
 	objects           = StockManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -262,7 +263,7 @@ class Stock(models.Model):
 		result['created']           = str(self.created)
 		result['modified']          = str(self.modified)
 
-		try:    result['distributor'] = self.distributor.getDicted()
+		try:    result['distributor'] = self.distributor.get_dicted()
 		except: result['distributor'] = None
 
 		return result
@@ -276,10 +277,10 @@ class Stock(models.Model):
 
 class CategoryManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def getCategoryTree(self, tree, parent = None):
@@ -363,7 +364,7 @@ class Category(models.Model):
 
 	objects     = CategoryManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -380,7 +381,7 @@ class Category(models.Model):
 		result['created']      = str(self.created)
 		result['modified']     = str(self.modified)
 
-		try:    result['parent'] = self.parent.getDicted()
+		try:    result['parent'] = self.parent.get_dicted()
 		except: result['parent'] = None
 
 		return result
@@ -394,10 +395,10 @@ class Category(models.Model):
 
 class VendorManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, alias, name):
@@ -420,7 +421,7 @@ class Vendor(models.Model):
 
 	objects     = VendorManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -443,10 +444,10 @@ class Vendor(models.Model):
 
 class UnitManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, alias, name):
@@ -474,7 +475,7 @@ class Unit(models.Model):
 
 	objects  = UnitManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -498,10 +499,10 @@ class Unit(models.Model):
 
 class PriceTypeManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, alias, name):
@@ -528,7 +529,7 @@ class PriceType(models.Model):
 
 	objects    = PriceTypeManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -551,10 +552,10 @@ class PriceType(models.Model):
 
 class CurrencyManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, alias, name, full_name, rate = 1, quantity = 1):
@@ -585,7 +586,7 @@ class Currency(models.Model):
 
 	objects   = CurrencyManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -618,7 +619,7 @@ class Price(models.Model):
 	modified   = models.DateTimeField()
 
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -629,10 +630,10 @@ class Price(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['price_type'] = self.price_type.getDicted()
+		try:    result['price_type'] = self.price_type.get_dicted()
 		except: result['price_type'] = None
 
-		try:    result['currency'] = self.currency.getDicted()
+		try:    result['currency'] = self.currency.get_dicted()
 		except: result['currency'] = None
 
 		result['price_str'] = self._get_price_str()
@@ -692,7 +693,7 @@ class Quantity(models.Model):
 	modified   = models.DateTimeField()
 
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -705,7 +706,7 @@ class Quantity(models.Model):
 		result['created']    = str(self.created)
 		result['modified']   = str(self.modified)
 
-		try:    result['unit'] = self.unit.getDicted()
+		try:    result['unit'] = self.unit.get_dicted()
 		except: result['unit'] = None
 
 		return result
@@ -716,10 +717,10 @@ class Quantity(models.Model):
 
 class ProductManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, article, vendor, name, category = None, unit = None,
@@ -799,7 +800,7 @@ class Product(models.Model):
 
 	objects     = ProductManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -813,22 +814,22 @@ class Product(models.Model):
 		result['created']     = str(self.created)
 		result['modified']    = str(self.modified)
 
-		try:    result['vendor']   = self.vendor.getDicted()
+		try:    result['vendor']   = self.vendor.get_dicted()
 		except: result['vendor']   = None
 
-		try:    result['category'] = self.category.getDicted()
+		try:    result['category'] = self.category.get_dicted()
 		except: result['category'] = None
 
-		try:    result['unit']     = self.unit.getDicted()
+		try:    result['unit']     = self.unit.get_dicted()
 		except: result['unit']     = None
 
-		try:    result['duble']    = self.duble.getDicted()
+		try:    result['duble']    = self.duble.get_dicted()
 		except: result['duble']    = None
 
-		try:    result['price']    = self.price.getDicted()
+		try:    result['price']    = self.price.get_dicted()
 		except: result['price']    = None
 
-		try:    result['quantity'] = self.quantity.getDicted()
+		try:    result['quantity'] = self.quantity.get_dicted()
 		except: result['quantity'] = None
 
 		return result
@@ -879,6 +880,8 @@ class Product(models.Model):
 				elif 'factory' in party.stock.alias:
 					on_factory.append(party.quantity)
 				elif 'delivery' in party.stock.alias:
+					on_factory.append(party.quantity)
+				elif 'order' in party.stock.alias:
 					on_factory.append(party.quantity)
 
 		# Записываем информацию в базу
@@ -938,10 +941,10 @@ class Product(models.Model):
 
 class PartyManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def make(self, product, stock, article = None,
@@ -950,6 +953,7 @@ class PartyManager(models.Manager):
 			quantity = None, unit = None, time = None):
 
 		if time:
+			print('delete: {}.'.format(len(Party.objects.filter(product = product, stock = stock, created__gt = time))))
 			Party.objects.filter(product = product, stock = stock, created__gt = time).delete()
 
 		party = Party(
@@ -967,6 +971,14 @@ class PartyManager(models.Manager):
 			created        = timezone.now(),
 			modified       = timezone.now())
 		party.save()
+
+		print('{} {} = {}; {} on {}'.format(
+			party.product.vendor.name,
+			party.product.article,
+			party.product.vendor.name,
+			party.price_str,
+			party.quantity,
+			party.stock.alias))
 
 		party.product.recalculate()
 
@@ -1003,7 +1015,7 @@ class Party(models.Model):
 
 	objects        = PartyManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1017,25 +1029,25 @@ class Party(models.Model):
 		result['created']   = str(self.created)
 		result['modified']  = str(self.modified)
 
-		try:    result['product']        = self.product.getDicted()
+		try:    result['product']        = self.product.get_dicted()
 		except: result['product']        = None
 
-		try:    result['stock']          = self.stock.getDicted()
+		try:    result['stock']          = self.stock.get_dicted()
 		except: result['stock']          = None
 
-		try:    result['price_type']     = self.price_type.getDicted()
+		try:    result['price_type']     = self.price_type.get_dicted()
 		except: result['price_type']     = None
 
-		try:    result['currency']       = self.currency.getDicted()
+		try:    result['currency']       = self.currency.get_dicted()
 		except: result['currency']       = None
 
-		try:    result['price_type_out'] = self.price_type_out.getDicted()
+		try:    result['price_type_out'] = self.price_type_out.get_dicted()
 		except: result['price_type_out'] = None
 
-		try:    result['currency_out']   = self.currency_out.getDicted()
+		try:    result['currency_out']   = self.currency_out.get_dicted()
 		except: result['currency_out']   = None
 
-		try:    result['unit']           = self.unit.getDicted()
+		try:    result['unit']           = self.unit.get_dicted()
 		except: result['unit']           = None
 
 		result['price_str']     = self._get_price_str()
@@ -1127,7 +1139,7 @@ class PartyHystory(models.Model):
 	comment        = models.TextField()
 	date           = models.DateField()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1139,25 +1151,25 @@ class PartyHystory(models.Model):
 		result['comment']   = self.comment
 		result['date']      = str(self.date)
 
-		try:    result['product']        = self.product.getDicted()
+		try:    result['product']        = self.product.get_dicted()
 		except: result['product']        = None
 
-		try:    result['stock']          = self.stock.getDicted()
+		try:    result['stock']          = self.stock.get_dicted()
 		except: result['stock']          = None
 
-		try:    result['price_type']     = self.price_type.getDicted()
+		try:    result['price_type']     = self.price_type.get_dicted()
 		except: result['price_type']     = None
 
-		try:    result['currency']       = self.currency.getDicted()
+		try:    result['currency']       = self.currency.get_dicted()
 		except: result['currency']       = None
 
-		try:    result['price_type_out'] = self.price_type_out.getDicted()
+		try:    result['price_type_out'] = self.price_type_out.get_dicted()
 		except: result['price_type_out'] = None
 
-		try:    result['currency_out']   = self.currency_out.getDicted()
+		try:    result['currency_out']   = self.currency_out.get_dicted()
 		except: result['currency_out']   = None
 
-		try:    result['unit']           = self.unit.getDicted()
+		try:    result['unit']           = self.unit.get_dicted()
 		except: result['unit']           = None
 
 		return result
@@ -1175,7 +1187,7 @@ class PriceHystory(models.Model):
 	currency   = models.ForeignKey(Currency, null = True, default = None)
 	date       = models.DateField()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1183,13 +1195,13 @@ class PriceHystory(models.Model):
 		result['price'] = str(self.price)
 		result['date']  = str(self.date)
 
-		try:    result['product']    = self.product.getDicted()
+		try:    result['product']    = self.product.get_dicted()
 		except: result['product']    = None
 
-		try:    result['price_type'] = self.price_type.getDicted()
+		try:    result['price_type'] = self.price_type.get_dicted()
 		except: result['price_type'] = None
 
-		try:    result['currency']   = self.currency.getDicted()
+		try:    result['currency']   = self.currency.get_dicted()
 		except: result['currency']   = None
 
 		return result
@@ -1208,7 +1220,7 @@ class QuantityHystory(models.Model):
 	unit       = models.ForeignKey(Unit, null = True, default = None)
 	date       = models.DateField()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1218,10 +1230,10 @@ class QuantityHystory(models.Model):
 		result['on_factory'] = self.on_factory
 		result['date']       = str(self.date)
 
-		try:    result['product'] = self.product.getDicted()
+		try:    result['product'] = self.product.get_dicted()
 		except: result['product'] = None
 
-		try:    result['unit']    = self.unit.getDicted()
+		try:    result['unit']    = self.unit.get_dicted()
 		except: result['unit']    = None
 
 		return result
@@ -1232,10 +1244,10 @@ class QuantityHystory(models.Model):
 
 class ParameterTypeManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 
@@ -1250,7 +1262,7 @@ class ParameterType(models.Model):
 
 	objects   = ParameterTypeManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1273,10 +1285,10 @@ class ParameterType(models.Model):
 
 class ParameterManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 
@@ -1292,7 +1304,7 @@ class Parameter(models.Model):
 
 	objects        = ParameterManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1304,7 +1316,7 @@ class Parameter(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['parametertype'] = self.parametertype.getDicted()
+		try:    result['parametertype'] = self.parametertype.get_dicted()
 		except: result['parametertype'] = None
 
 		return result
@@ -1318,10 +1330,10 @@ class Parameter(models.Model):
 
 class ParameterValueManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 
@@ -1338,7 +1350,7 @@ class ParameterValue(models.Model):
 
 	objects      = ParameterValueManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1351,7 +1363,7 @@ class ParameterValue(models.Model):
 		result['created']      = str(self.created)
 		result['modified']     = str(self.modified)
 
-		try:    result['parameter'] = self.parameter.getDicted()
+		try:    result['parameter'] = self.parameter.get_dicted()
 		except: result['parameter'] = None
 
 		return result
@@ -1365,10 +1377,10 @@ class ParameterValue(models.Model):
 
 class ParameterValueSynonymManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 
@@ -1384,7 +1396,7 @@ class ParameterValueSynonym(models.Model):
 
 	objects        = ParameterValueSynonymManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1393,16 +1405,16 @@ class ParameterValueSynonym(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['updater']         = self.updater.getDicted()
+		try:    result['updater']         = self.updater.get_dicted()
 		except: result['updater']         = None
 
-		try:    result['distributor']     = self.distributor.getDicted()
+		try:    result['distributor']     = self.distributor.get_dicted()
 		except: result['distributor']     = None
 
-		try:    result['parameter']       = self.parameter.getDicted()
+		try:    result['parameter']       = self.parameter.get_dicted()
 		except: result['parameter']       = None
 
-		try:    result['parameter_value'] = self.parameter_value.getDicted()
+		try:    result['parameter_value'] = self.parameter_value.get_dicted()
 		except: result['parameter_value'] = None
 
 		return result
@@ -1416,10 +1428,10 @@ class ParameterValueSynonym(models.Model):
 
 class ParameterToProductManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, parameter, product):
@@ -1455,7 +1467,7 @@ class ParameterToProduct(models.Model):
 
 	objects       = ParameterToProductManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1468,16 +1480,16 @@ class ParameterToProduct(models.Model):
 		result['created']       = str(self.created)
 		result['modified']      = str(self.modified)
 
-		try:    result['parameter']       = self.parameter.getDicted()
+		try:    result['parameter']       = self.parameter.get_dicted()
 		except: result['parameter']       = None
 
-		try:    result['product']         = self.product.getDicted()
+		try:    result['product']         = self.product.get_dicted()
 		except: result['product']         = None
 
-		try:    result['value_list']      = self.value_list.getDicted()
+		try:    result['value_list']      = self.value_list.get_dicted()
 		except: result['value_list']      = None
 
-		try:    result['parameter_value'] = self.parameter_value.getDicted()
+		try:    result['parameter_value'] = self.parameter_value.get_dicted()
 		except: result['parameter_value'] = None
 
 		return result
@@ -1547,7 +1559,7 @@ class ParameterToCategory(models.Model):
 	created   = models.DateTimeField()
 	modified  = models.DateTimeField()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1557,16 +1569,16 @@ class ParameterToCategory(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['parameter']       = self.parameter.getDicted()
+		try:    result['parameter']       = self.parameter.get_dicted()
 		except: result['parameter']       = None
 
-		try:    result['category']        = self.category.getDicted()
+		try:    result['category']        = self.category.get_dicted()
 		except: result['category']        = None
 
-		try:    result['value_list']      = self.value_list.getDicted()
+		try:    result['value_list']      = self.value_list.get_dicted()
 		except: result['value_list']      = None
 
-		try:    result['parameter_value'] = self.parameter_value.getDicted()
+		try:    result['parameter_value'] = self.parameter_value.get_dicted()
 		except: result['parameter_value'] = None
 
 		return result
@@ -1578,10 +1590,10 @@ class ParameterToCategory(models.Model):
 
 class ParameterSynonymManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, name, updater = None, distributor = None, parameter = None):
@@ -1614,7 +1626,7 @@ class ParameterSynonym(models.Model):
 
 	objects     = ParameterSynonymManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1623,13 +1635,13 @@ class ParameterSynonym(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['updater']     = self.updater.getDicted()
+		try:    result['updater']     = self.updater.get_dicted()
 		except: result['updater']     = None
 
-		try:    result['distributor'] = self.distributor.getDicted()
+		try:    result['distributor'] = self.distributor.get_dicted()
 		except: result['distributor'] = None
 
-		try:    result['parameter']   = self.parameter.getDicted()
+		try:    result['parameter']   = self.parameter.get_dicted()
 		except: result['parameter']   = None
 
 		return result
@@ -1643,10 +1655,10 @@ class ParameterSynonym(models.Model):
 
 class CategorySynonymManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, name, updater = None, distributor = None, category = None):
@@ -1679,7 +1691,7 @@ class CategorySynonym(models.Model):
 
 	objects     = CategorySynonymManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1688,13 +1700,13 @@ class CategorySynonym(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['updater']     = self.updater.getDicted()
+		try:    result['updater']     = self.updater.get_dicted()
 		except: result['updater']     = None
 
-		try:    result['distributor'] = self.distributor.getDicted()
+		try:    result['distributor'] = self.distributor.get_dicted()
 		except: result['distributor'] = None
 
-		try:    result['category']    = self.category.getDicted()
+		try:    result['category']    = self.category.get_dicted()
 		except: result['category']    = None
 
 		return result
@@ -1708,10 +1720,10 @@ class CategorySynonym(models.Model):
 
 class VendorSynonymManager(models.Manager):
 
-	def getAllDicted(self):
+	def get_all_dicted(self):
 		result = []
 		for o in self.all():
-			result.append(o.getDicted())
+			result.append(o.get_dicted())
 		return result
 
 	def take(self, name, updater = None, distributor = None, vendor = None):
@@ -1744,7 +1756,7 @@ class VendorSynonym(models.Model):
 
 	objects     = VendorSynonymManager()
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1753,13 +1765,13 @@ class VendorSynonym(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['updater']     = self.updater.getDicted()
+		try:    result['updater']     = self.updater.get_dicted()
 		except: result['updater']     = None
 
-		try:    result['distributor'] = self.distributor.getDicted()
+		try:    result['distributor'] = self.distributor.get_dicted()
 		except: result['distributor'] = None
 
-		try:    result['vendor']      = self.vendor.getDicted()
+		try:    result['vendor']      = self.vendor.get_dicted()
 		except: result['vendor']      = None
 
 		return result
@@ -1781,7 +1793,7 @@ class UpdaterTask(models.Model):
 	modified = models.DateTimeField()
 	complite = models.BooleanField(default = False)
 
-	def getDicted(self):
+	def get_dicted(self):
 
 		result = {}
 
@@ -1792,7 +1804,7 @@ class UpdaterTask(models.Model):
 		result['modified'] = str(self.modified)
 		result['complite'] = self.complite
 
-		try:    result['updater'] = self.updater.getDicted()
+		try:    result['updater'] = self.updater.get_dicted()
 		except: result['updater'] = None
 
 		return result

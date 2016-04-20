@@ -7,6 +7,13 @@
 
 {% block content %}
 
+<div class="row collapse">
+	<ul class="button-group even-2">
+	{% if perms.catalog.add_stock %}<li><button data-do="open-new-stock" class="secondary expand"><i class="fa fa-pencil"></i> Добавить склад</button></li>{% endif %}
+	{% if perms.catalog.add_distributor %}<li><button data-do="open-new-distributor" class="secondary expand"><i class="fa fa-pencil"></i> Добавить поставщика</button></li>{% endif %}
+	</ul>
+</div>
+
 {% if perms.catalog.add_stock or perms.catalog.change_stock or perms.catalog.delete_stock %}
 
 <div class="row collapse">
@@ -15,24 +22,45 @@
 			<th class="text-center">#</th>
 			<th>Наименование</th>
 			<th>Поставщик</th>
-			<th>Статус</th>
 			<th>Сроки поставки (дни)</th>
+			<th colspan = "2">Статус</th>
 		</tr>
 		{% for stock in stocks %}
 		<tr data-stock="{{ stock.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a data-do="open-edit-stock" data-id="{{ stock.id }}" data-stock-name="{{ stock.id }}">{{ stock.name }}</a></td>
-			<td><a data-do="open-edit-distributor" data-id="{{ stock.distributor.id }}" data-stock-distributor="{{ stock.id }}" data-distributor-name="{{ stock.distributor.id }}">{{ stock.distributor.name }}</a></td>
 			<td>
-				<div class="switch small">
-					<input id="stock-{{ stock.id }}-state" data-do="switch-stock-state" data-id="{{ stock.id }}" data-stock-state="{{ stock.id }}" type="checkbox"{% if stock.state %} checked{% endif %}>
-					<label for="stock-{{ stock.id }}-state"></label>
+				<a
+					data-do = "open-edit-stock"
+					data-stock-id = "{{ stock.id }}"
+					data-stock-name = "{{ stock.id }}">{{ stock.name }}</a></td>
+			<td>
+				<a
+					data-do = "open-edit-distributor"
+					data-distributor-id = "{{ stock.distributor.id }}"
+					data-distributor-name = "{{ stock.distributor.id }}"
+					data-stock-distributor-name = "{{ stock.id }}">{{ stock.distributor.name }}</a></td>
+			<td>
+				<span data-stock-delivery-time-min = "{{ stock.id }}">{{ stock.delivery_time_min }}</span>
+				<span>&ndash;</span>
+				<span data-stock-delivery-time-max = "{{ stock.id }}">{{ stock.delivery_time_max }}</span>
+			</td>
+			<td>
+				<div class = "switch small">
+					<input
+						id = "stock-{{ stock.id }}-state"
+						data-do = "switch-stock-state"
+						data-stock-id = "{{ stock.id }}"
+						data-stock-state = "{{ stock.id }}"
+						type = "checkbox"{% if stock.state %} checked{% endif %}>
+					<label for = "stock-{{ stock.id }}-state"></label>
 				</div>
 			</td>
 			<td>
-				<span data-stock-delivery-time-min="{{ stock.id }}">{{ stock.delivery_time_min }}</span>
-				<span>&ndash;</span>
-				<span data-stock-delivery-time-max="{{ stock.id }}">{{ stock.delivery_time_max }}</span>
+				<button class = "tiny secondary"
+					data-do = "open-delete-stock"
+					data-stock-id = "{{ stock.id }}">
+					<i class="fa fa-trash"></i>
+				</button>
 			</td>
 		</tr>
 		{% endfor %}
@@ -49,15 +77,14 @@
 
 {% endif %}
 
-{% include "catalog/modal/edit-stock.html" %}
-{% include "catalog/modal/edit-distributor.html" %}
+{% include "catalog/modal/stock.html" %}
+{% include "catalog/modal/distributor.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/edit-stock.js" %}
-{% include "catalog/js/edit-distributor.js" %}
+{% include "catalog/js/stock.js" %}
+{% include "catalog/js/distributor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
-
 {% endblock %}

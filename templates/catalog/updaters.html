@@ -21,8 +21,17 @@
 		{% for updater in updaters %}
 		<tr>
 			<td>{{ forloop.counter }}</td>
-			<td><a data-do="open-edit-updater" data-id="{{ updater.id }}" data-updater-name="{{ updater.id }}">{{ updater.name }}</a></td>
-			<td><a data-do="open-edit-distributor" data-id="{{ updater.distributor.id }}" data-distributor-name="{{ updater.distributor.id }}">{{ updater.distributor.name }}</a></td>
+			<td>
+				<a
+					data-do="open-edit-updater"
+					data-updater-id = "{{ updater.id }}"
+					data-updater-name = "{{ updater.id }}">{{ updater.name }}</a></td>
+			<td>
+				<a
+					data-do = "open-edit-distributor"
+					data-distributor-id = "{{ updater.distributor.id }}"
+					data-distributor-name = "{{ updater.distributor.id }}"
+					data-updater-distributor-name = "{{ updater.id }}">{{ updater.distributor.name }}</a></td>
 			<td>
 				<div class="switch small">
 					<input id="updater-{{ updater.id }}-state" data-do="switch-state-updater" data-id="{{ updater.id }}" data-updater-state="{{ updater.id }}" type="checkbox"{% if updater.state %} checked{% endif %}>
@@ -45,15 +54,15 @@
 
 {% endif %}
 
-{% include "catalog/modal/edit-updater.html" %}
-{% include "catalog/modal/edit-distributor.html" %}
+{% include "catalog/modal/updater.html" %}
+{% include "catalog/modal/distributor.html" %}
 
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/edit-updater.js" %}
-{% include "catalog/js/edit-distributor.js" %}
+{% include "catalog/js/updater.js" %}
+{% include "catalog/js/distributor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

@@ -428,26 +428,26 @@ def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'al
 	or request.user.has_perm('catalog.change_vendorsynonym')\
 	or request.user.has_perm('catalog.delete_vendorsynonym'):
 
-		vendor_synonyms = VendorSynonym.objects.select_related().all().order_by('name')
+		vendorsynonyms = VendorSynonym.objects.select_related().all().order_by('name')
 
 		if updater_selected and updater_selected != 'all':
-			vendor_synonyms = vendor_synonyms.select_related().filter(updater = updater_selected)
+			vendorsynonyms = vendorsynonyms.select_related().filter(updater = updater_selected)
 		if not updater_selected:
-			vendor_synonyms = vendor_synonyms.select_related().filter(updater = None)
+			vendorsynonyms = vendorsynonyms.select_related().filter(updater = None)
 
 		if distributor_selected and distributor_selected != 'all':
-			vendor_synonyms = vendor_synonyms.select_related().filter(distributor = distributor_selected)
+			vendorsynonyms = vendorsynonyms.select_related().filter(distributor = distributor_selected)
 		if not distributor_selected:
-			vendor_synonyms = vendor_synonyms.select_related().filter(distributor = None)
+			vendorsynonyms = vendorsynonyms.select_related().filter(distributor = None)
 
 		if vendor_selected and vendor_selected != 'all':
-			vendor_synonyms = vendor_synonyms.select_related().filter(vendor = vendor_selected)
+			vendorsynonyms = vendorsynonyms.select_related().filter(vendor = vendor_selected)
 		if not vendor_selected:
-			vendor_synonyms = vendor_synonyms.select_related().filter(vendor = None)
+			vendorsynonyms = vendorsynonyms.select_related().filter(vendor = None)
 
-		updaters = Updater.objects.select_related().all().order_by('name')
-		distributors = Distributor.objects.select_related().all().order_by('name')
-		vendors = Vendor.objects.select_related().all().order_by('name')
+		updaters = Updater.objects.select_related().all()
+		distributors = Distributor.objects.select_related().all()
+		vendors = Vendor.objects.select_related().all()
 
 	return render(request, 'catalog/vendorsynonyms.html', locals())
 
@@ -472,7 +472,7 @@ def ajax_get(request, *args, **kwargs):
 
 		result = {
 			'status'             : 'success',
-			kwargs['model_name'] : m.getDicted()}
+			kwargs['model_name'] : m.get_dicted()}
 
 	except model.DoesNotExist:
 		result = {
@@ -704,7 +704,7 @@ def ajax_save(request, *args, **kwargs):
 	o.modified = timezone.now()
 	o.save()
 
-	result[kwargs['model_name']] = o.getDicted()
+	result[kwargs['model_name']] = o.get_dicted()
 
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
@@ -742,7 +742,7 @@ def ajax_switch_state(request, *args, **kwargs):
 
 		result = {
 			'status'             : 'success',
-			kwargs['model_name'] : o.getDicted()}
+			kwargs['model_name'] : o.get_dicted()}
 
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
@@ -829,9 +829,9 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 	o.save()
 
 	result = {
-		'status' : 'success',
-		'o'      : o.getDicted(),
-		'fs'     : foreign.objects.getAllDicted()
+		'status'               : 'success',
+		kwargs['model_name']   : o.get_dicted(),
+		kwargs['foreign_name'] : foreign.objects.get_all_dicted()
 	}
 
 	return HttpResponse(json.dumps(result), 'application/javascript')

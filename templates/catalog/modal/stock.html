@@ -1,7 +1,7 @@
 {% if perms.catalog.change_stock or perms.catalog.add_stock %}
 <div id="modal-edit-stock" class="reveal-modal large" data-reveal>
 
-	<h2 id="modal-edit-stock-header">&ndsp;</h2>
+	<h2 id="modal-edit-stock-header"> </h2>
 
 	<input id="edit-stock-id" type="hidden" value="0">
 
@@ -28,8 +28,8 @@
 		</div>
 	</label>
 
-	<button data-do="edit-stock-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-stock-cancel" class="secondary">Отменить</button>
+	<button data-do="edit-stock-save" class="primary"><i class="fa fa-save"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-stock-cancel" class="secondary"><i class="fa fa-close"></i>&nbsp;Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}

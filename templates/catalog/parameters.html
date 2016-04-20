@@ -71,14 +71,14 @@
 
 {% endif %}
 
-{% include "catalog/modal/edit-parameter.html" %}
-{% include "catalog/modal/edit-parametertype.html" %}
+{% include "catalog/modal/parameter.html" %}
+{% include "catalog/modal/parametertype.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/edit-parameter.js" %}
-{% include "catalog/js/edit-parametertype.js" %}
+{% include "catalog/js/parameter.js" %}
+{% include "catalog/js/parametertype.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

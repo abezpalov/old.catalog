@@ -1,16 +1,16 @@
 {% if perms.catalog.add_vendorsynonym or perms.catalog.change_vendorsynonym %}
-<div id="modal-edit-vendor-synonym" class="reveal-modal large" data-reveal>
+<div id="modal-edit-vendorsynonym" class="reveal-modal large" data-reveal>
 
-	<h2 id="modal-edit-vendor-synonym-header">&ndsp;</h2>
+	<h2 id="modal-edit-vendorsynonym-header"> </h2>
 
-	<input id="edit-vendor-synonym-id" type="hidden" value="0">
+	<input id="edit-vendorsynonym-id" type="hidden" value="0">
 
 	<label>Наименование
-		<input id="edit-vendor-synonym-name" type="text" value="">
+		<input id="edit-vendorsynonym-name" type="text" value="">
 	</label>
 
 	<label>Загрузчик
-		<select id="edit-vendor-synonym-updater">
+		<select id="edit-vendorsynonym-updater">
 			<option value="0" selected> - Не определён (None) - </option>
 			{% for updater in updaters %}
 			<option value="{{ updater.id }}">{{ updater.name }}</option>
@@ -19,7 +19,7 @@
 	</label>
 
 	<label>Поставщик
-		<select id="edit-vendor-synonym-distributor">
+		<select id="edit-vendorsynonym-distributor">
 			<option value="0" selected> - Не определён (None) - </option>
 			{% for distributor in distributors %}
 			<option value="{{ distributor.id }}">{{ distributor.name }}</option>
@@ -28,7 +28,7 @@
 	</label>
 
 	<label>Производитель
-		<select id="edit-vendor-synonym-vendor">
+		<select id="edit-vendorsynonym-vendor">
 			<option value="0" selected> - Не определён (None) - </option>
 			{% for vendor in vendors %}
 			<option value="{{ vendor.id }}">{{ vendor.name }}</option>
@@ -36,23 +36,23 @@
 		</select>
 	</label>
 
-	<button data-do="edit-vendor-synonym-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-vendor-synonym-cancel" class="secondary">Отменить</button>
+	<button data-do="edit-vendorsynonym-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-vendorsynonym-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}
 
 {% if perms.catalog.delete_vendorsynonym %}
-<div id="modal-delete-vendor-synonym" class="reveal-modal" data-reveal>
+<div id="modal-delete-vendorsynonym" class="reveal-modal" data-reveal>
 
 	<h2>Удалить синоним категории?</h2>
 
-	<input id="delete-vendor-synonym-id" type="hidden" value="0">
+	<input id="delete-vendorsynonym-id" type="hidden" value="0">
 
-	<p id="delete-vendor-synonym-name"></p>
+	<p id="delete-vendorsynonym-name"></p>
 
-	<button data-do="delete-vendor-synonym-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
-	<button data-do="delete-vendor-synonym-cancel" class="secondary">Отменить</button>
+	<button data-do="delete-vendorsynonym-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-vendorsynonym-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}
