@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos.Каталог: Значение параметров{% endblock %}
+{% block title %}Anodos.Catalog: Значение параметров{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -8,16 +8,32 @@
 {% block content %}
 
 <div class="row collapse">
-{% if perms.catalog.add_parameter %}
-	<button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button>
-{% endif %}
-{% if perms.catalog.add_parametervalue %}
-	<button data-do="open-new-parameter-value" class="secondary expand"><i class="fa fa-pencil"></i> Добавить значение параметра</button>
-{% endif %}
+	<ul class="button-group even-4">
+		{% if perms.catalog.add_parametervalue %}<li><button data-do="open-new-parametervalue" class="secondary expand"><i class="fa fa-pencil"></i> Добавить значение параметра</li></button>{% endif %}
+		{% if perms.catalog.add_parameter %}<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>{% endif %}
+		{% if perms.catalog.add_parametertype %}<li><button data-do="open-new-parametertype" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип данных параметров</button></li>{% endif %}
+		{% if perms.catalog.add_unit %}<li><button data-do="open-new-unit" class="secondary expand"><i class="fa fa-pencil"></i> Добавить единицу измерения</li></button>{% endif %}
+	</ul>
 </div>
 
 
 {% if perms.catalog.add_parametervalue or perms.catalog.change_parametervalue or perms.catalog.delete_parametervalue %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<label>Параметр
+			<select
+				id="filter-parameter"
+				data-do="filter-parametervalue">
+				<option value="all"{% if parameter_selected == 'all' %} selected{% endif %}> - Все параметры - </option>
+				<option value="0"{% if parameter_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for parameter in parameters %}
+				<option value="{{ parameter.id }}"{% if parameter.id == parameter_selected %} selected{% endif %}>{{ parameter.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+</div>
 
 <div class="row collapse">
 	<table>
@@ -25,17 +41,41 @@
 			<th class="text-center">#</th>
 			<th>Параметр</th>
 			<th>Значение</th>
+			<th>Единица измерения</th>
 			<th>Статус</th>
 		</tr>
-		{% for parameter_value in parameter_values %}
-		<tr data-parameter-value="{{ parameter_value.id }}">
+		{% for parametervalue in parametervalues %}
+		<tr data-parametervalue = "{{ parametervalue.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a data-parameter-value-parameter="{{ parameter_value.id }}">{{ parameter_value.parameter.name }}</a></td>
-			<td><a data-do="open-edit-parameter-value" data-id="{{ parameter_value.id }}" data-parameter-value-value-search="{{ parameter_value.id }}">{{ parameter_value.value_search }}</a></td>
+			<td class = "hide-for-small-only">
+				<a
+					data-do = "open-edit-parameter"
+					data-parameter-id = "{{ parametervalue.parameter.id }}"
+					data-parameter-name="{{ parametervalue.parameter.id }}"
+					data-parametervalue-parameter-name = "{{ parametervalue.id }}">{{ parametervalue.parameter.name }}</a>
+			</td>
+			<td>
+				<a
+					data-do = "open-edit-parameter-value"
+					data-parametervalue-id = "{{ parametervalue.id }}"
+					data-parametervalue-value = "{{ parametervalue.id }}">{{ parametervalue.value_search }}</a>
+			</td>
+			<td class = "hide-for-small-only">
+				<a
+					data-do = "open-edit-unit"
+					data-unit-id = "{{ parametervalue.unit.id }}"
+					data-unit-name="{{ parametervalue.unit.id }}"
+					data-parametervalue-unit-name = "{{ parametervalue.id }}">{{ parametervalue.unit.name }}</a>
+			</td>
 			<td>
 				<div class="switch small">
-					<input id="parameter-{{ parameter.id }}-state" data-id="{{ parameter.id }}" data-do="switch-parameter-state" data-parameter-state="{{ parameter.id }}" type="checkbox"{% if parameter.state %} checked{% endif %}>
-					<label for="parameter-{{ parameter.id }}-state"></label>
+					<input
+						id = "parametervalue-{{ parametervalue.id }}-state"
+						data-do = "switch-parametervalue-state"
+						data-parametervalue-id = "{{ parametervalue.id }}"
+						data-parametervalue-state = "{{ parametervalue.id }}"
+						type = "checkbox"{% if parametervalue.state %} checked{% endif %}>
+					<label for="parametervalue-{{ parametervalue.id }}-state"></label>
 				</div>
 			</td>
 		</tr>
@@ -53,14 +93,18 @@
 
 {% endif %}
 
+{% include "catalog/modal/edit-parametervalue.html" %}
 {% include "catalog/modal/edit-parameter.html" %}
-{% include "catalog/modal/edit-parameter-value.html" %}
+{% include "catalog/modal/edit-parametertype.html" %}
+{% include "catalog/modal/edit-unit.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
+{% include "catalog/js/edit-parametervalue.js" %}
 {% include "catalog/js/edit-parameter.js" %}
-{% include "catalog/js/edit-parameter-value.js" %}
+{% include "catalog/js/edit-parametertype.js" %}
+{% include "catalog/js/edit-unit.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

@@ -1,144 +1,230 @@
+// Open New
 {% if perms.catalog.add_parametervalue %}
+$("body").delegate("[data-do='open-new-parametervalue']", "click", function(){
 
+	model_name = 'parametervalue';
 
-$("body").delegate("[data-do='open-new-parameter-value']", "click", function(){
+	$('#modal-edit-' + model_name + '-header').text('Добавить значение параметра');
 
-	$('#modal-edit-parameter-value-header').text('Добавить значение параметра');
-	$('#edit-parameter-value-id').val('0');
-	$('#edit-parameter-value-parameter').val('');
-	$('#edit-parameter-value-value-text').val('');
-	$('#edit-parameter-value-order').val('0');
-	$('#edit-parameter-value-state').prop('checked', true);
+	$('#edit-' + model_name + '-id').val('0');
+	$('#edit-' + model_name + '-parameter').val('0');
+	$('#edit-' + model_name + '-value-text').val('');
+	$('#edit-' + model_name + '-value').val('0');
+	$('#edit-' + model_name + '-order').val('0');
+	$('#edit-' + model_name + '-state').prop('checked', true);
 
-	$('#modal-edit-parameter-value').foundation('reveal', 'open');
+	$('#modal-edit-' + model_name).foundation('reveal', 'open');
+
 	return false;
 });
-
 {% endif %}
 
+
+// Open Edit
 {% if perms.catalog.change_parametervalue %}
+$("body").delegate("[data-do='open-edit-parametervalue']", "click", function(){
 
+	model_name = 'parametervalue';
 
-$("body").delegate("[data-do='open-edit-parameter-value']", "click", function(){
-
-	$.post("/catalog/ajax/get-parameter-value/", {
-		id                  : $(this).data('id'),
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
-	},
-	function(data) {
-		if (null != data.status) {
-			if ('success' == data.status){
-
-				$('#modal-edit-parameter-value-header').text('Редактировать значение параметра');
-				$('#edit-parameter-value-id').val(data.parameter_value.id);
-				$('#edit-parameter-value-parameter').val(data.parameter_value.parameter.id);
-				$('#edit-parameter-value-value_text').val(data.parameter_value.value_text);
-				$('#edit-parameter-value-order').val(data.parameter_value.order);
-				$('#edit-parameter-value-state').prop('checked', data.parameter_value.state);
-
-				$('#modal-edit-parameter-value').foundation('reveal', 'open');
-			}
-		}
-	}, "json");
-
-	return false;
-});
-
-
-$("body").delegate("[data-do='edit-parameter-value-save']", "click", function(){
-
-	$.post("/catalog/ajax/save-parameter-value/", {
-		parameter_value_id           : $('#edit-parameter-value-id').val(),
-		parameter_value_parameter_id : $('#edit-parameter-value-parameter').val(),
-		parameter_value_value_text   : $('#edit-parameter-value-value-text').val(),
-		parameter_value_order        : $('#edit-parameter-value-order').val(),
-		parameter_value_state        : $('#edit-parameter-value-state').prop('checked'),
-		csrfmiddlewaretoken          : '{{ csrf_token }}'
 	},
 	function(data) {
 		if ('success' == data.status){
 
-			o = data.parameter_value
+			$('#modal-edit-' + model_name + '-header').text('Редактировать значение параметра');
 
-			$("[data-parameter-value-value-search='" + o.id + "']").text(o.value_search);
-			$("[data-parameter-state='" + o.id + "']").prop('checked', o.state);
-			$("[data-parameter-value-parameter-name='" + o.id + "']").text(o.parameter.name);
+			$('#edit-' + model_name + '-id').val(data[model_name]['id']);
 
-			$('#edit-parameter-value-id').val('0');
-			$('#edit-parameter-value-parameter').val('0');
-			$('#edit-parameter-value-value-text').val('');
-			$('#edit-parameter-value-order').val('0');
-			$('#edit-parameter-value-state').prop('checked', false);
+			key = 'parameter';
+			if (data[model_name][key]) {
+				$('#edit-' + model_name + '-' + key).val(data[model_name][key]['id']);
+			} else {
+				$('#edit-' + model_name + '-' + key).val(0);
+			}
 
-			$('#modal-edit-parameter-value').foundation('reveal', 'close');
+			$('#edit-' + model_name + '-value-text').val(data[model_name]['value_text']);
+
+			key = 'unit';
+			if (data[model_name][key]) {
+				$('#edit-' + model_name + '-' + key).val(data[model_name][key]['id']);
+			} else {
+				$('#edit-' + model_name + '-' + key).val(0);
+			}
+
+			$('#edit-' + model_name + '-order').val(data[model_name]['order']);
+			$('#edit-' + model_name + '-state').prop('checked', data[model_name]['state']);
+
+			$('#modal-edit-' + model_name).foundation('reveal', 'open');
 		}
 	}, "json");
 
 	return false;
 });
-
-
-$("body").delegate("[data-do='edit-parameter-value-cancel']", "click", function(){
-
-	$('#edit-parameter-value-id').val('0');
-	$('#edit-parameter-value-parameter').val('0');
-	$('#edit-parameter-value-value-text').val('');
-	$('#edit-parameter-value-order').val('0');
-	$('#edit-parameter-value-state').prop('checked', false);
-
-	$('#modal-edit-value-parameter').foundation('reveal', 'close');
-
-	return false;
-});
-
 {% endif %}
 
-{% if perms.catalog.delete_parametervalue %}
 
+// Save
+{% if perms.catalog.change_parametervalue %}
+$("body").delegate("[data-do='edit-parameter-value-save']", "click", function(){
 
-$("body").delegate("[data-do='open-parameter-value-trash']", "click", function(){
+	model_name = 'parametervalue';
 
-	$('#trash-parameter-value-id').val($(this).data('id'));
-
-	$('#modal-trash-parameter-value').foundation('reveal', 'open');
-
-	return false;
-});
-
-
-$("body").delegate("[data-do='trash-parameter-value']", "click", function(){
-	$.post("/catalog/ajax/trash-parameter-value/", {
-		id                  : $('#trash-parameter-value-id').val(),
+	$.post('/catalog/ajax/save/' + model_name + '/', {
+		id           : $('#edit-' + model_name + '-id').val(),
+		parameter_id : $('#edit-' + model_name + '-parameter').val(),
+		value_text   : $('#edit-' + model_name + '-value-text').val(),
+		order        : $('#edit-' + model_name + '-order').val(),
+		state        : $('#edit-' + model_name + '-state').prop('checked'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if ('success' != data.status) {
+		if ('success' == data.status){
 
-			$("[data-parameter-value]").empty()
+			key = 'parameter';
+			if (data[model_name][key]) {
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').text(data[model_name][key]['name']);
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-id', data[model_name][key]['id']);
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-name', data[model_name][key]['id']);
+			} else {
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').text('');
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-id', '0');
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-name', '0');
+			}
 
-			$('#modal-trash-parameter-value').foundation('reveal', 'close');
+			$('[data-' + model_name + '-value="' + data[model_name]['id'] + '"]').text(data[model_name]['value_search']);
 
+			key = 'unit';
+			if (data[model_name][key]) {
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').text(data[model_name][key]['name']);
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-id', data[model_name][key]['id']);
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-name', data[model_name][key]['id']);
+			} else {
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').text('');
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-id', '0');
+				$('[data-' + model_name + '-' + key + '-name="' + data[model_name]['id'] + '"]').data(key + '-name', '0');
+			}
+
+			$('[data-' + model_name + '-state="' + o.id + '"]').prop('checked', data[model_name]['state']);
+
+			$('#edit-' + model_name + '-id').val('0');
+			$('#edit-' + model_name + '-parameter').val('0');
+			$('#edit-' + model_name + '-value-text').val('');
+			$('#edit-' + model_name + '-order').val('0');
+			$('#edit-' + model_name + '-state').prop('checked', false);
+
+			$('#modal-edit-' + model_name).foundation('reveal', 'close');
 		}
 	}, "json");
+
 	return false;
 });
-
 {% endif %}
 
-{% if perms.catalog.change_parameter %}
 
-$("body").delegate("[data-do='switch-parameter-value-state']", "click", function(){
-	$.post("/catalog/ajax/switch-parameter-value-state/", {
-		id                  : $(this).data('id'),
-		state               : $(this).prop('checked'),
-		csrfmiddlewaretoken : '{{ csrf_token }}'},
+// Cancel Edit
+{% if perms.catalog.change_parametervalue %}
+$("body").delegate("[data-do='edit-parameter-value-cancel']", "click", function(){
+
+	model_name = 'parametervalue';
+
+	$('#edit-' + model_name + '-id').val('0');
+	$('#edit-' + model_name + '-parameter').val('0');
+	$('#edit-' + model_name + '-value-text').val('');
+	$('#edit-' + model_name + '-order').val('0');
+	$('#edit-' + model_name + '-state').prop('checked', false);
+
+	$('#modal-edit-' + model_name).foundation('reveal', 'close');
+
+	return false;
+});
+{% endif %}
+
+
+// Open Delete
+{% if perms.catalog.delete_parametervalue %}
+$("body").delegate("[data-do='open-delete-parametervalue']", "click", function(){
+
+	model_name = 'parametervalue';
+
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
 	function(data) {
-		if ('success' != data.status) {
-			return true;
-		} else {
-			return false;
+		if ('success' == data.status){
+
+			$('#delete-' + model_name + '-id').val(data[model_name]['id']);
+			$('#delete-' + model_name + '-name').text(data[model_name]['name'])
+
+			$('#modal-delete-' + model_name).foundation('reveal', 'open');
 		}
 	}, "json");
-});
 
+	return false;
+});
+{% endif %}
+
+
+// Delete
+{% if perms.catalog.delete_parametervalue %}
+$("body").delegate("[data-do='delete-parametervalue-apply']", "click", function(){
+
+	model_name = 'parametervalue';
+
+	$.post('/catalog/ajax/delete/' + model_name + '/', {
+		id : $('#delete-' + model_name + '-id').val(),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status) {
+
+			$('[data-' + model_name + '="' + data['id'] + '"]').empty();
+
+			$('#modal-delete-' + model_name).foundation('reveal', 'close');
+		}
+	}, "json");
+
+	return false;
+});
+{% endif %}
+
+
+// Cancel Delete
+{% if perms.catalog.delete_parametervalue %}
+$("body").delegate("[data-do='delete-parameter-cancel']", "click", function(){
+
+	model_name = 'parametervalue';
+
+	$('#delete-' + model_name + '-id').val(0);
+
+	$('#modal-delete-' + model_name).foundation('reveal', 'close');
+
+	return false;
+});
+{% endif %}
+
+
+// Switch State
+{% if perms.catalog.change_parametervalue %}
+$("body").delegate("[data-do='switch-parametervalue-state']", "click", function(){
+
+	model_name = 'parametervalue';
+
+	$.post('/catalog/ajax/switch-state/' + model_name + '/', {
+		id    : $(this).data(model_name + '-id'),
+		state : $(this).prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status) {
+			return false;
+		} else {
+			return true;
+		}
+	}, "json");
+
+	return true;
+});
 {% endif %}

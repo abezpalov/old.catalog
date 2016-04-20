@@ -137,11 +137,17 @@ class Runner:
 		# Авторизуемся
 		try:
 			payload = {
-				'client': self.updater.login.split('|')[0],
-				'login': self.updater.login.split('|')[1],
-				'password': self.updater.password,
-				'Ok': '%C2%EE%E9%F2%E8'}
-			r = s.post(self.urls['login'], cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
+				'client'   : self.updater.login.split('|')[0],
+				'login'    : self.updater.login.split('|')[1],
+				'password' : self.updater.password,
+				'Ok'       : '%C2%EE%E9%F2%E8'}
+			r = s.post(
+				self.urls['login'],
+				cookies = cookies,
+				data = payload,
+				allow_redirects = True,
+				verify = False,
+				timeout = 100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
 			print("Превышение интервала ожидания подтверждения авторизации.")

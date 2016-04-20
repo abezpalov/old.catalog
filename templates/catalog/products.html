@@ -26,17 +26,33 @@
 			<th class="text-center">Производитель</th>
 			<th class="text-center">Цена</th>
 			<th class="text-center" colspan="3">Количество</th>
+			{% if perms.catalog.change_product or perms.catalog.delete_product %}<th{% if perms.catalog.change_product and perms.catalog.delete_product %} colspan = "2"{% endif %}>Статус</th>{% endif %}
 		</tr>
 		{% for product in products %}
 		{% ifchanged product.category %}
 		<tr><td colspan="8"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
 		{% endifchanged %}
-		<tr data-id="{{ product.id }}">
+		<tr data-product = "{{ product.id }}">
 			<td>{{ product.n }}</td>
-			<td data-product-article="{{ product.id }}">{{ product.article }}</td>
-			<td style="word-break: break-all;"><a href="/catalog/product/{{ product.id }}/" data-do="open-edit-product" data-id="{{ product.id }}" data-product-name="{{ product.id }}">{{ product.name }}</a></td>
-			<td class="text-center"><a href="/catalog/vendor/{{ product.vendor.alias }}/" data-do="open-edit-vendor" data-id="{{ product.vendor.id }}" data-vendor-name="{{ product.vendor.id }}">{{ product.vendor.name }}</a></td>
-			<td class="text-right" style="white-space: nowrap;"><a data-do="open-view-parties" data-id="{{ product.id }}">{% autoescape off %}{{ product.price.price_xml }}{% endautoescape %}</a></td>
+			<td
+				data-product-article = "{{ product.id }}">{{ product.article }}</td>
+			<td style="word-break: break-all;">
+				<a
+					href = "/catalog/product/{{ product.id }}/"
+					data-do = "open-edit-product"
+					data-product-id = "{{ product.id }}"
+					data-product-name = "{{ product.id }}">{{ product.name }}</a></td>
+			<td class="text-center">
+				<a
+					href = "/catalog/vendor/{{ product.vendor.alias }}/"
+					data-do = "open-edit-vendor"
+					data-vendor-id = "{{ product.vendor.id }}"
+					data-vendor-name = "{{ product.vendor.id }}"
+					data-product-vendor-name = "{{ product.id }}">{{ product.vendor.name }}</a></td>
+			<td class="text-right" style="white-space: nowrap;">
+				<a
+					data-do = "open-view-parties"
+					data-id = "{{ product.id }}">{% autoescape off %}{{ product.price.price_xml }}{% endautoescape %}</a></td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_stock %}{% if product.quantity.on_stock == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_stock }}{% endif %}{% endif %}</td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_transit %}{% if product.quantity.on_transit == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_transit }}{% endif %}{% endif %}</td>
 			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_factory %}{% if product.quantity.on_factory == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_factory }}{% endif %}{% endif %}</td>

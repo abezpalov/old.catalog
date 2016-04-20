@@ -80,6 +80,16 @@ def vendor(request, alias):
 	return render(request, 'catalog/vendor.html', locals())
 
 
+def units(request):
+	"Представление: список единиц измерения."
+
+	from catalog.models import Unit
+
+	units = Unit.objects.all()
+
+	return render(request, 'catalog/units.html', locals())
+
+
 def pricetypes(request):
 	"Представление: список типов цен."
 
@@ -89,7 +99,7 @@ def pricetypes(request):
 	or request.user.has_perm('catalog.change_pricetype')\
 	or request.user.has_perm('catalog.delete_pricetype'):
 
-		price_types = PriceType.objects.all().order_by('name')
+		pricetypes = PriceType.objects.all().order_by('name')
 
 	return render(request, 'catalog/pricetypes.html', locals())
 
@@ -263,7 +273,7 @@ def parametervalues(request):
 
 	parameter_values = ParameterValue.objects.all()
 
-	return render(request, 'catalog/parameter-values.html', locals())
+	return render(request, 'catalog/parametervalues.html', locals())
 
 
 def parametervaluesynonyms(request, updater_selected = 'all', distributor_selected = 'all', parameter_selected = 'all'):
@@ -524,6 +534,16 @@ def ajax_save(request, *args, **kwargs):
 			else:
 				o.name = request.POST.get(key)[:512]
 
+			if request.POST.get('name_short', '').strip():
+				o.name_short = request.POST.get('name_short')[:100]
+			else:
+				o.name_short = request.POST.get(key)[:100]
+
+			if request.POST.get('name_short_xml', '').strip():
+				o.name_short_xml = request.POST.get('name_short_xml')[:100]
+			else:
+				o.name_short_xml = request.POST.get(key)[:100]
+
 		elif key == 'article':
 			o.article = request.POST.get('article', '').strip()[:100]
 
@@ -570,7 +590,13 @@ def ajax_save(request, *args, **kwargs):
 			try:
 				o.quantity = float(request.POST.get(key).strip().replace(',', '.').replace(' ', ''))
 			except Exception:
-				o.rate = 1.0
+				o.quantity = 1.0
+
+		elif key == 'multiplier':
+			try:
+				o.multiplier = float(request.POST.get(key).strip().replace(',', '.').replace(' ', ''))
+			except Exception:
+				o.multiplier = 1.0
 
 		elif 'connector_id' == key:
 			try:
@@ -849,7 +875,7 @@ def ajax_get_parties(request):
 					elif party.quantity is None:
 						item['quantity'] = 'неизвестно'
 					else:
-						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name)
+						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name_short_xml)
 					items.append(item)
 
 			else:
@@ -870,7 +896,7 @@ def ajax_get_parties(request):
 					elif party.quantity is None:
 						item['quantity'] = 'неизвестно'
 					else:
-						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name)
+						item['quantity'] = "{}&nbsp;{}".format(party.quantity, party.unit.name_short_xml)
 					items.append(item)
 
 			item = {}

@@ -1,15 +1,15 @@
 // Open New
-{% if perms.catalog.change_pricetype %}
-$("body").delegate("[data-do='open-new-pricetype']", "click", function(){
+{% if perms.catalog.add_unit %}
+$("body").delegate("[data-do='open-new-unit']", "click", function(){
 
-	model_name = 'pricetype';
+	model_name = 'unit';
 
-	$('#modal-edit-' + model_name + '-header').text('Добавить тип данных параметров');
+	$('#modal-edit-' + model_name + '-header').text('Добавить единицу измерения');
 
 	$('#edit-' + model_name + '-id').val('0');
 	$('#edit-' + model_name + '-name').val('');
-	$('#edit-' + model_name + '-alias').val('');
-	$('#edit-' + model_name + '-multiplier').val('1.0');
+	$('#edit-' + model_name + '-name-short').val('');
+	$('#edit-' + model_name + '-name-short-xml').val('');
 	$('#edit-' + model_name + '-alias').val('');
 	$('#edit-' + model_name + '-state').prop('checked', true);
 
@@ -19,11 +19,12 @@ $("body").delegate("[data-do='open-new-pricetype']", "click", function(){
 });
 {% endif %}
 
-// Open Edit
-{% if perms.catalog.change_pricetype %}
-$("body").delegate("[data-do='open-edit-pricetype']", "click", function(){
 
-	model_name = 'pricetype';
+// Open Edit
+{% if perms.catalog.change_unit %}
+$("body").delegate("[data-do='open-edit-unit']", "click", function(){
+
+	model_name = 'unit';
 
 	$.post('/catalog/ajax/get/' + model_name + '/', {
 		id : $(this).data(model_name + '-id'),
@@ -32,16 +33,16 @@ $("body").delegate("[data-do='open-edit-pricetype']", "click", function(){
 	function(data) {
 		if ('success' == data.status){
 
-			$('#modal-edit-' + model_name + '-header').text('Редактировать тип цены');
+			$('#modal-edit-' + model_name + '-header').text('Редактировать единицу измерения');
 
 			$('#edit-' + model_name + '-id').val(data[model_name]['id']);
 			$('#edit-' + model_name + '-name').val(data[model_name]['name']);
+			$('#edit-' + model_name + '-name-short').val(data[model_name]['name_short']);
+			$('#edit-' + model_name + '-name-short-xml').val(data[model_name]['name_short_xml']);
 			$('#edit-' + model_name + '-alias').val(data[model_name]['alias']);
-			$('#edit-' + model_name + '-multiplier').val(data[model_name]['multiplier']);
 			$('#edit-' + model_name + '-state').prop('checked', data[model_name]['state']);
 
 			$('#modal-edit-' + model_name).foundation('reveal', 'open');
-
 		}
 	}, "json");
 
@@ -51,31 +52,33 @@ $("body").delegate("[data-do='open-edit-pricetype']", "click", function(){
 
 
 // Save
-{% if perms.catalog.change_pricetype %}
-$("body").delegate("[data-do='edit-pricetype-save']", "click", function(){
+{% if perms.catalog.change_unit %}
+$("body").delegate("[data-do='edit-unit-save']", "click", function(){
 
-	model_name = 'pricetype';
+	model_name = 'unit';
 
 	$.post('/catalog/ajax/save/' + model_name + '/', {
-		id         : $('#edit-' + model_name + '-id').val(),
-		name       : $('#edit-' + model_name + '-name').val(),
-		alias      : $('#edit-' + model_name + '-alias').val(),
-		multiplier : $('#edit-' + model_name + '-multiplier').val(),
-		state      : $('#edit-' + model_name + '-state').prop('checked'),
+		id             : $('#edit-' + model_name + '-id').val(),
+		name           : $('#edit-' + model_name + '-name').val(),
+		name_short     : $('#edit-' + model_name + '-name-short').val(),
+		name_short_xml : $('#edit-' + model_name + '-name-short-xml').val(),
+		alias          : $('#edit-' + model_name + '-alias').val(),
+		state          : $('#edit-' + model_name + '-state').prop('checked'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
 
 		if ('success' == data.status){
 
+
 			$('[data-' + model_name + '-name="' + data[model_name]['id'] + '"]').text(data[model_name]['name']);
-			$('[data-' + model_name + '-multiplier="' + data[model_name]['id'] + '"]').text(data[model_name]['multiplier']);
 			$('[data-' + model_name + '-state="' + data[model_name]['id'] + '"]').prop('checked', data[model_name]['state']);
 
 			$('#edit-' + model_name + '-id').val('0');
 			$('#edit-' + model_name + '-name').val('');
+			$('#edit-' + model_name + '-name-short').val('');
+			$('#edit-' + model_name + '-name-short-xml').val('');
 			$('#edit-' + model_name + '-alias').val('');
-			$('#edit-' + model_name + '-multiplier').val('1.0');
 			$('#edit-' + model_name + '-state').prop('checked', false);
 
 			$('#modal-edit-' + model_name).foundation('reveal', 'close');
@@ -88,15 +91,16 @@ $("body").delegate("[data-do='edit-pricetype-save']", "click", function(){
 
 
 // Cancel Edit
-{% if perms.catalog.change_pricetype %}
-$("body").delegate("[data-do='edit-pricetype-cancel']", "click", function(){
+{% if perms.catalog.change_unit %}
+$("body").delegate("[data-do='edit-unit-cancel']", "click", function(){
 
-	model_name = 'pricetype';
+	model_name = 'unit';
 
 	$('#edit-' + model_name + '-id').val('0');
 	$('#edit-' + model_name + '-name').val('');
+	$('#edit-' + model_name + '-name-short').val('');
+	$('#edit-' + model_name + '-name-short-xml').val('');
 	$('#edit-' + model_name + '-alias').val('');
-	$('#edit-' + model_name + '-multiplier').val('1.0');
 	$('#edit-' + model_name + '-state').prop('checked', false);
 
 	$('#modal-edit-' + model_name).foundation('reveal', 'close');
@@ -107,10 +111,10 @@ $("body").delegate("[data-do='edit-pricetype-cancel']", "click", function(){
 
 
 // Open Delete
-{% if perms.catalog.delete_pricetype %}
-$("body").delegate("[data-do='open-delete-pricetype']", "click", function(){
+{% if perms.catalog.delete_unit %}
+$("body").delegate("[data-do='open-delete-unit']", "click", function(){
 
-	model_name = 'pricetype';
+	model_name = 'unit';
 
 	$.post('/catalog/ajax/get/' + model_name + '/', {
 		id : $(this).data(model_name + '-id'),
@@ -132,10 +136,10 @@ $("body").delegate("[data-do='open-delete-pricetype']", "click", function(){
 
 
 // Delete
-{% if perms.catalog.delete_pricetype %}
-$("body").delegate("[data-do='delete-pricetype-apply']", "click", function(){
+{% if perms.catalog.delete_unit %}
+$("body").delegate("[data-do='delete-unit-apply']", "click", function(){
 
-	model_name = 'pricetype';
+	model_name = 'unit';
 
 	$.post('/catalog/ajax/delete/' + model_name + '/', {
 		id : $('#delete-' + model_name + '-id').val(),
@@ -156,10 +160,10 @@ $("body").delegate("[data-do='delete-pricetype-apply']", "click", function(){
 
 
 // Cancel Delete
-{% if perms.catalog.delete_pricetype %}
-$("body").delegate("[data-do='delete-pricetype-cancel']", "click", function(){
+{% if perms.catalog.delete_unit %}
+$("body").delegate("[data-do='delete-unit-cancel']", "click", function(){
 
-	model_name = 'pricetype';
+	model_name = 'unit';
 
 	$('#delete-' + model_name + '-id').val(0);
 
@@ -171,10 +175,10 @@ $("body").delegate("[data-do='delete-pricetype-cancel']", "click", function(){
 
 
 // Switch State
-{% if perms.catalog.change_pricetype %}
-$("body").delegate("[data-do='switch-pricetype-state']", "click", function(){
+{% if perms.catalog.change_unit %}
+$("body").delegate("[data-do='switch-unit-state']", "click", function(){
 
-	model_name = 'pricetype';
+	model_name = 'unit';
 
 	$.post('/catalog/ajax/switch-state/' + model_name + '/', {
 		id    : $(this).data(model_name + '-id'),

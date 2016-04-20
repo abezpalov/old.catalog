@@ -1,0 +1,35 @@
+{% if perms.catalog.change_unit or perms.catalog.add_unit %}
+<div id="modal-edit-unit" class="reveal-modal large" data-reveal>
+
+	<h2 id="modal-edit-unit-header"> </h2>
+
+	<input id="edit-unit-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-unit-name" type="text" value="">
+	</label>
+
+	<label>Краткое наименование
+		<input id="edit-unit-name-short" type="text" value="">
+	</label>
+
+	<label>Краткое наименование (XML)
+		<input id="edit-unit-name-short-xml" type="text" value="">
+	</label>
+
+	<label>Псевдоним (служебное поле)
+		<input id="edit-unit-alias" type="text" value="">
+	</label>
+
+	<label>Статус
+		<div class="switch small">
+			<input id="edit-unit-state" type="checkbox">
+			<label for="edit-unit-state"></label>
+		</div>
+	</label>
+
+	<button data-do="edit-unit-save" class="primary"><i class="fa fa-save"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-unit-cancel" class="secondary"><i class="fa fa-close"></i>&nbsp;Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}

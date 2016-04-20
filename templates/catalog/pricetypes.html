@@ -1,5 +1,5 @@
 {% extends "main.html" %}
-{% block title %}Anodos: Типы цен и наценки{% endblock %}
+{% block title %}Anodos.Catalog: Типы цен и наценки{% endblock %}
 
 {% block search %}
 {% include "catalog/search-on-stocks.html" %}
@@ -9,26 +9,50 @@
 
 {% if perms.catalog.change_pricetype or perms.catalog.add_pricetype %}
 
-<!-- Таблица со списком типов цен -->
+
+<div class="row collapse">
+	{% if perms.catalog.add_pricetype %}<button data-do="open-new-pricetype" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип цены</button>{% endif %}
+</div>
+
 <div class="row collapse">
 	<table>
 		<tr>
 			<th class="text-center">#</th>
 			<th>Наименование</th>
-			<th>Статус</th>
 			<th>Модификатор</th>
+			<th colspan = "2">Статус</th>
 		</tr>
-		{% for price_type in price_types %}
-		<tr>
+		{% for pricetype in pricetypes %}
+		<tr data-pricetype = "{{ pricetype.id }}">
 			<td>{{ forloop.counter }}</td>
-			<td><a data-do="open-edit-price-type" data-id="{{ price_type.id }}" data-price-type-name="{{ price_type.id }}">{{ price_type.name }}</a></td>
 			<td>
-				<div class="switch small">
-					<input id="price-type-{{ price_type.id }}-state" data-do="switch-price-type-state" data-id="{{ price_type.id }}" data-price-type-state="{{ price_type.id }}" type="checkbox"{% if price_type.state %} checked{% endif %}>
-					<label for="price-type-{{ price_type.id }}-state"></label>
+				<a
+					data-do = "open-edit-pricetype"
+					data-pricetype-id = "{{ pricetype.id }}"
+					data-pricetype-name = "{{ pricetype.id }}">{{ pricetype.name }}</a></td>
+			<td>
+				<a
+					data-do = "open-edit-pricetype"
+					data-pricetype-id = "{{ pricetype.id }}"
+					data-pricetype-multiplier = "{{ pricetype.id }}" >{{ pricetype.multiplier }}</td>
+			<td>
+				<div class = "switch small">
+					<input
+						id = "pricetype-{{ pricetype.id }}-state"
+						data-do = "switch-pricetype-state"
+						data-pricetype-id = "{{ pricetype.id }}"
+						data-pricetype-state = "{{ pricetype.id }}"
+						type = "checkbox"{% if pricetype.state %} checked{% endif %}>
+					<label for = "pricetype-{{ pricetype.id }}-state"></label>
 				</div>
 			</td>
-			<td data-price-type-multiplier="{{ price_type.id }}" >{{ price_type.multiplier }}</td>
+			<td>
+				<button class = "tiny secondary"
+					data-do = "open-delete-pricetype"
+					data-pricetype-id = "{{ pricetype.id }}">
+					<i class="fa fa-trash"></i>
+				</button>
+			</td>
 		</tr>
 		{% endfor %}
 	</table>
@@ -44,12 +68,12 @@
 
 {% endif %}
 
-{% include "catalog/modal/edit-price-type.html" %}
+{% include "catalog/modal/edit-pricetype.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
-{% include "catalog/js/edit-price-type.js" %}
+{% include "catalog/js/edit-pricetype.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

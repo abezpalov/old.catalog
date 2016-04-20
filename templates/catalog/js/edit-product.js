@@ -1,172 +1,201 @@
+// Open Edit
 {% if perms.catalog.change_product %}
-
-
-// Открытие окна редактирования продукта (существующий)
 $("body").delegate("[data-do='open-edit-product']", "click", function(){
 
-	// Получаем информацию о продукте
-	$.post("/catalog/ajax/get-product/", {
-		product_id: $(this).data('id'),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	model_name = 'product';
+
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
-			if ('success' == data.status){
+		if ('success' == data.status){
 
-				// Заполняем значение полей
-				$('#modal-edit-product-header').text('Редактировать продукт');
-				$('#edit-product-id').val(data.product_id);
-				$('#edit-product-name').val(data.product_name)
-				$('#edit-product-article').val(data.product_article)
-				$('#edit-product-vendor').val(data.product_vendor_id)
-				$('#edit-product-category').val(data.product_category_id)
-				$('#edit-product-description').val(data.product_description)
-				$('#edit-product-double').val(data.product_duble_id)
-				$('#edit-product-state').prop('checked', data.product_state)
+			$('#modal-edit-' + model_name + '-header').text('Редактировать продукт');
 
-				// Открываем окно
-				$('#modal-edit-product').foundation('reveal', 'open');
-
+			$('#edit-' + model_name + '-id').val(data[model_name]['id']);
+			$('#edit-' + model_name + '-name').val(data[model_name]['name']);
+			$('#edit-' + model_name + '-article').val(data[model_name]['article']);
+			if (data[model_name]['vendor']) {
+				$('#edit-' + model_name + '-vendor').val(data[model_name]['vendor']['id']);
 			} else {
-
-				// Показываем сообщение с ошибкой
-				var notification = new NotificationFx({
-					wrapper: document.body,
-					message: '<p>' + data.message + '</p>',
-					layout:  'growl',
-					effect:  'genie',
-					type:    data.status,
-					ttl:     3000,
-					onClose: function() { return false; },
-					onOpen:  function() { return false; }
-				});
-				notification.show();
+				$('#edit-' + model_name + '-vendor').val(0);
 			}
+			if (data[model_name]['category']) {
+				$('#edit-' + model_name + '-category').val(data[model_name]['category']['id']);
+			} else {
+				$('#edit-' + model_name + '-category').val(0);
+			}
+			$('#edit-' + model_name + '-description').val(data[model_name]['description']);
+			if (data[model_name]['double']) {
+				$('#edit-' + model_name + '-double').val(data[model_name]['double']['id']);
+			} else {
+				$('#edit-' + model_name + '-double').val(0);
+			}
+			$('#edit-' + model_name + '-state').prop('checked', data[model_name]['state']);
+
+			$('#modal-edit-' + model_name).foundation('reveal', 'open');
 		}
 	}, "json");
 
 	return false;
 });
-
-
-// Сохранение продукта
-$("body").delegate("[data-do='edit-product-save']", "click", function(){
-
-	// Отправляем запрос
-	$.post("/catalog/ajax/save-product/", {
-		product_id:          $('#edit-product-id').val(),
-		product_name:        $('#edit-product-name').val(),
-		product_article:     $('#edit-product-article').val(),
-		product_vendor_id:   $('#edit-product-vendor').val(),
-		product_category_id: $('#edit-product-category').val(),
-		product_description: $('#edit-product-description').val(),
-		product_duble_id:    $('#edit-product-double').val(),
-		product_state:       $('#edit-product-state').prop('checked'),
-		csrfmiddlewaretoken:     '{{ csrf_token }}'
-	},
-	function(data) {
-		if (null != data.status) {
-
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
-
-			if ('success' == data.status){
-
-				// Закрываем окно
-				$('#modal-edit-product').foundation('reveal', 'close');
-
-				// Обновляем страницу
-				// TODO Добаботать обновление данных без перезагрузки
-				setTimeout(function () {location.reload();}, 3000);
-			}
-		}
-	}, "json");
-
-	return false;
-});
-
-
-// Отмена редактирования продукта
-$("body").delegate("[data-do='edit-product-cancel']", "click", function(){
-
-	// Заполняем значение полей
-	$('#edit-product-id').val('0');
-	$('#edit-product-name').val('')
-	$('#edit-product-article').val('')
-	$('#edit-product-vendor').val('0')
-	$('#edit-product-category').val('0')
-	$('#edit-product-description').val('')
-	$('#edit-product-double').val('')
-	$('#edit-product-state').prop('checked', false)
-
-	// Закрываем окно
-	$('#modal-edit-product').foundation('reveal', 'close');
-
-	return false;
-});
-
-
 {% endif %}
 
-{% if perms.catalog.delete_product %}
 
+// Save
+{% if perms.catalog.change_product %}
+$("body").delegate("[data-do='edit-product-save']", "click", function(){
 
-// Открытие модального окна удаления продукта
-$("body").delegate("[data-do='open-product-trash']", "click", function(){
+	model_name = 'product';
 
-	// Заполняем значение полей
-	$('#trash-product-id').val($(this).data('id'));
-
-	// Открываем окно
-	$('#modal-trash-product').foundation('reveal', 'open');
-
-	return false;
-});
-
-
-// Удаление продукта
-$("body").delegate("[data-do='trash-product']", "click", function(){
-
-	// Отправляем запрос
-	$.post("/catalog/ajax/trash-product/", {
-		product_id:          $('#trash-product-id').val(),
-		csrfmiddlewaretoken: '{{ csrf_token }}'
+	$.post("/catalog/ajax/save-product/", {
+		id          : $('#edit-' + model_name + '-id').val(),
+		name        : $('#edit-' + model_name + '-name').val(),
+		article     : $('#edit-' + model_name + '-article').val(),
+		vendor_id   : $('#edit-' + model_name + '-vendor').val(),
+		category_id : $('#edit-' + model_name + '-category').val(),
+		description : $('#edit-' + model_name + '-description').val(),
+		duble_id    : $('#edit-' + model_name + '-double').val(),
+		state       : $('#edit-' + model_name + '-state').prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
-		if (null != data.status) {
 
-			// Показываем сообщение
-			var notification = new NotificationFx({
-				wrapper : document.body,
-				message : '<p>' + data.message + '</p>',
-				layout : 'growl',
-				effect : 'genie',
-				type : data.status,
-				ttl : 3000,
-				onClose : function() { return false; },
-				onOpen : function() { return false; }
-			});
-			notification.show();
+		if ('success' == data.status){
 
-			// Закрываем окно
-			$('#modal-trash-product').foundation('reveal', 'close');
+			$('[data-' + model_name + '-name="' + data[model_name]['id'] + '"]').text(data[model_name]['name']);
+			$('[data-' + model_name + '-article="' + data[model_name]['id'] + '"]').text(data[model_name]['article']);
+			$('[data-' + model_name + '-state="' + data[model_name]['id'] + '"]').prop('checked', data[model_name]['state']);
 
-			// Обновляем страницу
-			setTimeout(function () {location.reload();}, 3000);
+			$('#edit-' + model_name + '-id').val('0');
+			$('#edit-' + model_name + '-name').val('');
+			$('#edit-' + model_name + '-article').val('');
+			$('#edit-' + model_name + '-vendor').val(0);
+			$('#edit-' + model_name + '-category').val(0);
+			$('#edit-' + model_name + '-description').val('');
+			$('#edit-' + model_name + '-double').val(0);
+			$('#edit-' + model_name + '-state').prop('checked', false);
+
+			if (true == data.reload){
+				setTimeout(function () {location.reload();}, 3000);
+			}
+
+			$('#modal-edit-' + model_name).foundation('reveal', 'close');
+
 		}
 	}, "json");
 
 	return false;
 });
+{% endif %}
 
+
+// Cancel Edit
+{% if perms.catalog.change_product %}
+$("body").delegate("[data-do='edit-product-cancel']", "click", function(){
+
+	model_name = 'product';
+
+	$('#edit-' + model_name + '-id').val('0');
+	$('#edit-' + model_name + '-name').val('')
+	$('#edit-' + model_name + '-article').val('')
+	$('#edit-' + model_name + '-vendor').val('0')
+	$('#edit-' + model_name + '-category').val('0')
+	$('#edit-' + model_name + '-description').val('')
+	$('#edit-' + model_name + '-double').val('')
+	$('#edit-' + model_name + '-state').prop('checked', false)
+
+	$('#modal-edit-' + model_name).foundation('reveal', 'close');
+
+	return false;
+});
+{% endif %}
+
+
+// Open Delete
+{% if perms.catalog.delete_product %}
+$("body").delegate("[data-do='open-delete-product']", "click", function(){
+
+	model_name = 'product';
+
+	$.post('/catalog/ajax/get/' + model_name + '/', {
+		id : $(this).data(model_name + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status){
+
+			$('#delete-' + model_name + '-id').val(data[model_name]['id']);
+			$('#delete-' + model_name + '-name').text(data[model_name]['name'])
+
+			$('#modal-delete-' + model_name).foundation('reveal', 'open');
+		}
+	}, "json");
+
+	return false;
+});
+{% endif %}
+
+
+// Delete
+{% if perms.catalog.delete_product %}
+$("body").delegate("[data-do='delete-product-apply']", "click", function(){
+
+	model_name = 'product';
+
+	$.post('/catalog/ajax/delete/' + model_name + '/', {
+		id : $('#delete-' + model_name + '-id').val(),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status) {
+
+			$('[data-' + model_name + '="' + data['id'] + '"]').empty();
+
+			$('#modal-delete-' + model_name).foundation('reveal', 'close');
+		}
+	}, "json");
+
+	return false;
+});
+{% endif %}
+
+
+// Cancel Delete
+{% if perms.catalog.delete_product %}
+$("body").delegate("[data-do='delete-product-cancel']", "click", function(){
+
+	model_name = 'product';
+
+	$('#delete-' + model_name + '-id').val(0);
+
+	$('#modal-delete-' + model_name).foundation('reveal', 'close');
+
+	return false;
+});
+{% endif %}
+
+
+// Switch State
+{% if perms.catalog.change_product %}
+$("body").delegate("[data-do='switch-product-state']", "click", function(){
+
+	model_name = 'product';
+
+	$.post('/catalog/ajax/switch-state/' + model_name + '/', {
+		id    : $(this).data(model_name + '-id'),
+		state : $(this).prop('checked'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status) {
+			return false;
+		} else {
+			return true;
+		}
+	}, "json");
+
+	return true;
+});
 {% endif %}

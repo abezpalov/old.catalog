@@ -1,12 +1,12 @@
 {% if perms.catalog.change_parametervalue or perms.catalog.add_parametervalue %}
-<div id="modal-edit-parameter-value" class="reveal-modal large" data-reveal>
+<div id="modal-edit-parametervalue" class="reveal-modal large" data-reveal>
 
-	<h2 id="modal-edit-parameter-value-header">&ndsp;</h2>
+	<h2 id="modal-edit-parametervalue-header"> </h2>
 
-	<input id="edit-parameter-value-id" type="hidden" value="0">
+	<input id="edit-parametervalue-id" type="hidden" value="0">
 
 	<label>Параметр
-		<select id="edit-parameter-value-parameter">
+		<select id="edit-parametervalue-parameter">
 			<option value="0" selected> - Не определён (None) - </option>
 			{% for parameter in parameters %}
 			<option value="{{ parameter.id }}">{{ parameter.name }}</option>
@@ -15,23 +15,46 @@
 	</label>
 
 	<label>Значение параметра (текстовое)
-		<input id="edit-parameter-value-value-text" type="text" value="">
+		<input id="edit-parametervalue-value-text" type="text" value="">
 	</label>
 
+	<label>Единица измерения
+		<select id="edit-parametervalue-unit">
+			<option value="0" selected> - Не определена (None) - </option>
+			{% for unit in units %}
+			<option value="{{ unit.id }}">{{ unit.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
 
 	<label>Порядковый номер
-		<input id="edit-parameter-value-order" type="text" value="">
+		<input id="edit-parametervalue-order" type="text" value="">
 	</label>
 
 	<label>Статус
 		<div class="switch small">
-			<input id="edit-parameter-value-state" type="checkbox">
-			<label for="edit-parameter-value-state"></label>
+			<input id="edit-parametervalue-state" type="checkbox">
+			<label for="edit-parametervalue-state"></label>
 		</div>
 	</label>
 
-	<button data-do="edit-parameter-value-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-parameter-value-cancel" class="secondary">Отменить</button>
+	<button data-do="edit-parametervalue-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-parametervalue-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}
+
+{% if perms.catalog.delete_pricetype %}
+<div id="modal-delete-pricetype" class="reveal-modal" data-reveal>
+
+	<h2>Удалить тип цены?</h2>
+
+	<input id="delete-pricetype-id" type="hidden" value="0">
+
+	<p id="delete-pricetype-name"></p>
+
+	<button data-do="delete-pricetype-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-pricetype-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}

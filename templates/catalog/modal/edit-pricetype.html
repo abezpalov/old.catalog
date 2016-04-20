@@ -1,31 +1,46 @@
 {% if perms.catalog.change_pricetype or perms.catalog.add_pricetype %}
-<div id="modal-edit-price-type" class="reveal-modal large" data-reveal>
+<div id="modal-edit-pricetype" class="reveal-modal large" data-reveal>
 
-	<h2 id="modal-edit-price-type-header">&ndsp;</h2>
+	<h2 id="modal-edit-pricetype-header"> </h2>
 
-	<input id="edit-price-type-id" type="hidden" value="0">
+	<input id="edit-pricetype-id" type="hidden" value="0">
 
 	<label>Наименование
-		<input id="edit-price-type-name" type="text" value="">
+		<input id="edit-pricetype-name" type="text" value="">
 	</label>
 
 	<label>Псевдоним (служебное поле)
-		<input id="edit-price-type-alias" type="text" value="">
+		<input id="edit-pricetype-alias" type="text" value="">
+	</label>
+
+	<label>Модификатор
+		<input id="edit-pricetype-multiplier" type="text">
 	</label>
 
 	<label>Статус
 		<div class="switch small">
-			<input id="edit-price-type-state" type="checkbox">
-			<label for="edit-price-type-state"></label>
+			<input id="edit-pricetype-state" type="checkbox">
+			<label for="edit-pricetype-state"></label>
 		</div>
 	</label>
 
-	<label>Модификатор
-		<input id="edit-price-type-multiplier" type="text">
-	</label>
+	<button data-do="edit-pricetype-save"><i class="fa fa-"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-pricetype-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}
 
-	<button data-do="edit-price-type-save"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-price-type-cancel" class="secondary">Отменить</button>
+{% if perms.catalog.delete_pricetype %}
+<div id="modal-delete-pricetype" class="reveal-modal" data-reveal>
+
+	<h2>Удалить тип цены?</h2>
+
+	<input id="delete-pricetype-id" type="hidden" value="0">
+
+	<p id="delete-pricetype-name"></p>
+
+	<button data-do="delete-pricetype-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-pricetype-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}

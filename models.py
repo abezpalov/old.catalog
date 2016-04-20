@@ -464,11 +464,13 @@ class UnitManager(models.Manager):
 
 class Unit(models.Model):
 
-	name     = models.CharField(max_length = 100, unique = True)
-	alias    = models.CharField(max_length = 100, unique = True)
-	state    = models.BooleanField(default = True)
-	created  = models.DateTimeField()
-	modified = models.DateTimeField()
+	name           = models.CharField(max_length = 100, unique = True)
+	name_short     = models.CharField(max_length = 100, null = True, default = None)
+	name_short_xml = models.CharField(max_length = 100, null = True, default = None)
+	alias          = models.CharField(max_length = 100, unique = True)
+	state          = models.BooleanField(default = True)
+	created        = models.DateTimeField()
+	modified       = models.DateTimeField()
 
 	objects  = UnitManager()
 
@@ -476,12 +478,14 @@ class Unit(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
-		result['name']     = self.name
-		result['alias']    = self.alias
-		result['state']    = self.state
-		result['created']  = str(self.created)
-		result['modified'] = str(self.modified)
+		result['id']             = self.id
+		result['name']           = self.name
+		result['name_short']     = self.name_short
+		result['name_short_xml'] = self.name_short_xml
+		result['alias']          = self.alias
+		result['state']          = self.state
+		result['created']        = str(self.created)
+		result['modified']       = str(self.modified)
 
 		return result
 
@@ -971,6 +975,7 @@ class PartyManager(models.Manager):
 
 	def clear(self, stock, time = None):
 		if time:
+			print('Количество партий к удалению: {}.'.format(len(Party.objects.filter(stock = stock, created__gt = time))))
 			Party.objects.filter(stock = stock, created__gt = time).delete()
 		else:
 			Party.objects.filter(stock = stock).delete()
@@ -1323,8 +1328,9 @@ class ParameterValueManager(models.Manager):
 class ParameterValue(models.Model):
 
 	parameter    = models.ForeignKey(Parameter)
-	value_text   = models.CharField(max_length = 100)
+	value_text   = models.TextField()
 	value_search = models.CharField(max_length = 100, null = True, default = None)
+	unit         = models.ForeignKey(Unit, null = True, default = None)
 	order        = models.IntegerField()
 	state        = models.BooleanField(default = True)
 	created      = models.DateTimeField()
