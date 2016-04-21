@@ -953,8 +953,8 @@ class PartyManager(models.Manager):
 			quantity = None, unit = None, time = None):
 
 		if time:
-			print('delete: {}.'.format(len(Party.objects.filter(product = product, stock = stock, created__gt = time))))
-			Party.objects.filter(product = product, stock = stock, created__gt = time).delete()
+			print('delete: {}.'.format(len(Party.objects.filter(product = product, stock = stock, created__lt = time))))
+			Party.objects.filter(product = product, stock = stock, created__lt = time).delete()
 
 		party = Party(
 			product        = product,
@@ -987,8 +987,8 @@ class PartyManager(models.Manager):
 
 	def clear(self, stock, time = None):
 		if time:
-			print('Количество партий к удалению: {}.'.format(len(Party.objects.filter(stock = stock, created__gt = time))))
-			Party.objects.filter(stock = stock, created__gt = time).delete()
+			print('Количество партий к удалению: {}.'.format(len(Party.objects.filter(stock = stock, created__lt = time))))
+			Party.objects.filter(stock = stock, created__lt = time).delete()
 		else:
 			Party.objects.filter(stock = stock).delete()
 		return True
