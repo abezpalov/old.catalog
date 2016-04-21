@@ -96,7 +96,7 @@ class Runner:
 				group_name = group.xpath(".//div[@class='item-text-root']")[0]
 
 				category_synonym = CategorySynonym.objects.take(
-					name        = group_name.text.strip(),
+					name        = str(group_name.text).strip(),
 					updater     = self.updater,
 					distributor = self.distributor)
 

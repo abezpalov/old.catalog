@@ -18,18 +18,33 @@ class Runner:
 		self.url_login = 'https://b2b.treolan.ru/Account/Login?ReturnUrl=%2F'
 		self.url_price = 'https://b2b.treolan.ru/Catalog/SearchToExcel?Template=&Commodity=true&IncludeFullPriceList=false&OrderBy=0&Groups=&Vendors=&IncludeSubGroups=false&Condition=0&PriceMin=&PriceMax=&Currency=0&AvailableAtStockOnly=false&AdditionalParamsStr=&AdditionalParams=&AddParamsShow=&GetExcel=false&FromLeftCol=false&CatalogProductsOnly=true&RusDescription=false&skip=0&take=50&LoadResults=false&DemoOnly=false&ShowHpCarePack=false&MpTypes=-1&showActualGoods=false'
 
-		# Поставщик
+		self.num = {'header': 0}
+
+		self.word = {
+			'article'      : 'Артикул',
+			'name'         : 'Наименование',
+			'vendor'       : 'Производитель',
+			'stock'        : 'Св.',
+			'transit'      : 'Св.+Тр.',
+			'transit_date' : 'Б. Тр.',
+			'price'        : 'Цена',
+			'dop'          : 'Доп.'}
+
+#		currency = {
+#			'General'           : None,
+#			'#,##0.00[$р.-419]' : self.rub,
+#			'[$$-409]#,##0.00'  : self.usd,
+#			'[$€-2]\\ #,##0.00' : self.eur}
+
 		self.distributor = Distributor.objects.take(
 			alias = self.alias,
 			name  = self.name)
 
-		# Загрузчик
 		self.updater = Updater.objects.take(
 			alias       = self.alias,
 			name        = self.name,
 			distributor = self.distributor)
 
-		# Склад
 		self.stock = Stock.objects.take(
 			alias             = self.alias + '-stock',
 			name              = self.name + ': склад',
@@ -37,7 +52,6 @@ class Runner:
 			delivery_time_max = 10,
 			distributor       = self.distributor)
 
-		# Транзит
 		self.transit = Stock.objects.take(
 			alias             = self.alias + '-transit',
 			name              = self.name + ': транзит',
@@ -45,13 +59,10 @@ class Runner:
 			delivery_time_max = 40,
 			distributor       = self.distributor)
 
-		# Единица измерения
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
 
-		# Тип цены
 		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
 
-		# Валюты
 		self.rub = Currency.objects.take(
 			alias     = 'RUB',
 			name      = 'р.',
@@ -76,21 +87,6 @@ class Runner:
 			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
 			return False
 
-		# Номера строк и столбцов
-		num = {'header': 0}
-
-		# Распознаваемые слова
-		word = {
-			'article': 'Артикул',
-			'name': 'Наименование',
-			'vendor': 'Производитель',
-			'stock': 'Св.',
-			'transit': 'Св.+Тр.',
-			'transit_date': 'Б. Тр.',
-			'price_usd': 'Цена*',
-			'price_rub': 'Цена руб.**',
-			'dop': 'Доп.'}
-
 		# Создаем сессию
 		s = requests.Session()
 
@@ -105,9 +101,9 @@ class Runner:
 		# Авторизуемся
 		try:
 			payload = {
-				'UserName':   self.updater.login,
-				'Password':   self.updater.password,
-				'RememberMe': 'false'}
+				'UserName'   : self.updater.login,
+				'Password'   : self.updater.password,
+				'RememberMe' : 'false'}
 			r = s.post(self.url_login, cookies=cookies, data=payload, allow_redirects=True, verify=False, timeout=100.0)
 			cookies = r.cookies
 		except requests.exceptions.Timeout:
@@ -133,48 +129,87 @@ class Runner:
 		for trn, tr in enumerate(table):
 
 			# Заголовок таблицы
-			if trn == num['header']:
+			if trn == self.num['header']:
 				for tdn, td in enumerate(tr):
-					if   td[0].text == word['article']:      num['article']      = tdn
-					elif td[0].text == word['name']:         num['name']         = tdn
-					elif td[0].text == word['vendor']:       num['vendor']       = tdn
-					elif td[0].text == word['stock']:        num['stock']        = tdn
-					elif td[0].text == word['transit']:      num['transit']      = tdn
-					elif td[0].text == word['transit_date']: num['transit_date'] = tdn
-					elif td[0].text == word['price_usd']:    num['price_usd']    = tdn
-					elif td[0].text == word['price_rub']:    num['price_rub']    = tdn
-					elif td[0].text == word['dop']:          num['dop']          = tdn
+					if td[0].text == self.word['article']:
+						self.num['article'] = tdn
+					elif td[0].text == self.word['name']:
+						self.num['name'] = tdn
+					elif td[0].text == self.word['vendor']:
+						self.num['vendor'] = tdn
+					elif td[0].text == self.word['stock']:
+						self.num['stock'] = tdn
+					elif td[0].text == self.word['transit']:
+						self.num['transit'] = tdn
+					elif td[0].text == self.word['transit_date']:
+						self.num['transit_date'] = tdn
+					elif td[0].text == self.word['price']:
+						self.num['price'] = tdn
+					elif td[0].text == self.word['dop']:
+						self.num['dop'] = tdn
 
 				# Проверяем, все ли столбцы распознались
-				if not num['article'] == 0 or not num['name'] or not num['vendor'] or not num['stock'] or not num['transit'] or not num['price_usd'] or not num['price_rub']:
-					print("Ошибка структуры данных: не все столбцы опознаны.")
+				try:
+					if self.num['article'] == 0 and self.num['name']\
+							and self.num['vendor'] and self.num['stock']\
+							and self.num['transit'] and self.num['price']:
+						print("Структура данных без изменений.")
+				except Exception:
 					return False
-				else: print("Структура данных без изменений.")
 
 			# Категория
 			elif len(tr) == 1:
-				category_synonym = CategorySynonym.objects.take(name=tr[0][0].text.strip(), updater=self.updater, distributor=self.distributor)
+				category_synonym = CategorySynonym.objects.take(
+					name = tr[0][0].text.strip(),
+					updater = self.updater,
+					distributor = self.distributor)
 
 			# Товар
-			elif len(tr) == 9:
-				for tdn, td in enumerate(tr):
-					if   tdn == num['article']:      article             = str(td.text).strip()
-					elif tdn == num['name']:         name                = str(td.text).strip()
-					elif tdn == num['vendor']:       vendor_synonym_name = str(td.text).strip()
-					elif tdn == num['stock']:        stock               = self.fixQuantity(td.text)
-					elif tdn == num['transit']:      transit             = self.fixQuantity(td.text) - stock
-					elif tdn == num['transit_date']: transit_date        = td.text
-					elif tdn == num['price_usd']:    price_usd           = self.fixPrice(td.text)
-					elif tdn == num['price_rub']:    price_rub           = self.fixPrice(td.text)
-					elif tdn == num['dop']:          dop                 = td.text
+			elif len(tr) == 8:
 
-				# Обрабатываем синоним производителя
-				if vendor_synonym_name:
-					vendor_synonym = VendorSynonym.objects.take(
-						name        = vendor_synonym_name,
-						updater     = self.updater,
-						distributor = self.distributor)
-				else: continue
+				article = ''
+				name = ''
+				vendor_synonym = None
+				stock = 0
+				transit = 0
+				transit_date = None
+				price = 0
+				currency = None
+				dop = ''
+
+				for tdn, td in enumerate(tr):
+
+					if tdn == self.num['article']:
+						article = str(td.text).strip()
+
+					elif tdn == self.num['name']:
+						name = str(td.text).strip()
+
+					elif tdn == self.num['vendor']:
+						vendor_synonym = VendorSynonym.objects.take(
+							name        = str(td.text).strip(),
+							updater     = self.updater,
+							distributor = self.distributor)
+
+					elif tdn == self.num['stock']:
+						stock = self.fix_quantity(td.text)
+
+					elif tdn == self.num['transit']:
+						transit = self.fix_quantity(td.text) - stock
+
+					elif tdn == self.num['transit_date']:
+						transit_date = td.text
+
+					elif tdn == self.num['price']:
+						price = td.text.strip()
+						if 'руб' in price:
+							currency = self.rub
+						elif '$' in price:
+							currency = self.usd
+						price = self.fix_price(price)
+
+					elif tdn == self.num['dop']:
+						dop = td.text
 
 				# Получаем объект товара
 				if article and name and vendor_synonym.vendor:
@@ -185,82 +220,32 @@ class Runner:
 						category = category_synonym.category,
 						unit     = self.default_unit)
 					self.count['product'] += 1
-				else: continue
-
-				# Цена в долларах
-				if price_usd:
-					if stock or not transit:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.stock,
-							price      = price_usd,
-							price_type = self.dp,
-							currency   = self.usd,
-							quantity   = stock,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
-					if transit:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.transit,
-							price      = price_usd,
-							price_type = self.dp,
-							currency   = self.usd,
-							quantity   = transit,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
-
-				# Цена в рублях
-				elif price_rub:
-					if stock or not transit:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.stock,
-							price      = price_rub,
-							price_type = self.dp,
-							currency   = self.rub,
-							quantity   = stock,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
-					if transit:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.transit,
-							price      = price_rub,
-							price_type = self.dp,
-							currency   = self.rub,
-							quantity   = transit,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
-
-				# Цена не определена
 				else:
-					if stock or not transit:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.stock,
-							price      = None,
-							price_type = self.dp,
-							currency   = self.rub,
-							quantity   = stock,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
-					if transit:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.transit,
-							price      = None,
-							price_type = self.dp,
-							currency   = self.rub,
-							quantity   = transit,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
+					continue
+
+				if stock or not transit:
+					party = Party.objects.make(
+						product    = product,
+						stock      = self.stock,
+						price      = price,
+						price_type = self.dp,
+						currency   = currency,
+						quantity   = stock,
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
+
+				if transit:
+					party = Party.objects.make(
+						product    = product,
+						stock      = self.transit,
+						price      = price,
+						price_type = self.dp,
+						currency   = currency,
+						quantity   = transit,
+						unit       = self.default_unit,
+						time       = self.start_time)
+					self.count['party'] += 1
 
 		# Чистим партии
 		Party.objects.clear(stock = self.stock,   time = self.start_time)
@@ -275,20 +260,40 @@ class Runner:
 		return True
 
 
-	def fixPrice(self, price):
-		price = str(price).strip()
-		price = price.replace(',', '.')
-		price = price.replace(' ', '')
-		if price: price = float(price)
-		else: price = None
+	def fix_price(self, price):
+
+		price = price.strip()
+
+		translation_map = {
+			ord('$') : '',
+			ord('р') : '',
+			ord('у') : '',
+			ord('б') : '',
+			ord(',') : '.',
+			ord(' ') : ''}
+
+		price = price.translate(translation_map)
+
+		if price:
+			price = float(price)
+		else:
+			price = None
+
 		return price
 
 
-	def fixQuantity(self, quantity):
+	def fix_quantity(self, quantity):
+
 		quantity = str(quantity).strip()
+
 		try:
-			if quantity in ('', '0*'): return 0
-			elif quantity == 'мало':   return 5
-			elif quantity == 'много':  return 10
-			else: return int(quantity)
-		except: return 0
+			if quantity in ('', '0*'):
+				return 0
+			elif quantity == 'мало':
+				return 5
+			elif quantity == 'много':
+				return 10
+			else:
+				return int(quantity)
+		except Exception:
+			return 0
