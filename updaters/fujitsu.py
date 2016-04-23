@@ -1,14 +1,16 @@
-import lxml.html
-import requests
-from io import BytesIO
-from zipfile import ZipFile
-import sys, subprocess, os
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
+import catalog.runner
+from catalog.models import *
 
-class Runner:
+
+
+
+
+
+import sys, subprocess, os
+
+class Runner(catalog.runner.Runner):
 
 
 	name  = 'Fujitsu'
@@ -26,121 +28,63 @@ class Runner:
 
 	def __init__(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		super().__init__()
 
-		# Дистрибьютор
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
-
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		# Производитель
 		self.vendor = Vendor.objects.take(
 			alias = self.alias,
 			name  = self.name)
 
-		# Завод
-		self.factory = Stock.objects.take(
-			alias             = self.alias + '-factory',
-			name              = self.name + ': на заказ',
-			delivery_time_min = 40,
-			delivery_time_max = 60,
-			distributor       = self.distributor)
+		self.stock = self.take_stock('factory', 'на заказ', 40, 60)
 
-		# Единица измерения
-		self.default_unit = Unit.objects.take(
-			alias = 'pcs',
-			name  = 'шт.')
-
-		# Тип цены
 		self.rdp = PriceType.objects.take(
 			alias = 'RDP-Fujitsu',
 			name  = 'Рекомендованная диллерская цена Fujitsu')
 
-		# Валюта
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
 
 	def run(self):
 
-		# Проверяем наличие параметров авторизации
-		if not self.updater.login or not self.updater.password:
-			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
-			return False
-
-		# Создаем сессию
-		s = requests.Session()
-
-		# Получаем куки
-		try:
-			r = s.get(self.url['start'], allow_redirects = True, timeout = 30.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки Cookies.")
-			return False
-
-		# Авторизуемся
-		try:
-			payload = {
-				'curl': '/',
-				'flags': '0',
-				'forcedownlevel': '0',
-				'formdir': '15',
-				'username': self.updater.login,
-				'password': self.updater.password,
-				'SubmitCreds': 'Sign In',
-				'trusted': '0'}
-			r = s.post(self.url['login'], cookies = cookies, data = payload, allow_redirects = True, verify = False, timeout = 30.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания подтверждения авторизации.")
-			return False
+		payload = {
+			'curl': '/',
+			'flags': '0',
+			'forcedownlevel': '0',
+			'formdir': '15',
+			'username': self.updater.login,
+			'password': self.updater.password,
+			'SubmitCreds': 'Sign In',
+			'trusted': '0'}
+		self.login(payload)
 
 		# Заходим на страницу загрузки
-		try:
-			r = s.get(self.url['links'], cookies = cookies, timeout = 30.0)
-		except requests.exceptions.Timeout:
-			print("Превышение интервала загрузки ссылок.")
-			return False
+		tree = self.load_html(self.url['links'])
 
 		# Получаем ссылки со страницы
-		tree = lxml.html.fromstring(r.text)
 		urls = tree.xpath('//a/@href')
 		for url in urls:
 			if self.url['search'] in url:
 
 				# Скачиваем архив
 				url = self.url['prefix'] + url
-				print("Архив найден: {}".format(url))
-				r = s.get(url, cookies = cookies)
+
+				data = self.load_data(url)
 
 				# Парсим sys_arc.mdb
-				mdb = self.getMDB(r, 'sys_arc.mdb')
-				self.parseCategories(mdb)
-				self.parseProducts(mdb)
+				mdb = self.unpack(data, 'sys_arc.mdb')
+				self.parse_categories(mdb)
+				self.parse_products(mdb)
 
 				# Парсим prices.mdb
-				mdb = self.getMDB(r, 'prices.mdb')
-				self.parsePrices(mdb)
+				mdb = self.unpack(data, 'prices.mdb')
+				self.parse_prices(mdb)
 
-				# Чистим партии
 				Party.objects.clear(stock = self.factory, time = self.start_time)
 
 				Log.objects.add(
 					subject     = "catalog.updater.{}".format(self.updater.alias),
 					channel     = "info",
 					title       = "Updated",
-					description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+					description = "Products: {}; Parties: {}.".format(
+						self.count['product'],
+						self.count['party']))
 
 				return True
 
@@ -153,9 +97,11 @@ class Runner:
 		return False
 
 
-	def getMDB(self, r, mdb_name):
+	def unpack(self, data, mdb_name):
 
-		zip_data = ZipFile(BytesIO(r.content))
+		from zipfile import ZipFile
+
+		zip_data = ZipFile(data)
 
 		zip_data.extract(mdb_name, '/tmp')
 		print("Получены данные: {}".format(mdb_name))
@@ -163,7 +109,9 @@ class Runner:
 		return "/tmp/{}".format(mdb_name)
 
 
-	def parseCategories(self, mdb):
+	def parse_categories(self, mdb):
+
+		import sys, subprocess, os
 
 		# Синонимы категорий
 		self.category_synonyms = {}
@@ -216,7 +164,9 @@ class Runner:
 		return True
 
 
-	def parseProducts(self, mdb):
+	def parse_products(self, mdb):
+
+		import sys, subprocess, os
 
 		# Номера строк и столбцов
 		num = {}
@@ -308,16 +258,18 @@ class Runner:
 		return True
 
 
-	def parsePrices(self, mdb):
+	def parse_prices(self, mdb):
+
+		import sys, subprocess, os
 
 		# Номера строк и столбцов
 		num = {}
 
 		# Распознаваемые слова
 		word = {
-			'price_n':       'SPNr',
-			'price_a':       'SPName',
-			'article':       'SachNr'}
+			'price_n' : 'SPNr',
+			'price_a' : 'SPName',
+			'article' : 'SachNr'}
 
 		price_types = {}
 

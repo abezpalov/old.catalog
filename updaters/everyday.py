@@ -44,8 +44,8 @@ class Runner:
 			# Выполняем необходимый загрузчик
 			try:
 				print("Пробую выполнить загрузчик {}".format(updater))
-				Updater = __import__('catalog.updaters.{}'.format(updater), fromlist=['Runner'])
-				runner = Updater.Runner()
+				Runner = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'.format(sys.argv[1].capitalize())])
+				runner = Runner.Runner()
 				if runner.updater.state:
 					if runner.run():
 						runner.updater.updated = timezone.now()

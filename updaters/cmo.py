@@ -1,65 +1,58 @@
-import requests
-import lxml.html
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
-class Runner:
+import catalog.runner
+from catalog.models import *
+
+
+class Runner(catalog.runner.Runner):
 
 
 	name  = 'ЦМО'
 	alias = 'cmo'
-	count = {
-		'product' : 0,
-		'party'   : 0}
+
+	url = {
+		'start' : 'http://cmo.ru/',
+		'price' : 'http://cmo.ru/price/'}
 
 
 	def __init__(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		super().__init__()
 
-		# Дистрибьютор
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
+		self.stock   = self.take_stock('factory', 'завод', 10, 20)
 
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		# Завод
-		self.factory = Stock.objects.take(
-			alias             = self.alias + '-factory',
-			name              = self.name + ': завод',
-			delivery_time_min = 10,
-			delivery_time_max = 20,
-			distributor       = self.distributor)
-
-		# Производитель
 		self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
 
-		# Единица измерения
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
-
-		# Тип цены
-		self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
-
-		# Валюта
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-
-		# Переменные
-		self.url = 'http://cmo.ru/price/'
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 
 	def run(self):
+
+		# Получаем HTML-данные
+		r = self.load_cookie()
+		tree = self.load_html(self.url['price'])
+
+		if tree is None:
+			return False
+
+		self.parse(tree)
+
+		# Чистим устаревшие партии
+		Party.objects.clear(stock = self.stock, time = self.start_time)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Products: {}; Parties: {}.".format(
+				self.count['product'],
+				self.count['party']))
+
+		return True
+
+	def parse(self, tree):
 
 		# Номера строк и столбцов
 		num = {'header': 0}
@@ -69,17 +62,6 @@ class Runner:
 			'article':    'Артикул',
 			'code':       'Код (ID)',
 			'name':       'Наименование продукции'}
-
-		# Создаем сессию
-		s = requests.Session()
-
-		# Загружаем данные
-		try:
-			r = s.get(self.url, timeout = 100.0)
-			tree = lxml.html.fromstring(r.text)
-		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки.")
-			return False
 
 		# Парсим
 		tables = tree.xpath(".//div[@class='price-list']")
@@ -109,19 +91,22 @@ class Runner:
 					try:
 						party_article   = element.xpath(".//div[@class='service-num']")[0].text.strip()
 						product_article = element.xpath(".//div[@class='service-code']")[0].text.strip()
-					except: continue
+					except Exception:
+						continue
 
 					# Наименование
 					try:
 						product_name = element.xpath(".//div[@class='name-text']/a")[0].text.strip()
 						product_link = element.xpath(".//div[@class='name-text']/a")[0].get('href').strip()
-					except: continue
+					except Exception:
+						continue
 
 					# Цена
 					try:
 						price = element.xpath(".//div[@class='price']")[0].text.strip()
-						price = self.fixPrice(price)
-					except: continue
+						price = self.fix_price(price)
+					except Exception:
+						continue
 
 					# Получаем объект товара
 					if product_article and product_name:
@@ -132,12 +117,13 @@ class Runner:
 							category = category_synonym.category,
 							unit     = self.default_unit)
 						self.count['product'] += 1
-					else: continue
+					else:
+						continue
 
 					# Добавляем партии
 					party = Party.objects.make(
 						product    = product,
-						stock      = self.factory,
+						stock      = self.stock,
 						article    = party_article,
 						price      = price,
 						price_type = self.rp,
@@ -148,7 +134,7 @@ class Runner:
 					self.count['party'] += 1
 
 		# Чистим устаревшие партии
-		Party.objects.clear(stock = self.factory, time = self.start_time)
+		Party.objects.clear(stock = self.stock, time = self.start_time)
 
 		Log.objects.add(
 			subject     = "catalog.updater.{}".format(self.updater.alias),
@@ -158,12 +144,3 @@ class Runner:
 
 		return True
 
-
-	def fixPrice(self, price):
-		price = str(price).strip()
-		if price in ('Цена не найдена'): price = None
-		else:
-			price = price.replace('RUB', '')
-			price = price.replace(' ', '')
-			price = float(price)
-		return price

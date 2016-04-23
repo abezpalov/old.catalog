@@ -1,98 +1,52 @@
-import json
-import time
-import xlrd
-import requests
-import lxml.html
-from io import BytesIO
-from zipfile import ZipFile
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
+import catalog.runner
+from catalog.models import *
 
-class Runner:
+class Runner(catalog.runner.Runner):
+
+
+	name  = 'Axsoft'
+	alias = 'axoft'
+
+	url = {
+		'start'   : 'http://axoft.ru/',
+		'login'   : 'http://axoft.ru/',
+		'vendors' : 'http://axoft.ru/vendors/',
+		'prefix'  : 'http://axoft.ru',
+	}
+
+	word = {
+		'vendor' : '/vendors/',
+		'price'  : '/pricelists/download.php?'}
 
 
 	def __init__(self):
 
-		self.name  = 'Axsoft'
-		self.alias = 'axoft'
+		super().__init__()
+
+		self.stock = self.take_stock('on-order', 'на заказ', 5, 40)
+
 		self.count = {
 			'product' : 0,
 			'party'   : 0}
-
-		# Фиксируем время старта
-		self.start_time = timezone.now()
-
-		# Поставщик
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
-
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		# На заказ
-		self.on_order = Stock.objects.take(
-			alias             = self.alias + '-on-order',
-			name              = self.name + ': на заказ',
-			delivery_time_min = 10,
-			delivery_time_max = 40,
-			distributor       = self.distributor)
-
-		# Единица измерения
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
-
-		# Тип цен
-		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
-		self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
-
-		# Валюты
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
-		self.eur = Currency.objects.take(
-			alias     = 'EUR',
-			name      = 'EUR',
-			full_name = 'Euro',
-			rate      = 80,
-			quantity  = 1)
-
-		# Используемые ссылки
-		self.urls = {
-			'start'         : 'http://axoft.ru/',
-			'login'         : 'http://axoft.ru/',
-			'vendors'       : 'http://axoft.ru/vendors/',
-			'search_vendor' : '/vendors/',
-			'search_price'  : '/pricelists/download.php?',
-			'prefix'        : 'http://axoft.ru',
-		}
-
-		# Сессия
-		self.s = requests.Session()
-		self.cookie = None
 
 
 	def run(self):
 
 		# Авторизуемся
-		if not self.login():
-			return False
+		payload = {
+			'backurl'       : '/',
+			'AUTH_FORM'     : 'Y',
+			'TYPE'          : 'AUTH',
+			'IS_POPUP'      : '1',
+			'USER_LOGIN'    : self.updater.login,
+			'USER_PASSWORD' : self.updater.password,
+			'Login'         : 'Вход для партнеров'}
+		self.login(payload)
 
-		# Получаем список производителей и ссылок на их прайс-листы
-		prices = self.getPrices()
+		# Получаем список производителей
+		prices = self.get_prices_urls()
 
 		# Проходим по каждому прайс-листу
 		for n, price in enumerate(prices):
@@ -100,200 +54,95 @@ class Runner:
 			print("Прайс-лист {} из {}: {}".format(
 				n + 1,
 				len(prices),
-				price['name']))
+				price[0]))
 
 			# Синоним производителя
 			vendor_synonym = VendorSynonym.objects.take(
-				name        = price['name'],
+				name        = str(price[0]),
 				updater     = self.updater,
 				distributor = self.distributor)
 
 			if vendor_synonym.vendor:
-				data = self.getData(price['url'], price['name'])
-				if data:
-					self.parsePrice(data, vendor_synonym.vendor)
-			else:
-				print('Производитель не привязан.')
+
+				# Скачиваем архив с прайс-листом
+				data = self.load_data(price[1])
+
+				# Распаковываем и парсим
+				data = self.unpack(data)
+
+				if data is not None:
+					self.parse(data, vendor_synonym.vendor)
 
 		# Чистим устаревшие партии
-		Party.objects.clear(stock = self.on_order, time = self.start_time)
+		Party.objects.clear(stock = self.stock, time = self.start_time)
 
 		Log.objects.add(
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+			description = "Products: {}; Parties: {}.".format(
+				self.count['product'],
+				self.count['party']))
 
 		return True
 
 
-	def login(self):
+	def get_prices_urls(self):
 
-		# Проверяем наличие параметров авторизации
-		if not self.updater.login or not self.updater.password:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "login error",
-				description = "Проверьте параметры авторизации. Кажется их нет.")
-			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
-			return False
+		prices  = set()
 
-		# Получаем куки
-		try:
-			r = self.s.get(self.urls['start'], timeout = 30.0)
-			self.cookies = r.cookies
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала ожидания загрузки.")
-			return False
+		tree = self.load_html(self.url['vendors'])
 
-		# Авторизуемся
-		try:
-			payload = {
-				'backurl'       : '/',
-				'AUTH_FORM'     : 'Y',
-				'TYPE'          : 'AUTH',
-				'IS_POPUP'      : '1',
-				'USER_LOGIN'    : self.updater.login,
-				'USER_PASSWORD' : self.updater.password,
-				'Login'         : 'Вход для партнеров'}
-			r = self.s.post(
-				self.urls['login'],
-				cookies         = self.cookies,
-				data            = payload,
-				allow_redirects = True,
-				timeout         = 30.0)
-			self.cookies = r.cookies
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала ожидания авторизации.")
-			return False
-
-		return True
-
-
-	def getPrices(self):
-
-		vendors = []
-		prices  = []
-
-		# Загружаем список производителей
-		try:
-			r = self.s.get(
-				self.urls['vendors'],
-				cookies         = self.cookies,
-				allow_redirects = True,
-				timeout         = 30.0)
-			self.cookies = r.cookies
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала ожидания загрузки списка производителей.")
-			return False
-
-		# Проходим по всем ссылкам
-		tree = lxml.html.fromstring(r.text)
 		links = tree.xpath('//a')
 
 		# Выбираем ссылкки на страницы производителей
-		for link in links:
+		for n, link in enumerate(links):
 
-			vendor = {}
-			vendor['name'] = link.text
-			vendor['url']  = '{}{}'.format(self.urls['prefix'], link.get('href'))
+			vendor_name = link.text
+			vendor_url  = '{}{}'.format(self.url['prefix'], link.get('href'))
 
-			if (self.urls['search_vendor'] in vendor['url']):
-				vendors.append(vendor)
+			if self.word['vendor'] in vendor_url:
 
-		print("Обнаружил страниц производителей: {} шт.".format(len(vendors)))
+				tree = self.load_html(vendor_url)
 
-		# Проходим по всем страницам производителям
-		for n, vendor in enumerate(vendors):
+				if tree is not None:
 
-			try:
-				r = self.s.get(
-					vendor['url'],
-					cookies         = self.cookies,
-					allow_redirects = True,
-					timeout         = 30.0)
-				self.cookies = r.cookies
-			except requests.exceptions.Timeout:
-				Log.objects.add(
-					subject     = "catalog.updater.{}".format(self.updater.alias),
-					channel     = "error",
-					title       = "requests.exceptions.Timeout",
-					description = "Превышение интервала ожидания загрузки страницы производителя {}.".format(vendor['name']))
-				continue
+					# Добавляем в список ссылок на прайс-листы соответсвующие
+					for url in tree.xpath('//a/@href'):
 
-			# Проходим по всем ссылкам
-			tree = lxml.html.fromstring(r.text)
-			urls = tree.xpath('//a/@href')
+						if self.word['price'] in url:
 
-			# Добавляем в список ссылок на прайс-листы соответсвующие
-			for url in urls:
+							if not self.url['prefix'] in url:
+								url  = '{}{}'.format(self.url['prefix'], url)
 
-				price = {}
+							price = (vendor_name, url,)
+							prices.add(price)
 
-				if self.urls['search_price'] in url:
-
-					if not self.urls['prefix'] in url:
-						url  = '{}{}'.format(self.urls['prefix'], url)
-
-					price['url']  = url
-					price['name'] = vendor['name']
-
-					if price['url'] and price['name']:
-						prices.append(price)
-						print('Прайс-лист {} из {}: {} [{}].'.format(n + 1, len(vendors), price['url'], price['name']))
+							print('Ссылка {} из {}: {} [{}].'.format(
+									n + 1,
+									len(links),
+									price[1],
+									price[0]))
 
 		return prices
 
 
-	def getData(self, url, name = None):
+	def unpack(self, data):
 
-		print('Загружаю: {}.'.format(url))
-
-		# Загружаем прайс-лист
-		try:
-			r = self.s.get(
-				url,
-				cookies         = self.cookies,
-				allow_redirects = True,
-				timeout         = 30.0)
-			self.cookies = r.cookies
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала ожидания загрузки каталога.")
-			return False
+		from zipfile import ZipFile
 
 		try:
-			zip_data = ZipFile(BytesIO(r.content))
-		except:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = 'Битый архив: <a href="{url}">{name}</a>.'.format(url = url, name = name))
-			return False
-
-		data = zip_data.open(zip_data.namelist()[0])
-
-		return data
+			zip_data = ZipFile(data)
+			data = zip_data.open(zip_data.namelist()[0])
+		except Exception:
+			return None
+		else:
+			return data
 
 
-	def parsePrice(self, data, vendor):
+	def parse(self, data, vendor):
+
+		import xlrd
 
 		# Номера строк и столбцов
 		num = {
@@ -377,8 +226,8 @@ class Runner:
 				party_article       = row[num['party_article']]
 				product_name        = row[num['product_name']]
 				product_version     = row[num['product_version']]
-				price_in            = self.fixPrice(row[num['price_in']])
-				price_out           = self.fixPrice(row[num['price_out']])
+				price_in            = self.fix_price(row[num['price_in']])
+				price_out           = self.fix_price(row[num['price_out']])
 				product_vat         = row[num['product_vat']]
 
 				# Валюта входной цены
@@ -424,7 +273,7 @@ class Runner:
 					# Добавляем партии
 					party = Party.objects.make(
 						product        = product,
-						stock          = self.on_order,
+						stock          = self.stock,
 						price          = price_in,
 						price_type     = self.dp,
 						currency       = price_currency_in,
@@ -437,11 +286,3 @@ class Runner:
 					self.count['party'] += 1
 
 		return True
-
-
-	def fixPrice(self, price):
-		if price:
-			try: price = float(price)
-			except ValueError: price = None
-		else: price = None
-		return price

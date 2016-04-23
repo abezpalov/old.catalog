@@ -1,168 +1,55 @@
-import requests
-import lxml.html
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
+import catalog.runner
+from catalog.models import *
 
-class Runner:
+
+class Runner(catalog.runner.Runner):
 
 
 	name  = 'Digis'
 	alias = 'digis'
-	count = {
-		'product' : 0,
-		'party'   : 0}
+
+	url = {
+		'start' : 'http://digis.ru/distribution/',
+		'login' : 'http://digis.ru/distribution/?login=yes',
+		'files' : 'http://digis.ru/personal/profile/price/',
+		'base'  : 'http://digis.ru',
+		'price' : '/bitrix/redirect.php?event1=news_out&event2=/personal/profile/price/p14u/daily_price_cs_pdl.xlsx'}
+
 
 	def __init__(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		super().__init__()
 
-		# Поставщик
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
+		self.stock   = self.take_stock('stock',   'склад',     3, 10)
+		self.transit = self.take_stock('transit', 'транзит',  10, 40)
+		self.factory = self.take_stock('factory', 'на заказ', 20, 60)
 
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		# На заказ
-		self.factory = Stock.objects.take(
-			alias             = self.alias + '-factory',
-			name              = self.name + ': на заказ',
-			delivery_time_min = 20,
-			delivery_time_max = 60,
-			distributor       = self.distributor)
-
-		# Склад
-		self.stock = Stock.objects.take(
-			alias             = self.alias + '-stock',
-			name              = self.name+': склад',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Транзит
-		self.transit = Stock.objects.take(
-			alias             = self.alias + '-transit',
-			name              = self.name + ': транзит',
-			delivery_time_min = 10,
-			delivery_time_max = 40,
-			distributor       = self.distributor)
-
-		# Единица измерения
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
-
-		# Типы цен
-		self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
-		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
-
-		# Валюты
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
-		self.eur = Currency.objects.take(
-			alias     = 'EUR',
-			name      = 'EUR',
-			full_name = 'Евро',
-			rate      = 80,
-			quantity  = 1)
-
-		# Дополнительные переменные
-		self.url = {
-			'start': 'http://digis.ru/distribution/',
-			'login': 'http://digis.ru/distribution/?login=yes',
-			'files': 'http://digis.ru/personal/profile/price/',
-			'base':  'http://digis.ru',
-			'price': '/bitrix/redirect.php?event1=news_out&event2=/personal/profile/price/p14u/daily_price_cs_pdl.xlsx'}
-
-		self.currencies = {
-			'RUB' : self.rub,
-			'RUR' : self.rub,
-			'руб' : self.rub,
-			'руб.': self.rub,
-			'USD' : self.usd,
-			'EUR' : self.eur,
-			''    : None}
-
-		self.stocks = {
-			'factory' : self.factory,
-			'stock'   : self.stock,
-			'transit' : self.transit}
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 
 	def run(self):
 
-		# Проверяем наличие параметров авторизации
-		if not self.updater.login or not self.updater.password:
-			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
-			return False
-
-		# Создаем сессию
-		s = requests.Session()
-
-		# Получаем куки
-		try:
-			r = s.get(
-				self.url['start'],
-				allow_redirects = True,
-				timeout         = 30.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала ожидания загрузки.")
-			return False
-
 		# Авторизуемся
-		try:
-			payload = {
-				'AUTH_FORM': 'Y',
-				'TYPE': 'AUTH',
-				'backurl': '/distribution/',
-				'href': 'http://digis.ru/distribution/',
-				'USER_LOGIN': self.updater.login,
-				'USER_PASSWORD': self.updater.password,
-				'USER_REMEMBER': 'Y',
-				'Login': 'Войти'}
-			r = s.post(self.url['login'], cookies = cookies, data = payload, allow_redirects = True)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала ожидания подтверждения авторизации.")
-			return False
+		payload = {
+			'AUTH_FORM'     : 'Y',
+			'TYPE'          : 'AUTH',
+			'backurl'       : '/distribution/',
+			'href'          : self.url['start'],
+			'USER_LOGIN'    : self.updater.login,
+			'USER_PASSWORD' : self.updater.password,
+			'USER_REMEMBER' : 'Y',
+			'Login'         : 'Войти'}
+		self.login(payload)
+
 
 		# Заходим на страницу загрузки
-		try:
-			r = s.get(self.url['files'], cookies = cookies, timeout = 30.0)
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала загрузки ссылок.")
-			return False
+		tree = self.load_html(self.url['files'])
 
 		# Получаем ссылки со страницы
-		tree = lxml.html.fromstring(r.text)
 		urls = tree.xpath('//a/@href')
 
 		parsed = []
@@ -178,13 +65,11 @@ class Runner:
 
 					parsed.append(url)
 
-					# Скачиваем прайс-лист
-					print("Прайс-лист найден: {}".format(url))
-					r = s.get(url, cookies = cookies)
-
-					# Парсим прайс-лист
-					if not self.parsePrice(r):
-						return False
+					# Скачиваем и парсим
+					print(url)
+					data = self.load_data(url)
+					print(data)
+					self.parse(data)
 
 		Party.objects.clear(stock = self.factory, time = self.start_time)
 		Party.objects.clear(stock = self.stock,   time = self.start_time)
@@ -198,34 +83,40 @@ class Runner:
 
 		return True
 
-	def parsePrice(self, r):
+	def parse(self, data):
 
 		import xlrd
-		from io import BytesIO
-
-		xlsx_data = BytesIO(r.content)
 
 		# Номера строк и столбцов
 		num = {'header': 10}
 
 		# Распознаваемые слова
 		word = {
-			'category':           'Категория',
-			'category_sub':       'Подкатегория',
-			'product_vendor':     'Бренд',
-			'party_article':      'Код',
-			'product_article':    'Артикул',
-			'product_name':       'Наименование',
-			'quantity_factory':   'На складе',
-			'quantity_stock':     'Доступно к заказу',
-			'quantity_transit':   'Транзит',
-			'party_price_in':     'Цена (партн)',
-			'party_currency_in':  None,
-			'party_price_out':    'Цена (розн)',
-			'party_currency_out': None,
-			'product_warranty':   'Гарантия'}
+			'category'           : 'Категория',
+			'category_sub'       : 'Подкатегория',
+			'product_vendor'     : 'Бренд',
+			'party_article'      : 'Код',
+			'product_article'    : 'Артикул',
+			'product_name'       : 'Наименование',
+			'quantity_factory'   : 'На складе',
+			'quantity_stock'     : 'Доступно к заказу',
+			'quantity_transit'   : 'Транзит',
+			'party_price_in'     : 'Цена (партн)',
+			'party_currency_in'  : None,
+			'party_price_out'    : 'Цена (розн)',
+			'party_currency_out' : None,
+			'product_warranty'   : 'Гарантия'}
 
-		book = xlrd.open_workbook(file_contents = xlsx_data.read())
+		currency = {
+			'RUB' : self.rub,
+			'RUR' : self.rub,
+			'руб' : self.rub,
+			'руб.': self.rub,
+			'USD' : self.usd,
+			'EUR' : self.eur,
+			''    : None}
+
+		book = xlrd.open_workbook(file_contents = data.read())
 		sheet = book.sheet_by_index(1)
 
 		for row_num in range(sheet.nrows):
@@ -276,7 +167,9 @@ class Runner:
 
 				# Синоним категории
 				category_synonym = CategorySynonym.objects.take(
-					name        = "{} | {}".format(row[num['category']], row[num['category_sub']]),
+					name        = "{} | {}".format(
+									row[num['category']],
+									row[num['category_sub']]),
 					updater     = self.updater,
 					distributor = self.distributor)
 
@@ -301,43 +194,24 @@ class Runner:
 					self.count['product'] += 1
 
 					# Партии
-					party_article      = row[num['party_article']]
+					party_article = row[num['party_article']]
 
 					quantity            = {}
-					quantity['factory'] = self.fixQuantityFactory(row[num['quantity_factory']])
-					quantity['stock']   = self.fixQuantityStock(row[num['quantity_stock']])
-					quantity['transit'] = self.fixQuantityTransit(row[num['quantity_transit']])
+					quantity['stock']   = self.fix_quantity_stock(row[num['quantity_stock']])
+					quantity['transit'] = self.fix_quantity_transit(row[num['quantity_transit']])
+					quantity['factory'] = self.fix_quantity_factory(row[num['quantity_factory']])
 
-					party_price         = self.fixPrice(row[num['party_price']])
-					party_currency      = self.currencies[row[num['party_currency']]]
+					party_price         = self.fix_price(row[num['party_price']])
+					party_currency      = currency[row[num['party_currency']]]
 
-					party_price_out     = self.fixPrice(row[num['party_price_out']])
-					party_currency_out  = self.currencies[row[num['party_currency_out']]]
-
-					# Партии на заказ
-					stock_name = 'factory'
-					if quantity[stock_name]:
-						party = Party.objects.make(
-							product        = product,
-							stock          = self.stocks[stock_name],
-							article        = party_article,
-							price          = party_price,
-							price_type     = self.dp,
-							currency       = party_currency,
-							price_out      = party_price,
-							price_type_out = self.rp,
-							currency_out   = party_currency,
-							quantity       = quantity[stock_name],
-							unit           = self.default_unit,
-							time           = self.start_time)
-						self.count['party'] += 1
+					party_price_out     = self.fix_price(row[num['party_price_out']])
+					party_currency_out  = currency[row[num['party_currency_out']]]
 
 					# Партии на складе
-					stock_name = 'stock'
-					if quantity[stock_name]:
+					if quantity['stock']:
 						party = Party.objects.make(
 							product        = product,
-							stock          = self.stocks[stock_name],
+							stock          = self.stock,
 							article        = party_article,
 							price          = party_price,
 							price_type     = self.dp,
@@ -345,17 +219,16 @@ class Runner:
 							price_out      = party_price,
 							price_type_out = self.rp,
 							currency_out   = party_currency,
-							quantity       = quantity[stock_name],
+							quantity       = quantity['stock'],
 							unit           = self.default_unit,
 							time           = self.start_time)
 						self.count['party'] += 1
 
 					# Партии в транзите
-					stock_name = 'transit'
-					if quantity[stock_name]:
+					if quantity['transit']:
 						party = Party.objects.make(
 							product        = product,
-							stock          = self.stocks[stock_name],
+							stock          = self.transit,
 							article        = party_article,
 							price          = party_price,
 							price_type     = self.dp,
@@ -363,7 +236,24 @@ class Runner:
 							price_out      = party_price,
 							price_type_out = self.rp,
 							currency_out   = party_currency,
-							quantity       = quantity[stock_name],
+							quantity       = quantity['transit'],
+							unit           = self.default_unit,
+							time           = self.start_time)
+						self.count['party'] += 1
+
+					# Партии на заказ
+					if quantity['factory']:
+						party = Party.objects.make(
+							product        = product,
+							stock          = self.factory,
+							article        = party_article,
+							price          = party_price,
+							price_type     = self.dp,
+							currency       = party_currency,
+							price_out      = party_price,
+							price_type_out = self.rp,
+							currency_out   = party_currency,
+							quantity       = quantity['factory'],
 							unit           = self.default_unit,
 							time           = self.start_time)
 						self.count['party'] += 1
@@ -371,20 +261,13 @@ class Runner:
 		return True
 
 
-	def fixPrice(self, price):
-		price = str(price).strip()
-		if price == 'звоните': return None
-		elif price: return float(price)
-		else: return None
-
-
-	def fixQuantityFactory(self, quantity):
+	def fix_quantity_factory(self, quantity):
 		quantity = str(quantity).strip()
 		if quantity in ('под заказ'): return -1
 		else: return None
 
 
-	def fixQuantityStock(self, quantity):
+	def fix_quantity_stock(self, quantity):
 		quantity = str(quantity).strip()
 
 		quantity = quantity.replace('более ', '')
@@ -392,7 +275,11 @@ class Runner:
 		return int(float(quantity))
 
 
-	def fixQuantityTransit(self, quantity):
+	def fix_quantity_transit(self, quantity):
+
 		quantity = str(quantity).strip()
-		if quantity: return 5
-		else: return None
+
+		if quantity:
+			return 5
+		else:
+			return None

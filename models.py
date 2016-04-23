@@ -3,77 +3,6 @@ from django.db import models
 from django.utils import timezone
 
 
-class ConnectorManager(models.Manager):
-
-
-	def get_all_dicted(self):
-		result = []
-		for o in self.all():
-			result.append(o.get_dicted())
-		return result
-
-
-	def take(self, *args, **kwargs):
-
-		alias = str(kwargs.get('alias', '')).strip()
-		name  = str(kwargs.get('name', '')).strip()
-
-		if not alias:
-			return None
-
-		try:
-			result = self.get(alias = alias)
-
-		except self.DoesNotExist:
-
-			if not name:
-				return None
-
-			result = Connector(
-				alias    = alias,
-				name     = name,
-				created  = timezone.now(),
-				modified = timezone.now())
-			result.save()
-
-		return result
-
-
-class Connector(models.Model):
-
-	name     = models.CharField(max_length = 100)
-	alias    = models.CharField(max_length = 100, unique = True)
-	login    = models.CharField(max_length = 100)
-	password = models.CharField(max_length = 100)
-	state    = models.BooleanField(default = True)
-	created  = models.DateTimeField()
-	modified = models.DateTimeField()
-
-	objects  = ConnectorManager()
-
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']       = self.id
-		result['name']     = self.name
-		result['alias']    = self.alias
-		result['login']    = self.login
-		result['password'] = self.password
-		result['state']    = self.state
-		result['created']  = str(self.created)
-		result['modified'] = str(self.modified)
-
-		return result
-
-	def __str__(self):
-		return self.name
-
-	class Meta:
-		ordering = ['name']
-
-
 class DistributorManager(models.Manager):
 
 
@@ -95,12 +24,12 @@ class DistributorManager(models.Manager):
 		try:
 			result = self.get(alias = alias)
 
-		except self.DoesNotExist:
+		except Distributor.DoesNotExist:
 
 			if not name:
 				return None
 
-			result = Connector(
+			result = Distributor(
 				alias    = alias,
 				name     = name,
 				created  = timezone.now(),
@@ -115,7 +44,6 @@ class Distributor(models.Model):
 	name        = models.CharField(max_length = 100)
 	alias       = models.CharField(max_length = 100, unique = True)
 	description = models.TextField()
-	connector   = models.ForeignKey(Connector, null = True, default = None)
 	state       = models.BooleanField(default = True)
 	created     = models.DateTimeField()
 	modified    = models.DateTimeField()
@@ -134,9 +62,6 @@ class Distributor(models.Model):
 		result['state']       = self.state
 		result['created']     = str(self.created)
 		result['modified']    = str(self.modified)
-
-		try:    result['connector'] = self.connector.get_dicted()
-		except: result['connector'] = None
 
 		return result
 
@@ -571,6 +496,7 @@ class CurrencyManager(models.Manager):
 				created   = timezone.now(),
 				modified  = timezone.now())
 			currency.save()
+
 		return currency
 
 
@@ -950,7 +876,7 @@ class PartyManager(models.Manager):
 	def make(self, product, stock, article = None,
 			price = None, price_type = None, currency = None,
 			price_out = None, price_type_out = None, currency_out = None,
-			quantity = None, unit = None, time = None):
+			quantity = None, unit = None, product_name = '', time = None):
 
 		if time:
 			Party.objects.filter(product = product, stock = stock, created__lt = time).delete()
@@ -967,6 +893,7 @@ class PartyManager(models.Manager):
 			currency_out   = currency,
 			quantity       = quantity,
 			unit           = unit,
+			product_name   = product_name,
 			created        = timezone.now(),
 			modified       = timezone.now())
 		party.save()
@@ -1005,7 +932,7 @@ class Party(models.Model):
 	currency_out   = models.ForeignKey(Currency, related_name = 'party_requests_currency_out', null = True, default = None)
 	quantity       = models.IntegerField(null = True, default = None)
 	unit           = models.ForeignKey(Unit, null = True, default = None)
-	comment        = models.TextField()
+	product_name   = models.TextField()
 	state          = models.BooleanField(default = True)
 	created        = models.DateTimeField()
 	modified       = models.DateTimeField()
@@ -1016,15 +943,16 @@ class Party(models.Model):
 
 		result = {}
 
-		result['id']        = self.id
-		result['article']   = self.article
-		result['price']     = str(self.price)
-		result['price_out'] = self.price_out
-		result['quantity']  = self.description
-		result['comment']   = self.comment
-		result['state']     = self.state
-		result['created']   = str(self.created)
-		result['modified']  = str(self.modified)
+		result['id']           = self.id
+		result['article']      = self.article
+		result['price']        = str(self.price)
+		result['price_out']    = self.price_out
+		result['quantity']     = self.description
+		result['comment']      = self.comment
+		result['product_name'] = self.comment
+		result['state']        = self.state
+		result['created']      = str(self.created)
+		result['modified']     = str(self.modified)
 
 		try:    result['product']        = self.product.get_dicted()
 		except: result['product']        = None
@@ -1816,7 +1744,6 @@ class UpdaterTask(models.Model):
 
 
 models = {
-	'connector'             : Connector,
 	'distributor'           : Distributor,
 	'updater'               : Updater,
 	'stock'                 : Stock,

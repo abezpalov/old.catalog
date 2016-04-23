@@ -12,8 +12,8 @@ application = get_wsgi_application()
 
 # Выполняем необходимый загрузчик
 print("Пробую выполнить загрузчик " + sys.argv[1])
-Updater = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'])
-runner = Updater.Runner()
+Runner = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'])
+runner = Runner.Runner()
 if runner.updater.state:
 	if runner.run():
 		runner.updater.updated = timezone.now()

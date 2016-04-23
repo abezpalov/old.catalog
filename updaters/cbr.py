@@ -1,38 +1,48 @@
-import requests
-import lxml.html
 from datetime import date
-from django.utils import timezone
-from catalog.models import *
+
 from project.models import Log
 
-class Runner:
+import catalog.runner
+from catalog.models import *
+
+class Runner(catalog.runner.Runner):
 
 
-	name  = 'Обновление курсов валют (Центральный банк России)'
+	name  = 'Центральный банк России'
 	alias = 'cbr'
-	count = 0
+
+	url = {
+		'start' : 'http://cbr.ru/',
+		'data'  : 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'\
+					.format(date.today().strftime("%d.%m.%Y"))}
 
 
 	def __init__(self):
 
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias = self.alias,
-			name  = self.name)
+		super().__init__()
 
-		# Основная валюта
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-
-		self.url = 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'\
-			.format(date.today().strftime("%d.%m.%Y"))
+		self.count = 0
 
 
 	def run(self):
+
+		# Получаем HTML-данные
+		r = self.load_cookie()
+		tree = self.load_html(self.url['data'])
+
+		if tree is None:
+			return False
+
+		self.parse(tree)
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Обновлены курсы валют: {} шт.".format(self.count))
+
+
+	def parse(self, tree):
 
 		# Номера строк и столбцов
 		num = {'header': 0}
@@ -44,31 +54,24 @@ class Runner:
 			'name':     'Currency',
 			'rate':     'Rate'}
 
-		# Создаем сессию
-		s = requests.Session()
-
-		# Загружаем данные
-		try:
-			r = s.get(self.url, timeout = 100.0)
-			tree = lxml.html.fromstring(r.text)
-		except requests.exceptions.Timeout:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "requests.exceptions.Timeout",
-				description = "Превышение интервала ожидания загрузки.")
-			return False
-
 		table = tree.xpath("//table[@class='CBRTBL']/tr")
 		for trn, tr in enumerate(table):
 
 			# Заголовок таблицы
 			if trn == num['header']:
 				for tdn, td in enumerate(tr):
-					if   td[0].text == word['alias']:    num['alias']    = tdn
-					elif td[0].text == word['quantity']: num['quantity'] = tdn
-					elif td[0].text == word['name']:     num['name']     = tdn
-					elif td[0].text == word['rate']:     num['rate']     = tdn
+
+					if td[0].text == word['alias']:
+						num['alias'] = tdn
+
+					elif td[0].text == word['quantity']:
+						num['quantity'] = tdn
+
+					elif td[0].text == word['name']:
+						num['name'] = tdn
+
+					elif td[0].text == word['rate']:
+						num['rate'] = tdn
 
 			# Валюта
 			else:
@@ -91,16 +94,11 @@ class Runner:
 				currency.modified = timezone.now()
 				currency.save()
 
-				self.count += 1
 				print('{} = {} / {}'.format(
-					currency.alias,
-					currency.rate,
-					currency.quantity))
+						currency.alias,
+						currency.rate,
+						currency.quantity))
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Обновлены курсы валют: {} шт.".format(self.count))
+				self.count += 1
 
 		return True
