@@ -1,133 +1,88 @@
-import lxml.html
-import requests
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
-class Runner:
+import catalog.runner
+from catalog.models import *
 
+
+class Runner(catalog.runner.Runner):
 
 	name  = 'Kramer'
 	alias = 'kramer'
-	count = {
-		'product' : 0,
-		'party'   : 0}
 	url = {
 		'start' : 'http://kramer.ru/',
 		'login' : 'http://kramer.ru/?login=yes',
-		'files' : 'http://kramer.ru/partners/prices/',
+		'links' : 'http://kramer.ru/partners/prices/',
 		'base'  : 'http://kramer.ru',
 		'price' : 'http://kramer.ru/filedownload.php?id='}
 
 
 	def __init__(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		super().__init__()
 
-		# Поставщик
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
-
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		# Завод
-		self.factory = Stock.objects.take(
-			alias             = self.alias + '-factory',
-			name              = self.name + ': завод',
-			delivery_time_min = 10,
-			delivery_time_max = 40,
-			distributor       = self.distributor)
-
-		# Производитель
 		self.vendor = Vendor.objects.take(
 			alias = self.alias,
 			name  = self.name)
 
-		# Единица измерения
-		self.default_unit = Unit.objects.take(
-			alias = 'pcs',
-			name  = 'шт.')
+		self.stock = self.take_stock('factory', 'на заказ', 40, 60)
 
-		# Тип цены
-		self.rrp = PriceType.objects.take(
-			alias = 'RRP',
-			name  = 'Рекомендованная розничная цена')
-
-		# Валюты
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'Доллар США',
-			rate      = 60,
-			quantity  = 1)
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 
 	def run(self):
 
-		# Создаем сессию
-		s = requests.Session()
-
-		# Получаем куки
-		r = s.get(self.url['start'])
-		cookies = r.cookies
-
-		# Авторизуемся
 		payload = {
-			'backurl': '/',
-			'AUTH_FORM': 'Y',
-			'TYPE': 'AUTH',
-			'USER_LOGIN': self.updater.login,
-			'USER_PASSWORD': self.updater.password,
-			'Login': 'Войти'}
-		r = s.post(self.url['login'], cookies = cookies, data = payload, allow_redirects = True)
-		cookies = r.cookies
+			'backurl'       : '/',
+			'AUTH_FORM'     : 'Y',
+			'TYPE'          : 'AUTH',
+			'USER_LOGIN'    : self.updater.login,
+			'USER_PASSWORD' : self.updater.password,
+			'Login'         : 'Войти'}
+		self.login(payload)
 
-		# Переходим на закрытую часть
-		r = s.get(self.url['files'], cookies = cookies, allow_redirects = True)
-		tree = lxml.html.fromstring(r.text)
+		# Заходим на страницу загрузки
+		tree = self.load_html(self.url['links'])
 
-		# Ищем ссылки
+		# Получаем ссылки со страницы
 		urls = tree.xpath('//a/@href')
-		ok = 0
+		prices = set()
 		for url in urls:
 			url = self.url['base'] + url
 			if self.url['price'] in url:
-				if self.parsePrice(request = s.get(url, cookies = cookies, allow_redirects = True)):
-					ok += 1
+				prices.add(url)
 
-		if ok < 2:
+		# Скачиваем архивы
+		if len(prices) >= 2:
+
+			for url in prices:
+				request = self.load(url)
+				self.parse_price(request)
+
+		else:
 			Log.objects.add(
 				subject     = "catalog.updater.{}".format(self.updater.alias),
 				channel     = "error",
 				title       = "return False",
-				description = "Не получилось загрузить прайс-листы.")
+				description = "Не найти прайс-листы.")
 			return False
 
 		# Чистим партии
-		Party.objects.clear(stock=self.factory, time = self.start_time)
+		Party.objects.clear(stock=self.stock, time = self.start_time)
 
 		Log.objects.add(
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+			description = "Products: {}; Parties: {}.".format(
+				self.count['product'],
+				self.count['party']))
 
 		return True
 
 
-	def parsePrice(self, request):
+	def parse_price(self, request):
 
 		from io import BytesIO
 		from zipfile import ZipFile
@@ -143,11 +98,9 @@ class Runner:
 		xls_data = BytesIO(request.content)
 
 		if words['cable'] in filename:
-			print("Получен прайс-лист кабелей и материалов.")
 			self.parseCables(xls_data)
 			return True
 		elif words['device'] in filename:
-			print("Получен прайс-лист оборудования.")
 			self.parseDevices(xls_data)
 			return True
 
@@ -230,11 +183,10 @@ class Runner:
 					product.save()
 
 				# Добавляем партии
-				price = self.fixPrice(row[num['price']])
 				party = Party.objects.make(
 					product    = product,
-					stock      = self.factory,
-					price      = price,
+					stock      = self.stock,
+					price      = self.fix_price(row[num['price']]),
 					price_type = self.rrp,
 					currency   = self.usd,
 					quantity   = -1,
@@ -317,8 +269,8 @@ class Runner:
 				# Добавляем партии
 				party = Party.objects.make(
 					product    = product,
-					stock      = self.factory,
-					price      = self.fixPrice(row[num['price']]),
+					stock      = self.stock,
+					price      = self.fix_price(row[num['price']]),
 					price_type = self.rrp,
 					currency   = self.usd,
 					quantity   = -1,
@@ -327,9 +279,3 @@ class Runner:
 				self.count['party'] += 1
 
 		return True
-
-
-	def fixPrice(self, price):
-		if price in ('CALL', '?'): price = None
-		else: price = float(price)
-		return price

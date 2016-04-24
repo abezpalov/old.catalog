@@ -4,20 +4,11 @@ import catalog.runner
 from catalog.models import *
 
 
-
-
-
-
-import sys, subprocess, os
-
 class Runner(catalog.runner.Runner):
 
 
 	name  = 'Fujitsu'
 	alias = 'fujitsu'
-	count = {
-		'product' : 0,
-		'party'   : 0}
 	url = {
 		'start'  : 'https://partners.ts.fujitsu.com/com/Pages/Default.aspx',
 		'login'  : 'https://partners.ts.fujitsu.com/CookieAuth.dll?Logon',
@@ -35,6 +26,10 @@ class Runner(catalog.runner.Runner):
 			name  = self.name)
 
 		self.stock = self.take_stock('factory', 'на заказ', 40, 60)
+
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 		self.rdp = PriceType.objects.take(
 			alias = 'RDP-Fujitsu',
@@ -76,7 +71,7 @@ class Runner(catalog.runner.Runner):
 				mdb = self.unpack(data, 'prices.mdb')
 				self.parse_prices(mdb)
 
-				Party.objects.clear(stock = self.factory, time = self.start_time)
+				Party.objects.clear(stock = self.stock, time = self.start_time)
 
 				Log.objects.add(
 					subject     = "catalog.updater.{}".format(self.updater.alias),
@@ -121,8 +116,8 @@ class Runner(catalog.runner.Runner):
 
 		# Распознаваемые слова
 		word = {
-			'numb': 'PraesKategLfdNr',
-			'name': 'PraesKateg'}
+			'numb' : 'PraesKategLfdNr',
+			'name' : 'PraesKateg'}
 
 		# Загружаем таблицу категорий
 		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'], stdout = subprocess.PIPE).communicate()[0]
@@ -173,12 +168,12 @@ class Runner(catalog.runner.Runner):
 
 		# Распознаваемые слова
 		word = {
-			'article':       'SachNr',
-			'name':          'Benennung',
-			'status':        'VertStat',
-			'category_numb': 'PraesKategNr',
-			'description-1': 'Beschreibung',
-			'description-2': 'CfgHint'}
+			'article'       : 'SachNr',
+			'name'          : 'Benennung',
+			'status'        : 'VertStat',
+			'category_numb' : 'PraesKategNr',
+			'description-1' : 'Beschreibung',
+			'description-2' : 'CfgHint'}
 
 		# Статусы продуктов
 		self.quantity = {}
@@ -342,7 +337,7 @@ class Runner(catalog.runner.Runner):
 					# Добавляем партии
 					party = Party.objects.make(
 						product    = product,
-						stock      = self.factory,
+						stock      = self.stock,
 						price      = price,
 						price_type = self.rdp,
 						currency   = self.usd,

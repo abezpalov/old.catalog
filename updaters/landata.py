@@ -1,165 +1,52 @@
-import time
-import lxml.html
-import requests
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
+import catalog.runner
+from catalog.models import *
 
-class Runner:
 
+class Runner(catalog.runner.Runner):
 
 	name = 'Landata'
 	alias = 'landata'
-	count = {
-		'product' : 0,
-		'party'   : 0}
 	url = {
-		'start': 'http://www.landata.ru/forpartners/',
-		'login': 'http://www.landata.ru/forpartners/',
-		'price': 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
-		'backurl': '/index.php',
-		'filter': '?vendor_code='}
+		'start'  : 'http://www.landata.ru/forpartners/',
+		'login'  : 'http://www.landata.ru/forpartners/',
+		'price'  : 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
+		'filter' : '?vendor_code='}
 
 
 	def __init__(self):
 
-		# Поставщик
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
+		super().__init__()
 
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
+		self.s1 = self.take_stock('stock-1', 'склад № 1', 3, 10)
+		self.s2 = self.take_stock('stock-2', 'склад № 2', 3, 10)
+		self.bt = self.take_stock('b-transit', 'ближний транзит', 10, 30)
+		self.dt = self.take_stock('d-transit', 'дальний транзит', 20, 60)
 
-		# Склады
-		# C1- склад №1 по адресу 2-ой пер. Петра Алексеева д.2 стр.1
-		self.s1 = Stock.objects.take(
-			alias             = self.alias + '-stock-1',
-			name              = self.name + ': склад № 1',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# C2- склад №2 по адресу Дмитровское шоссе
-		self.s2 = Stock.objects.take(
-			alias             = self.alias + '-stock-2',
-			name              = self.name + ': склад № 2',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# БТ- Ближний транзит - свободный товар, поступающий на склады Landata в течение 1-21 дней
-		self.bt = Stock.objects.take(
-			alias             = self.alias + '-b-transit',
-			name              = self.name + ': ближний транзит',
-			delivery_time_min = 10,
-			delivery_time_max = 30,
-			distributor       = self.distributor)
-
-		# ДТ- Дальний транзит - свободный товар, поступающий на склады Landata в период между 22 - 60 днями
-		self.dt = Stock.objects.take(
-			alias             = self.alias + '-d-transit',
-			name              = self.name + ': дальний транзит',
-			delivery_time_min = 25,
-			delivery_time_max = 80,
-			distributor       = self.distributor)
-
-		# Единица измерения
-		self.default_unit = Unit.objects.take(
-			alias = 'pcs',
-			name  = 'шт.')
-
-		# Тип цены
-		self.dp = PriceType.objects.take(
-			alias = 'DP',
-			name = 'Диллерская цена')
-
-		# Валюта
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
-		self.eur = Currency.objects.take(
-			alias     = 'EUR',
-			name      = 'EUR',
-			full_name = 'Euro',
-			rate      = 80,
-			quantity  = 1)
+		self.count = {
+			'product' : 0,
+			'party'   : 0}
 
 
 	def run(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		import time
 
-		# Проверяем наличие параметров авторизации
-		if not self.updater.login or not self.updater.password:
-			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
-			return False
+		payload = {
+			'AUTH_FORM'     : 'Y',
+			'TYPE'          : 'AUTH',
+			'backurl'       : '/index.php',
+			'USER_LOGIN'    : self.updater.login,
+			'USER_PASSWORD' : self.updater.password,
+			'Login'         : '%C2%EE%E9%F2%E8'}
+		self.login(payload)
 
-		# Создаем сессию
-		s = requests.Session()
-
-		# Получаем куки
-		try:
-			r = s.get(self.url['start'], timeout = 100.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print('Ошибка: превышен интервал ожидания загрузки Cookies.')
-			return False
-
-		# Авторизуемся
-		try:
-			payload = {
-				'AUTH_FORM': 'Y',
-				'TYPE': 'AUTH',
-				'backurl': self.url['backurl'],
-				'USER_LOGIN': self.updater.login,
-				'USER_PASSWORD': self.updater.password,
-				'Login': '%C2%EE%E9%F2%E8'}
-			r = s.post(
-				self.url['login'],
-				cookies = cookies,
-				data = payload,
-				allow_redirects = True,
-				verify = False,
-				timeout = 100.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print('Ошибка: превышен интервал ожидания подтверждения авторизации.')
-			return False
-
-		# Загружаем начальную страницу каталога
-		try:
-			r = s.get(
-				self.url['price'],
-				cookies = cookies,
-				allow_redirects = True,
-				verify = False,
-				timeout = 100.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print('Ошибка: превышен интервал ожидания загрузки каталога.')
-			return False
-
-		# Получаем все ссылки
-		tree = lxml.html.fromstring(r.text)
-		urls = tree.xpath('//a/@href')
-		del(tree)
+		# Заходим на начальную страницу каталога
+		tree = self.load_html(self.url['price'])
 
 		# Проходим по всем ссылкам
+		urls = tree.xpath('//a/@href')
 		done = []
 		for url in urls:
 			if self.url['filter'] in url:
@@ -167,28 +54,12 @@ class Runner:
 				# Проверяем ссылку
 				url = self.url['price'] + url
 				if url in done:
-					print('Страница {} уже обработана.'.format(url))
 					continue
 
-				# Загружаем страницу
-				try:
-					r = s.get(url, cookies = cookies, timeout = 30.0)
-					tree = lxml.html.fromstring(r.text)
-					print("\nЗагружена страница: " + url)
-				except requests.exceptions.Timeout:
-					print("Ошибка: превышен интервал ожидания загрузки страницы каталога.")
-					continue
-
-				# Парсим таблицу с товарами
-				table = tree.xpath('//table[@class="table  table-striped tablevendor"]//tr')
-				print("Загружено строк таблицы: {}.".format(len(table)))
-				if self.parseProducts(table, url.split(self.url['filter'])[1]):
-					done.append(url) # Добавляем ссылку в обработанные страницы
-
-				# Чистим за собой
-				del(r)
-				del(tree)
-				del(table)
+				# Загружаем и парсим страницу
+				tree = self.load_html(url)
+				self.parse(tree, url.split(self.url['filter'])[1])
+				done.append(url)
 
 				# Ждем, чтобы не получить отбой сервера
 				time.sleep(1)
@@ -203,33 +74,35 @@ class Runner:
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+			description = "Products: {}; Parties: {}.".format(
+				self.count['product'],
+				self.count['party']))
 
 		return True
 
 
-	def parseProducts(self, table, vendor_synonym_name):
+	def parse(self, tree, vendor_synonym_name):
 
 		# Номера строк и столбцов
 		num = {'headers': 9}
 
 		# Распознаваемые слова
 		word = {
-			'party_article': 'Н/н',
-			'product_article': 'Код',
-			'product_name': 'Наименование',
-#			's1': 'Р',
-			's2': 'C',
-			'bt': 'БТ',
-			'dt': 'ДТ',
-			'price': 'Цена Dealer',
-			'currency_alias': 'Валюта'}
+			'party_article'   : 'Н/н',
+			'product_article' : 'Код',
+			'product_name'    : 'Наименование',
+#			's1'              : 'Р',
+			's2'              : 'C',
+			'bt'              : 'БТ',
+			'dt'              : 'ДТ',
+			'price'           : 'Цена Dealer',
+			'currency_alias'  : 'Валюта'}
 
 		# Валюты
 		currencies = {
-			'RUB': self.rub,
-			'USD': self.usd,
-			'EUR': self.eur}
+			'RUB' : self.rub,
+			'USD' : self.usd,
+			'EUR' : self.eur}
 
 		# Обрабатываем синоним производителя
 		if vendor_synonym_name:
@@ -244,27 +117,39 @@ class Runner:
 		if not vendor:
 			return False
 
+		table = tree.xpath('//table[@class="table  table-striped tablevendor"]//tr')
+
 		# Проходим по строкам таблицы
 		for trn, tr in enumerate(table):
 
 			# Заголовок таблицы
 			if not trn:
 				for thn, th in enumerate(tr):
-					if   th.text == word['party_article']:   num['party_article']   = thn
-					elif th.text == word['product_article']: num['product_article'] = thn
-					elif th.text == word['product_name']:    num['product_name']    = thn
-#					elif th.text == word['s1']:              num['s1']              = thn
-					elif th.text == word['s2']:              num['s2']              = thn
-					elif th.text == word['bt']:              num['bt']              = thn
-					elif th.text == word['dt']:              num['dt']              = thn
-					elif th.text == word['price']:           num['price']           = thn
-					elif th.text == word['currency_alias']:  num['currency_alias']  = thn
+					if   th.text == word['party_article']:
+						num['party_article'] = thn
+					elif th.text == word['product_article']:
+						num['product_article'] = thn
+					elif th.text == word['product_name']:
+						num['product_name'] = thn
+#					elif th.text == word['s1']:
+#						num['s1'] = thn
+					elif th.text == word['s2']:
+						num['s2'] = thn
+					elif th.text == word['bt']:
+						num['bt'] = thn
+					elif th.text == word['dt']:
+						num['dt'] = thn
+					elif th.text == word['price']:
+						num['price'] = thn
+					elif th.text == word['currency_alias']:
+						num['currency_alias'] = thn
 
 				# Проверяем, все ли столбцы распознались
 				if len(num) < num['headers']:
 					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
-				else: print("Структура данных без изменений.")
+				else:
+					pass
 
 			# Строка товара
 			else:
@@ -286,7 +171,7 @@ class Runner:
 					# Обрабатываем информацию о партиях
 					party_article = tr[num['party_article']].text.strip()
 
-					price = self.fixPrice(tr[num['price']].text)
+					price = self.fix_price(tr[num['price']].text)
 
 					currency_alias = tr[num['currency_alias']].text.strip()
 					if currency_alias: currency = currencies[currency_alias]
@@ -348,29 +233,3 @@ class Runner:
 					continue
 
 		return True
-
-
-	def fixPrice(self, price):
-
-		# Чистим
-		if price:
-			price = str(price).strip()
-			price = price.replace(',', '.')
-			price = price.replace(' ', '')
-
-		# Преобразуем формат
-		if price:
-			try: price = float(price)
-			except ValueError: price = None
-		else:
-			price = None
-		return price
-
-
-	def fixQuantity(self, quantity):
-		if quantity:
-			quantity = str(quantity).strip()
-			if quantity == 'Есть': quantity = 1
-			else: quantity = int(quantity)
-		else: quantity = None
-		return quantity

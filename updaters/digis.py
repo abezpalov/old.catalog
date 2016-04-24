@@ -66,9 +66,7 @@ class Runner(catalog.runner.Runner):
 					parsed.append(url)
 
 					# Скачиваем и парсим
-					print(url)
 					data = self.load_data(url)
-					print(data)
 					self.parse(data)
 
 		Party.objects.clear(stock = self.factory, time = self.start_time)

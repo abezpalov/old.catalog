@@ -1,113 +1,64 @@
-import time
-import lxml.html
-import requests
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
-class Runner:
+import catalog.runner
+from catalog.models import *
 
+
+class Runner(catalog.runner.Runner):
+
+	name  = 'Marvel'
+	alias = 'marvel'
+
+	url = 'https://b2b.marvel.ru/Api/'
 
 	def __init__(self):
 
-		self.name  = 'Marvel'
-		self.alias = 'marvel'
+		super().__init__()
+
+		self.stock_msk = self.take_stock('stock-msk', 'склад в Москве', 3, 10)
+		self.stock_spb = self.take_stock('stock-spb', 'склад в Санкт-Петербурге', 3, 10)
+
 		self.count = {
 			'product' : 0,
 			'party'   : 0}
-		self.url = 'https://b2b.marvel.ru/Api/'
-		self.products = []
-
-		# Поставщик
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
-
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		# Склад в Москве
-		self.stock_msk = Stock.objects.take(
-			alias             = self.alias + '-stock-msk',
-			name              = self.name + ': склад в Москве',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Склад в Санкт-Петербурге
-		self.stock_spb = Stock.objects.take(
-			alias             = self.alias + '-stock-spb',
-			name              = self.name + ': склад в Санкт-Петербурге',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Единица измерения
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
-
-		# Тип цены
-		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
-
-		# Валюты
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
-		self.eur = Currency.objects.take(
-			alias     = 'EUR',
-			name      = 'EUR',
-			full_name = 'Euro',
-			rate      = 80,
-			quantity  = 1)
 
 		# Дополнительные переменные
+		# TODO ??
+		self.products = []
 		self.key = ''
 		self.task = {
 			'categories' : 'GetCatalogCategories',
 			'catalog'    : 'GetFullStock',
 			'parameters' : 'GetItems',
 			'photos'     : 'GetItemPhotos'}
-		self.request_format = {'xml': '0', 'json': '1'}
+		self.request_format = {
+			'xml'  : '0',
+			'json' : '1'}
 		self.cookies = None
 		self.category_synonyms = {}
 		self.currencies = {
-			'RUB': self.rub,
-			'RUR': self.rub,
-			'USD': self.usd,
-			'EUR': self.eur,
-			'':    None}
+			'RUB' : self.rub,
+			'RUR' : self.rub,
+			'USD' : self.usd,
+			'EUR' : self.eur,
+			''    :    None}
 		self.stocks = {
-			'msk': self.stock_msk,
-			'spb': self.stock_spb}
+			'msk' : self.stock_msk,
+			'spb' : self.stock_spb}
 
 
 	def run(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		import time
 
 		# Проверяем наличие параметров авторизации
 		if not self.updater.login or not self.updater.password:
 			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
 			return False
 
-		# Получаем категории для обработки
-		data = self.getData('categories', 'json')
-
-		# Обрабатываем категории
-		if data: self.parseCategories(data)
-		else: return False
+		# Загружаем и парсим категирии
+		data = self.get_data('categories', 'json')
+		self.parse_categories(data)
 
 		print('Ждем 15 минут.')
 		m = 905
@@ -115,12 +66,9 @@ class Runner:
 			print("Осталось {} секунд.".format(m-i))
 			time.sleep(1)
 
-		# Получаем каталог для обработки
-		data = self.getData('catalog', 'json', 1)
-
-		# Обрабатываем каталог
-		if data: self.parseCatalog(data)
-		else: return False
+		# Загружаем и парсим каталог
+		data = self.get_data('catalog', 'json', 1)
+		self.parse_catalog(data)
 
 		# Чистим партии
 		Party.objects.clear(stock = self.stock_msk, time = self.start_time)
@@ -130,12 +78,14 @@ class Runner:
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+			description = "Products: {}; Parties: {}.".format(
+				self.count['product'],
+				self.count['party']))
 
 		return True
 
 
-	def updateProductDescription(self, product_id):
+	def update_product_description(self, product_id):
 
 		# TODO
 
@@ -149,17 +99,19 @@ class Runner:
 		except:
 			return False
 
-		data = self.getData('parameters', 'json', 1, product.article)
+		data = self.get_data('parameters', 'json', 1, product.article)
 		print(data)
 
 		# Обрабатываем характеристики товара
 		if data:
-			self.parseParameters(data, product)
+			self.parse_parameters(data, product)
 		else:
 			return False
 
 
-	def getData(self, task, request_format, pack_status = None, article = None):
+	def get_data(self, task, request_format, pack_status = None, article = None):
+
+		import requests
 
 		# Создаем сессию
 		s = requests.Session()
@@ -224,36 +176,31 @@ class Runner:
 				return False
 
 
-	def parseCategories(self, data):
+	def parse_categories(self, data):
 
 		# Категории
 		for category in data['Categories']:
-			self.parseCategory(category)
+
+			category_id = category['CategoryID']
+			parent_id = category['ParentCategoryId']
+
+			# Имя
+			category_name = category['CategoryName']
+			if parent_id:
+				category_name = "{} | {}".format(
+					self.category_synonyms[parent_id],
+					category_name)
+
+			# Добавляем в словарь
+			self.category_synonyms[category_id] = category_name
+			print(category_name)
+
+			# Проходим рекурсивно по подкатегориям
+			for sub_category in category['SubCategories']:
+				self.parseCategory(sub_category)
 
 
-	def parseCategory(self, category):
-
-		# ID
-		category_id = category['CategoryID']
-		parent_id = category['ParentCategoryId']
-
-		# Имя
-		category_name = category['CategoryName']
-		if parent_id:
-			category_name = "{} | {}".format(
-				self.category_synonyms[parent_id],
-				category_name)
-
-		# Добавляем в словарь
-		self.category_synonyms[category_id] = category_name
-		print(category_name)
-
-		# Проходим рекурсивно по подкатегориям
-		for sub_category in category['SubCategories']:
-			self.parseCategory(sub_category)
-
-
-	def parseCatalog(self, data):
+	def parse_catalog(self, data):
 
 		# Проходим по категориям
 		for item in data['CategoryItem']:
@@ -268,11 +215,11 @@ class Runner:
 				category_synonym_name = 'Новые'
 			vendor_synonym_name   = item['WareVendor']
 
-			party_price    = self.fixPrice(item['WarePrice'])
+			party_price    = self.fix_price(item['WarePrice'])
 			party_currency = self.currencies[item['WarePriceCurrency']]
 			party_quantity = {
-				'msk': self.fixQuantity(item['AvailableForShippingInMSKCount']),
-				'spb': self.fixQuantity(item['AvailableForShippingInSPBCount'])}
+				'msk': self.fix_quantity(item['AvailableForShippingInMSKCount']),
+				'spb': self.fix_quantity(item['AvailableForShippingInSPBCount'])}
 
 			# Синоним категории
 			category_synonym = CategorySynonym.objects.take(
@@ -324,7 +271,7 @@ class Runner:
 					self.count['party'] += 1
 
 
-	def parseParameters(self, data, product):
+	def parse_parameters(self, data, product):
 
 		print('parseParameters')
 
@@ -354,21 +301,6 @@ class Runner:
 					parameter_to_product = ParameterToProduct.objects.take(
 						parameter = parameter,
 						product   = product)
-					parameter_to_product.setValue(value = value)
+					parameter_to_product.set_value(value = value)
 
 			return True
-
-
-	def fixPrice(self, price):
-		price = str(price)
-		price = price.replace(',', '.')
-		if price: price = float(price)
-		else: price = None
-		return price
-
-
-	def fixQuantity(self, quantity):
-		quantity = str(quantity)
-		quantity = quantity.replace('+', '')
-		quantity = int(quantity)
-		return quantity

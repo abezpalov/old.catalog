@@ -5,21 +5,22 @@ from project.models import Log
 import catalog.runner
 from catalog.models import *
 
+
 class Runner(catalog.runner.Runner):
 
 
 	name  = 'Центральный банк России'
 	alias = 'cbr'
 
-	url = {
-		'start' : 'http://cbr.ru/',
-		'data'  : 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'\
-					.format(date.today().strftime("%d.%m.%Y"))}
-
 
 	def __init__(self):
 
 		super().__init__()
+
+		self.url = {
+			'start' : 'http://cbr.ru/',
+			'data'  : 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'\
+					.format(date.today().strftime("%d.%m.%Y"))}
 
 		self.count = 0
 

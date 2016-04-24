@@ -23,8 +23,14 @@ class Runner:
 
 		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
 
-		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
-		self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
+		self.dp = PriceType.objects.take(
+			alias = 'DP', name = 'Диллерская цена')
+
+		self.rp = PriceType.objects.take(
+			alias = 'RP', name = 'Розничная цена')
+
+		self.rrp = PriceType.objects.take(
+			alias = 'RRP', name  = 'Рекомендованная розничная цена')
 
 		self.rub = Currency.objects.take(
 			alias     = 'RUB',
@@ -48,7 +54,6 @@ class Runner:
 			quantity  = 1)
 
 		self.s      = requests.Session()
-		self.cookie = ''
 
 
 	def take_stock(self, alias_end = 'stock', name_end = 'склад',
@@ -63,21 +68,64 @@ class Runner:
 
 		return stock
 
-	def load_cookie(self, timeout = 100.0):
+
+	def load(self, url, result_type = None, timeout = 100.0, try_quantity = 10):
+
+		import time
 
 		try:
-			r = self.s.get(self.url['start'], allow_redirects = True,
-				timeout = timeout)
-			self.cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print("Ошибка: ревышен интервал ожидания.")
-			return None
-		except Exception:
-			print("Ошибка: нет соединения [{}].".format(url))
-			return None
+			self.cookies
+		except AttributeError:
+			self.cookies = None
+
+		for i in range(try_quantity):
+
+			try:
+				if self.cookies is None:
+					r = self.s.get(url, allow_redirects = True, verify = False,
+						timeout = timeout)
+					self.cookies = r.cookies
+				else:
+					r = self.s.get(url, cookies = self.cookies,
+						allow_redirects = True, verify = False, timeout = timeout)
+					self.cookies = r.cookies
+
+			except requests.exceptions.Timeout:
+				print("Ошибка: превышен интервал ожидания [{}].".format(url))
+				if i + 1 == try_quantity:
+					return None
+				else:
+					time.sleep(10)
+					print("Пробую ещё раз.")
+
+			except Exception:
+				print("Ошибка: нет соединения [{}].".format(url))
+				if i + 1 == try_quantity:
+					return None
+				else:
+					time.sleep(10)
+					print("Пробую ещё раз.")
+
+			else:
+				break
+
+		if result_type == 'cookie':
+			return r.cookie
+		elif result_type == 'text':
+			return r.text
+		elif result_type == 'content':
+			return r.content
+		elif result_type == 'request':
+			return r
+
+		return r
+
+
+	def load_cookie(self, timeout = 100.0):
+
+		self.load(self.url['start'], timeout = 100.0)
 
 		return True
-
 
 
 	def login(self, payload = {}, timeout = 100.0):
@@ -114,81 +162,51 @@ class Runner:
 
 	def load_text(self, url, timeout = 100.0):
 
-		try:
-			if 'https://' in url:
-				r = self.s.get(url, cookies = self.cookies,
-					allow_redirects = False, verify = False, timeout = timeout)
-			if 'http://' in url:
-				r = self.s.get(url, timeout = timeout)
-		except requests.exceptions.Timeout:
-			print("Ошибка: ревышен интервал ожидания.")
-			return None
-		except Exception:
-			print("Ошибка: нет соединения [{}].".format(url))
-			return None
-
-		return r.text
+		return self.load(url, result_type = 'text', timeout = 100.0)
 
 
 	def load_html(self, url, timeout = 100.0):
 
 		import lxml.html
 
-		try:
-			if 'https://' in url:
-				r = self.s.get(url, cookies = self.cookies,
-					allow_redirects = False, verify = False, timeout = timeout)
-			if 'http://' in url:
-				r = self.s.get(url, allow_redirects = True, timeout = timeout)
-		except requests.exceptions.Timeout:
-			print("Ошибка: ревышен интервал ожидания.")
-			return None
-		except Exception:
-			print("Ошибка: нет соединения [{}].".format(url))
-			return None
+		text = self.load(url, result_type = 'text', timeout = 100.0)
 
 		try:
-			# for test print(r.text[:1000])
-			tree = lxml.html.fromstring(r.text)
+			tree = lxml.html.fromstring(text)
+
 		except Exception:
 			return None
-		else:
-			return tree
+
+		return tree
 
 
 	def load_data(self, url, timeout = 100.0):
 
 		from io import BytesIO
 
-		try:
-			r = self.s.get(url, cookies = self.cookies,
-					allow_redirects = True, verify = False, timeout = timeout)
-		except requests.exceptions.Timeout:
-			print("Ошибка: ревышен интервал ожидания.")
-			return None
-		except Exception:
-			print("Ошибка: нет соединения [{}].".format(url))
-			return None
+		content = self.load(url, result_type = 'content', timeout = 100.0)
 
-		return BytesIO(r.content)
+		return BytesIO(content)
 
 
 	def fix_price(self, price):
 
 		price = str(price).strip()
 
-		if price in ('Цена не найдена', 'звоните',):
+		if price in ('Цена не найдена', 'звоните', 'CALL', '?',):
 			return None
 
 		translation_map = {
 			ord('$') : '', ord(',') : '.', ord(' ') : '',
 			ord('р') : '', ord('у') : '',  ord('б') : '',
-			ord('R') : '', ord('U') : '',  ord('B') : ''}
+			ord('R') : '', ord('U') : '',  ord('B') : '',
+			ord('+') : ''}
 
 		price = price.translate(translation_map)
 
 		try:
 			price = float(price)
+
 		except ValueError:
 			return None
 
@@ -205,6 +223,8 @@ class Runner:
 		try:
 			if quantity in ('', '0*'):
 				return 0
+			elif quantity == 'Есть':
+				return 1
 			elif quantity == 'мало':
 				return 5
 			elif quantity == 'много':
