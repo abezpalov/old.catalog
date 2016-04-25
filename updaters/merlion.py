@@ -1,166 +1,55 @@
-import requests
-import lxml.html
-from lxml import etree
-from django.utils import timezone
-from catalog.models import *
 from project.models import Log
 
+import catalog.runner
+from catalog.models import *
 
-class Runner:
+
+class Runner(catalog.runner.Runner):
+
+	name  = 'Merlion'
+	alias = 'merlion'
+
+	url = {
+			'start' : 'https://b2b.merlion.com/',
+			'login' : 'https://b2b.merlion.com/',
+			'links' : 'https://b2b.merlion.com/?action=Y3F86565&action1=YC2E8B7C',
+			'base'  : 'https://b2b.merlion.com/'}
 
 
 	def __init__(self):
 
-		self.name = 'Merlion'
-		self.alias = 'merlion'
+		super().__init__()
+
+		self.stock_samara = self.take_stock('samara-stock', 'склад в Самаре', 1, 3)
+		self.stock_moscow = self.take_stock('moscow-stock', 'склад в Москве', 3, 10)
+		self.stock_chehov = self.take_stock('chehov-stock', 'склад в Москве (Чехов)', 3, 10)
+		self.stock_bykovo = self.take_stock('bykovo-stock', 'склад в Москве (Быково)', 3, 10)
+		self.stock_dostavka = self.take_stock('dostavka-stock', 'склад в Москве (склад доставки)', 3, 10)
+		self.transit_b = self.take_stock('b-transit', 'ближний транзит', 10, 20)
+		self.transit_d = self.take_stock('d-transit', 'дальний транзит', 20, 60)
+
 		self.count = {
 			'product' : 0,
 			'party'   : 0}
-		self.urls = {
-			'login'  : 'https://b2b.merlion.com/',
-			'prices' : 'https://b2b.merlion.com/?action=Y3F86565&action1=YC2E8B7C',
-			'base'   : 'https://b2b.merlion.com/'}
-
-		# Поставщик
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
-
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		# Склад в Самаре
-		self.stock_samara = Stock.objects.take(
-			alias             = self.alias + '-samara-stock',
-			name              = self.name+': склад в Самаре',
-			delivery_time_min = 1,
-			delivery_time_max = 3,
-			distributor       = self.distributor)
-
-		# Склад в Москве
-		self.stock_moscow = Stock.objects.take(
-			alias             = self.alias + '-moscow-stock',
-			name              = self.name+': склад в Москве',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Склад в Москве (Чехов)
-		self.stock_chehov = Stock.objects.take(
-			alias             = self.alias + '-chehov-stock',
-			name              = self.name + ': склад в Москве (Чехов)',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Склад в Москве (Быково)
-		self.stock_bykovo = Stock.objects.take(
-			alias             = self.alias + '-bykovo-stock',
-			name              = self.name + ': склад в Москве (Быково)',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Склад в Москве (склад доставки)
-		self.stock_dostavka = Stock.objects.take(
-			alias             = self.alias + '-dostavka-stock',
-			name              = self.name+': склад в Москве (склад доставки)',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Ближний транзит
-		self.transit_b = Stock.objects.take(
-			alias             = self.alias + '-b-transit',
-			name              = self.name + ': ближний транзит',
-			delivery_time_min = 10,
-			delivery_time_max = 20,
-			distributor       = self.distributor)
-
-		# Дальний транзит
-		self.transit_d = Stock.objects.take(
-			alias             = self.alias + '-d-transit',
-			name              = self.name + ': дальний транзит',
-			delivery_time_min = 20,
-			delivery_time_max = 60,
-			distributor       = self.distributor)
-
-		# Единица измерения
-		self.default_unit = Unit.objects.take(
-			alias = 'pcs',
-			name  = 'шт.')
-
-		# Тип цены
-		self.dp = PriceType.objects.take(
-			alias = 'DP',
-			name  = 'Диллерская цена')
-
-		# Валюты
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
 
 
 	def run(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		payload = {
+			'client'   : self.updater.login.split('|')[0],
+			'login'    : self.updater.login.split('|')[1],
+			'password' : self.updater.password,
+			'Ok'       : '%C2%EE%E9%F2%E8'}
+		self.login(payload)
 
-		# Проверяем наличие параметров авторизации
-		if not self.updater.login or not self.updater.password:
-			print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
-			return False
+		# Получаем ссылки на прайс-листы
+		tree = self.load_html(self.url['links'])
 
-		# Создаем сессию
-		s = requests.Session()
-
-		# Получаем куки
-		try:
-			r = s.get(self.urls['login'], timeout=100.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания загрузки Cookies.")
-			return False
-
-		# Авторизуемся
-		try:
-			payload = {
-				'client'   : self.updater.login.split('|')[0],
-				'login'    : self.updater.login.split('|')[1],
-				'password' : self.updater.password,
-				'Ok'       : '%C2%EE%E9%F2%E8'}
-			r = s.post(
-				self.urls['login'],
-				cookies = cookies,
-				data = payload,
-				allow_redirects = True,
-				verify = False,
-				timeout = 100.0)
-			cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print("Превышение интервала ожидания подтверждения авторизации.")
-			return False
-
-		# Получаем актуальные ссылки на прайс-листы
-		r = s.get(self.urls['prices'], cookies = cookies)
-		tree = lxml.html.fromstring(r.text)
 		forms = tree.xpath('//form')
 
 		for form in forms:
 
-			url = self.urls['base']
+			url = self.url['base']
 
 			elements = form.xpath('.//input')
 
@@ -177,14 +66,10 @@ class Runner:
 			if 'type=xml' in url:
 
 				# Загружаем прайс-лист
-				r = s.get(url, cookies = cookies)
-				data = self.getData(r)
-				tree = etree.parse(data)
-				if self.parsePrice(tree):
-					del(tree)
-				else:
-					print("Ошибка: парсинг невозможен.")
-					return False
+				data = self.load_data(url)
+				data = self.unpack(data)
+
+				self.parse(data)
 
 		# Чистим партии
 		Party.objects.clear(stock = self.stock_samara,   time = self.start_time)
@@ -199,29 +84,22 @@ class Runner:
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+			description = "Products: {}; Parties: {}.".format(
+				self.count['product'],
+				self.count['party']))
 
 		return True
 
 
-	def getData(self, r):
+	def parse(self, data):
 
-		from io import BytesIO
-		from catalog.lib.zipfile import ZipFile
+		import lxml.etree
 
 		try:
-			zip_data = ZipFile(BytesIO(r.content))
-			xml_data = zip_data.open(zip_data.namelist()[0])
-		except:
-			return False
+			tree = lxml.etree.parse(data)
 
-		print("Получен прайс-лист: " + zip_data.namelist()[0])
-
-		del zip_data
-		return xml_data
-
-
-	def parsePrice(self, tree):
+		except Exception:
+			return None
 
 		# Словарь для составления имени синонима категории
 		g = {0: '', 1: '', 2: ''}
@@ -302,29 +180,52 @@ class Runner:
 
 									# Получаем информацию о товаре
 									for attr in item:
-										if   attr.tag == word['party_article']:       party_article = attr.text
-										elif attr.tag == word['product_name']:        product_name = attr.text
-										elif attr.tag == word['vendor_synonym_name']: vendor_synonym_name = attr.text
-										elif attr.tag == word['product_article']:     product_article = attr.text
-										elif attr.tag == word['price_usd']:           price_usd = self.fixPrice(attr.text)
-										elif attr.tag == word['price_rub']:           price_rub = self.fixPrice(attr.text)
-										elif attr.tag == word['stock_chehov']:        stock_chehov = self.fixQuantity(attr.text)
-										elif attr.tag == word['stock_bykovo']:        stock_bykovo = self.fixQuantity(attr.text)
-										elif attr.tag == word['stock_dostavka']:      stock_dostavka = self.fixQuantity(attr.text)
-										elif attr.tag == word['stock_samara']:        stock_samara = self.fixQuantity(attr.text)
-										elif attr.tag == word['stock_moscow']:        stock_moscow = self.fixQuantity(attr.text)
-										elif attr.tag == word['transit_b']:           transit_b = self.fixQuantity(attr.text)
-										elif attr.tag == word['transit_d']:           transit_d = self.fixQuantity(attr.text)
-										elif attr.tag == word['transit_date']:        transit_date = attr.text
-										elif attr.tag == word['pack_minimal']:        pack_minimal = attr.text
-										elif attr.tag == word['pack']:                pack = attr.text
-										elif attr.tag == word['volume']:              volume = attr.text
-										elif attr.tag == word['weight']:              weight = attr.text
-										elif attr.tag == word['warranty']:            warranty = attr.text
-										elif attr.tag == word['status']:              status = attr.text
-										elif attr.tag == word['maction']:             maction = attr.text
-										elif attr.tag == word['rrp']:                 rrp = attr.text
-										elif attr.tag == word['rrp_date']:            rrp_date = attr.text
+										if attr.tag == word['party_article']:
+											party_article = attr.text
+										elif attr.tag == word['product_name']:
+											product_name = attr.text
+										elif attr.tag == word['vendor_synonym_name']:
+											vendor_synonym_name = attr.text
+										elif attr.tag == word['product_article']:
+											product_article = attr.text
+										elif attr.tag == word['price_usd']:
+											price_usd = self.fix_price(attr.text)
+										elif attr.tag == word['price_rub']:
+											price_rub = self.fix_price(attr.text)
+										elif attr.tag == word['stock_chehov']:
+											stock_chehov = self.fix_quantity(attr.text)
+										elif attr.tag == word['stock_bykovo']:
+											stock_bykovo = self.fix_quantity(attr.text)
+										elif attr.tag == word['stock_dostavka']:
+											stock_dostavka = self.fix_quantity(attr.text)
+										elif attr.tag == word['stock_samara']:
+											stock_samara = self.fix_quantity(attr.text)
+										elif attr.tag == word['stock_moscow']:
+											stock_moscow = self.fix_quantity(attr.text)
+										elif attr.tag == word['transit_b']:
+											transit_b = self.fix_quantity(attr.text)
+										elif attr.tag == word['transit_d']:
+											transit_d = self.fix_quantity(attr.text)
+										elif attr.tag == word['transit_date']:
+											transit_date = attr.text
+										elif attr.tag == word['pack_minimal']:
+											pack_minimal = attr.text
+										elif attr.tag == word['pack']:
+											pack = attr.text
+										elif attr.tag == word['volume']:
+											volume = attr.text
+										elif attr.tag == word['weight']:
+											weight = attr.text
+										elif attr.tag == word['warranty']:
+											warranty = attr.text
+										elif attr.tag == word['status']:
+											status = attr.text
+										elif attr.tag == word['maction']:
+											maction = attr.text
+										elif attr.tag == word['rrp']:
+											rrp = attr.text
+										elif attr.tag == word['rrp_date']:
+											rrp_date = attr.text
 
 									# Обрабатываем синоним производителя
 									if vendor_synonym_name:
@@ -332,7 +233,8 @@ class Runner:
 											name        = vendor_synonym_name,
 											updater     = self.updater,
 											distributor = self.distributor)
-									else: continue
+									else:
+										continue
 
 									# Получаем объект товара
 									if product_article and product_name and vendor_synonym.vendor:
@@ -343,7 +245,8 @@ class Runner:
 											category = category_synonym.category,
 											unit     = self.default_unit)
 										self.count['product'] += 1
-									else: continue
+									else:
+										continue
 
 									if price_usd:
 										price    = price_usd
@@ -429,23 +332,3 @@ class Runner:
 										self.count['party'] += 1
 
 		return True
-
-
-	def fixPrice(self, price):
-		price = str(price).strip()
-		price = price.replace(',', '.')
-		price = price.replace(' ', '')
-		if price: price = float(price)
-		else: price = None
-		return price
-
-
-	def fixQuantity(self, quantity):
-		quantity = str(quantity).strip()
-		if quantity in ('', 'call'): quantity = 0
-		elif quantity in('+', '+ '): quantity = 5
-		elif quantity in ('++', '++ '): quantity = 10
-		elif quantity in ('+++', '+++ '): quantity = 50
-		elif quantity in ('++++', '++++ '): quantity = 100
-		else: quantity = int(quantity)
-		return quantity

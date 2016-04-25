@@ -1,3 +1,8 @@
+""" Updater.OCS
+	API поставщика работает только с разрешёнными IP-адресами.
+"""
+
+
 import requests
 import json
 from django.utils import timezone

@@ -180,6 +180,21 @@ class Runner:
 		return tree
 
 
+	def load_xml(self, url, timeout = 100.0):
+
+		import lxml.etree
+
+		text = self.load(url, result_type = 'text', timeout = 100.0)
+
+		try:
+			tree = lxml.etree.parse(text)
+
+		except Exception:
+			return None
+
+		return tree
+
+
 	def load_data(self, url, timeout = 100.0):
 
 		from io import BytesIO
@@ -187,6 +202,19 @@ class Runner:
 		content = self.load(url, result_type = 'content', timeout = 100.0)
 
 		return BytesIO(content)
+
+
+	def unpack(self, data):
+
+		from catalog.lib.zipfile import ZipFile
+
+		try:
+			zip_data = ZipFile(data)
+			data = zip_data.open(zip_data.namelist()[0])
+		except Exception:
+			return None
+		else:
+			return data
 
 
 	def fix_price(self, price):
@@ -197,10 +225,10 @@ class Runner:
 			return None
 
 		translation_map = {
-			ord('$') : '', ord(',') : '.', ord(' ') : '',
-			ord('р') : '', ord('у') : '',  ord('б') : '',
-			ord('R') : '', ord('U') : '',  ord('B') : '',
-			ord('+') : ''}
+			ord('$') : '', ord('€') : '', ord(' ') : '',
+			ord('р') : '', ord('у') : '', ord('б') : '',
+			ord('R') : '', ord('U') : '', ord('B') : '',
+			ord('+') : '', ord(',') : '.'}
 
 		price = price.translate(translation_map)
 
@@ -221,15 +249,26 @@ class Runner:
 		quantity = str(quantity).strip()
 
 		try:
-			if quantity in ('', '0*'):
+			if quantity in ('', '0*', 'call'):
 				return 0
+
 			elif quantity == 'Есть':
 				return 1
-			elif quantity == 'мало':
+
+			elif quantity in('мало', '+', '+ '):
 				return 5
-			elif quantity == 'много':
+
+			elif quantity in ('много', '++', '++ '):
 				return 10
+
+			elif quantity in ('+++', '+++ '):
+				return 50
+
+			elif quantity in ('++++', '++++ '):
+				return 100
+
 			else:
 				return int(quantity)
+
 		except Exception:
 			return 0

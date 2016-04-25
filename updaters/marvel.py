@@ -1,3 +1,7 @@
+""" Updater.Marvel
+	API поставщика имеет странные ограничения на время между запросами.
+"""
+
 from project.models import Log
 
 import catalog.runner
@@ -178,26 +182,30 @@ class Runner(catalog.runner.Runner):
 
 	def parse_categories(self, data):
 
-		# Категории
 		for category in data['Categories']:
+			self.parse_category(category)
 
-			category_id = category['CategoryID']
-			parent_id = category['ParentCategoryId']
 
-			# Имя
-			category_name = category['CategoryName']
-			if parent_id:
-				category_name = "{} | {}".format(
-					self.category_synonyms[parent_id],
-					category_name)
+	# Используется рекурсия
+	def parse_category(self, category):
 
-			# Добавляем в словарь
-			self.category_synonyms[category_id] = category_name
-			print(category_name)
+		category_id = category['CategoryID']
+		parent_id = category['ParentCategoryId']
 
-			# Проходим рекурсивно по подкатегориям
-			for sub_category in category['SubCategories']:
-				self.parseCategory(sub_category)
+		# Имя
+		category_name = category['CategoryName']
+		if parent_id:
+			category_name = "{} | {}".format(
+				self.category_synonyms[parent_id],
+				category_name)
+
+		# Добавляем в словарь
+		self.category_synonyms[category_id] = category_name
+		print(category_name)
+
+		# Проходим рекурсивно по подкатегориям
+		for sub_category in category['SubCategories']:
+			self.parse_category(sub_category)
 
 
 	def parse_catalog(self, data):

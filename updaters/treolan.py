@@ -41,7 +41,7 @@ class Runner(catalog.runner.Runner):
 		tree = self.load_html(self.url['price'])
 
 		# Парсим прайс-лист
-		self.parce(tree)
+		self.parse(tree)
 
 		# Чистим партии
 		Party.objects.clear(stock = self.stock,   time = self.start_time)
@@ -58,7 +58,7 @@ class Runner(catalog.runner.Runner):
 		return True
 
 
-	def parce(self, tree):
+	def parse(self, tree):
 
 		num = {'header': 0}
 

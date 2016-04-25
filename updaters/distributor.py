@@ -1,4 +1,6 @@
-# Шаблон дистрибьюторского загрузчика
+""" Шаблон дистрибьюторского загрузчика
+
+"""
 
 from project.models import Log
 
@@ -26,6 +28,7 @@ class Runner(catalog.runner.Runner):
 			'product' : 0,
 			'party'   : 0}
 
+
 	def run(self):
 
 		payload = {}
@@ -42,3 +45,6 @@ class Runner(catalog.runner.Runner):
 			description = "Products: {}; Parties: {}.".format(
 				self.count['product'],
 				self.count['party']))
+
+	def parse(self):
+		pass

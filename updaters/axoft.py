@@ -14,8 +14,7 @@ class Runner(catalog.runner.Runner):
 		'start'   : 'http://axoft.ru/',
 		'login'   : 'http://axoft.ru/',
 		'vendors' : 'http://axoft.ru/vendors/',
-		'prefix'  : 'http://axoft.ru',
-	}
+		'prefix'  : 'http://axoft.ru'}
 
 	word = {
 		'vendor' : '/vendors/',
@@ -126,19 +125,6 @@ class Runner(catalog.runner.Runner):
 									price[0]))
 
 		return prices
-
-
-	def unpack(self, data):
-
-		from zipfile import ZipFile
-
-		try:
-			zip_data = ZipFile(data)
-			data = zip_data.open(zip_data.namelist()[0])
-		except Exception:
-			return None
-		else:
-			return data
 
 
 	def parse(self, data, vendor):
