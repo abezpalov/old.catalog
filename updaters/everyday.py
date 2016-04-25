@@ -44,7 +44,7 @@ class Runner:
 			# Выполняем необходимый загрузчик
 			try:
 				print("Пробую выполнить загрузчик {}".format(updater))
-				Runner = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'.format(sys.argv[1].capitalize())])
+				Runner = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'])
 				runner = Runner.Runner()
 				if runner.updater.state:
 					if runner.run():
