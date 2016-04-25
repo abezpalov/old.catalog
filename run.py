@@ -1,5 +1,6 @@
 import os
 import sys
+
 from django.utils import timezone
 
 # Импортируем настройки проекта Django
