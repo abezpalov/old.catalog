@@ -77,7 +77,9 @@ class Runner(catalog.runner.Runner):
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
+			description = "Products: {}; Parties: {}.".format(
+				self.count['product'],
+				self.count['party']))
 
 		return True
 
