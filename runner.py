@@ -2,6 +2,7 @@ import requests
 
 from django.utils import timezone
 
+from project.models import Log
 from catalog.models import *
 
 
@@ -184,9 +185,10 @@ class Runner:
 
 		import lxml.etree
 
-		text = self.load(url, result_type = 'text', timeout = 100.0)
+		text = self.load(url, result_type = 'text', timeout = 500.0)
 
 		try:
+			print(text[:500])
 			tree = lxml.etree.parse(text)
 
 		except Exception:

@@ -178,9 +178,9 @@ class Runner(catalog.runner.Runner):
 					else: currency =  None
 
 #					s1 = self.fixQuantity(tr[num['s1']].text)
-					s2 = self.fixQuantity(tr[num['s2']].text)
-					bt = self.fixQuantity(tr[num['bt']].text)
-					dt = self.fixQuantity(tr[num['dt']].text)
+					s2 = self.fix_quantity(tr[num['s2']].text)
+					bt = self.fix_quantity(tr[num['bt']].text)
+					dt = self.fix_quantity(tr[num['dt']].text)
 
 					# Записываем партии
 #					if s1:
