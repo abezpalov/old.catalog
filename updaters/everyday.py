@@ -25,6 +25,7 @@ class Runner:
 			'ocs',
 			'rrc',
 			'treolan',
+			'mics',
 
 			'recalculate']
 

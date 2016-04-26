@@ -1652,7 +1652,7 @@ class VendorSynonymManager(models.Manager):
 		return result
 
 	def take(self, name, updater = None, distributor = None, vendor = None):
-		name = name.strip()
+		name = str(name).strip()
 		try:
 			vendorSynonym = self.get(
 				name        = name,

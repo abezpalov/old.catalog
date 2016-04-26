@@ -70,6 +70,22 @@ class Runner:
 		return stock
 
 
+	def take_category_synonym(self, name):
+
+		return CategorySynonym.objects.take(
+			name        = name,
+			updater     = self.updater,
+			distributor = self.distributor)
+
+
+	def take_vendor_synonym(self, name):
+
+		return VendorSynonym.objects.take(
+			name        = name,
+			updater     = self.updater,
+			distributor = self.distributor)
+
+
 	def load(self, url, result_type = None, timeout = 100.0, try_quantity = 10):
 
 		import time
@@ -188,8 +204,7 @@ class Runner:
 		text = self.load(url, result_type = 'text', timeout = 500.0)
 
 		try:
-			print(text[:500])
-			tree = lxml.etree.parse(text)
+			tree = lxml.etree.fromstring(text.encode('utf-8'))
 
 		except Exception:
 			return None
