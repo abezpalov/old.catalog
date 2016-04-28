@@ -225,7 +225,7 @@ class Runner(catalog.runner.Runner):
 						price        = price,
 						price_type   = self.dp,
 						currency     = currency,
-						quantity     = transit,
+						quantity     = -2,
 						unit         = self.default_unit,
 						product_name = name,
 						time         = self.start_time)
