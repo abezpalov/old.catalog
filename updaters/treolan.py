@@ -124,7 +124,7 @@ class Runner(catalog.runner.Runner):
 					distributor = self.distributor)
 
 			# Товар
-			elif len(tr) > 1:
+			elif len(tr) > 8:
 
 				article = ''
 				name = ''
