@@ -112,6 +112,7 @@ class Runner(catalog.runner.Runner):
 				# Проверяем, все ли столбцы распознались
 				if 'article' in num and 'name' in num and 'vendor' in num and 'stock' in num and 'transit' in num and 'price_usd' in num and 'price_rub' in num:
 					print("Структура данных без изменений.")
+					print(len(num))
 				else:
 					return False
 
@@ -123,7 +124,7 @@ class Runner(catalog.runner.Runner):
 					distributor = self.distributor)
 
 			# Товар
-			elif len(tr) == 8:
+			elif len(tr) > 1:
 
 				article = ''
 				name = ''
