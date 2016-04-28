@@ -218,7 +218,7 @@ class Runner(catalog.runner.Runner):
 						time         = self.start_time)
 					self.count['party'] += 1
 
-				if 'НЗС' not in dop:
+				if 'НЗС' not in str(dop):
 					party = Party.objects.make(
 						product      = product,
 						stock        = self.factory,
