@@ -110,8 +110,7 @@ class Runner(catalog.runner.Runner):
 						num['dop'] = tdn
 
 				# Проверяем, все ли столбцы распознались
-				if 'article' in num and 'name'in num and num['vendor']\
-					and num['stock'] and num['transit'] and num['price']:
+				if 'article' in num and 'name' in num and 'vendor' in num and 'stock' in num and 'transit' in num and 'price_usd' in num and 'price_rub' in num:
 					print("Структура данных без изменений.")
 				else:
 					return False
