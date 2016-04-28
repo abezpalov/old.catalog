@@ -22,6 +22,7 @@ class Runner(catalog.runner.Runner):
 
 		self.stock   = self.take_stock('stock', 'склад', 3, 10)
 		self.transit = self.take_stock('transit', 'транзит', 10, 40)
+		self.factory = self.take_stock('factory', 'на заказ', 30, 60)
 
 		self.count = {
 			'product' : 0,
@@ -69,7 +70,9 @@ class Runner(catalog.runner.Runner):
 			'stock'        : 'Св.',
 			'transit'      : 'Св.+Тр.',
 			'transit_date' : 'Б. Тр.',
-			'price'        : 'Цена',
+			'price_usd'    : 'Цена*',		
+			'price_rub'    : 'Цена руб.**',
+#			'price'        : 'Цена',
 			'dop'          : 'Доп.'}
 
 		# Парсим
@@ -97,8 +100,12 @@ class Runner(catalog.runner.Runner):
 						num['transit'] = tdn
 					elif td[0].text == word['transit_date']:
 						num['transit_date'] = tdn
-					elif td[0].text == word['price']:
-						num['price'] = tdn
+#					elif td[0].text == word['price']:
+#						num['price'] = tdn
+					elif td[0].text == word['price_usd']:
+						num['price_usd'] = tdn
+					elif td[0].text == word['price_rub']:
+						num['price_rub'] = tdn
 					elif td[0].text == word['dop']:
 						num['dop'] = tdn
 
@@ -125,7 +132,8 @@ class Runner(catalog.runner.Runner):
 				stock = 0
 				transit = 0
 				transit_date = None
-				price = 0
+				price_usd = 0
+				price_rub = 0
 				currency = None
 				dop = ''
 
@@ -152,17 +160,16 @@ class Runner(catalog.runner.Runner):
 					elif tdn == num['transit_date']:
 						transit_date = td.text
 
-					elif tdn == num['price']:
-						price = td.text.strip()
-						if 'руб' in price:
-							currency = self.rub
-						elif '$' in price:
-							currency = self.usd
-						price = self.fix_price(price)
+					elif tdn == num['price_usd']:
+						price_usd = self.fix_price(td.text)
+
+					elif tdn == num['price_rub']:
+						price_rub = self.fix_price(td.text)
 
 					elif tdn == num['dop']:
 						dop = td.text
 
+				# Получаем объект продукта
 				if article and name and vendor_synonym.vendor:
 					product = Product.objects.take(
 						article  = article,
@@ -174,7 +181,18 @@ class Runner(catalog.runner.Runner):
 				else:
 					continue
 
-				if stock or not transit:
+				# Получаем цену
+				if price_usd:
+					price = price_usd
+					currency = self.usd
+				elif price_rub:
+					price = price_rub
+					currency = self.rub
+				else:
+					price = None
+					currency = None
+
+				if stock:
 					party = Party.objects.make(
 						product      = product,
 						stock        = self.stock,
@@ -199,5 +217,18 @@ class Runner(catalog.runner.Runner):
 						product_name = name,
 						time         = self.start_time)
 					self.count['party'] += 1
+
+				if 'НЗС' not in dop:
+					party = Party.objects.make(
+						product      = product,
+						stock        = self.factory,
+						price        = price,
+						price_type   = self.dp,
+						currency     = currency,
+						quantity     = transit,
+						unit         = self.default_unit,
+						product_name = name,
+						time         = self.start_time)
+					self.count['party'] += 1	
 
 		return True
