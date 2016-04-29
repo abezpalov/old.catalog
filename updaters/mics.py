@@ -57,7 +57,6 @@ class Runner(catalog.runner.Runner):
 			'EUR' : self.eur,
 			''    : None}
 
-
 		categories = {}
 		for o in tree.xpath('..//Group'):
 
@@ -65,7 +64,11 @@ class Runner(catalog.runner.Runner):
 			parent_id = o.attrib.get('ParentID')
 
 			category_name = o.attrib.get('Name')
-			parent_name = categories.get(parent_id)
+
+			try:
+				parent_name = categories[parent_id]
+			except Exception:
+				parent_name = None
 
 			if parent_name:
 				category_name = '{} | {}'.format(parent_name, category_name)
@@ -102,7 +105,7 @@ class Runner(catalog.runner.Runner):
 			try:
 				product_description = o.attrib.get('Description')
 			except Exception:
-				product_description = None
+				product_description = ''
 
 			if product_article and product_name and vendor:
 
@@ -114,17 +117,24 @@ class Runner(catalog.runner.Runner):
 					unit     = self.default_unit)
 				self.count['product'] += 1
 
+				# TODO TEST
+				if not product.description and product_description:
+					product.description = product_description
+					product.save()
+
 				if stock:
 
 					party = Party.objects.make(
-						product    = product,
-						stock      = self.stock,
-						price      = price,
-						price_type = self.dp,
-						currency   = currency,
-						quantity   = stock,
-						unit       = self.default_unit,
-						time       = self.start_time)
+						product      = product,
+						stock        = self.stock,
+						article      = party_article,
+						price        = price,
+						price_type   = self.dp,
+						currency     = currency,
+						quantity     = stock,
+						unit         = self.default_unit,
+						product_name = product_name,
+						time         = self.start_time)
 					self.count['party'] += 1
 
 				if transit:
@@ -132,6 +142,7 @@ class Runner(catalog.runner.Runner):
 					party = Party.objects.make(
 						product      = product,
 						stock        = self.transit,
+						article      = party_article,
 						price        = price,
 						price_type   = self.dp,
 						currency     = currency,
