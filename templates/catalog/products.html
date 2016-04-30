@@ -53,9 +53,9 @@
 				<a
 					data-do = "open-view-parties"
 					data-id = "{{ product.id }}">{% autoescape off %}{{ product.price.price_xml }}{% endautoescape %}</a></td>
-			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_stock %}{% if product.quantity.on_stock == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_stock }}{% endif %}{% endif %}</td>
-			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_transit %}{% if product.quantity.on_transit == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_transit }}{% endif %}{% endif %}</td>
-			<td class="text-center" style="white-space: nowrap;">{% if product.quantity.on_factory %}{% if product.quantity.on_factory == -1%}{% autoescape off %}&infin;{% endautoescape %}{% else %}{{ product.quantity.on_factory }}{% endif %}{% endif %}</td>
+			<td class="text-center" style="white-space: nowrap;">{% if product.quantity %}{% autoescape off %}{{ product.quantity.on_stock_xml }}{% endautoescape %}{% endif %}</td>
+			<td class="text-center" style="white-space: nowrap;">{% if product.quantity %}{% autoescape off %}{{ product.quantity.on_transit_xml }}{% endautoescape %}{% endif %}</td>
+			<td class="text-center" style="white-space: nowrap;">{% if product.quantity %}{% autoescape off %}{{ product.quantity.on_factory_xml }}{% endautoescape %}{% endif %}</td>
 			{% if perms.catalog.change_product %}
 			<td>
 				<div class = "switch small">

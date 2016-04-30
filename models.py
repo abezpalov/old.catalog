@@ -638,6 +638,66 @@ class Quantity(models.Model):
 		return result
 
 
+	def _get_on_stock_xml(self):
+
+		try:
+
+			if self.on_stock:
+				quantity = str(self.on_stock)
+			elif self.on_stock == -1:
+				quantity = '&infin;'
+			elif self.on_stock is None:
+				quantity = '?'
+			else:
+				quantity = ''
+		except:
+			quantity = ''
+
+		return quantity
+
+
+	def _get_on_transit_xml(self):
+
+		try:
+
+			if self.on_transit:
+				quantity = str(self.on_transit)
+			elif self.on_transit == -1:
+				quantity = '&infin;'
+			elif self.on_transit is None:
+				quantity = '?'
+			else:
+				quantity = ''
+				
+		except:
+			quantity = ''
+
+		return quantity
+
+
+	def _get_on_factory_xml(self):
+
+		try:
+
+			if self.on_factory:
+				quantity = str(self.on_factory)
+			elif self.on_factory == -1:
+				quantity = '&infin;'
+			elif self.on_factory is None:
+				quantity = '?'
+			else:
+				quantity = ''
+		except:
+			quantity = ''
+
+		return quantity
+
+
+	on_stock_xml   = property(_get_on_stock_xml)
+	on_transit_xml = property(_get_on_transit_xml)
+	on_factory_xml = property(_get_on_factory_xml)
+
+
 	class Meta:
 		ordering = ['-created']
 
@@ -796,9 +856,9 @@ class Product(models.Model):
 			'factory' : [0]}
 
 		undef = {
-			'stock'   : True,
-			'transit' : True,
-			'factory' : True}
+			'stock'   : None,
+			'transit' : None,
+			'factory' : None}
 
 		prices = []
 		prices_null = []
@@ -820,6 +880,18 @@ class Product(models.Model):
 					quantities['factory'].append(party.quantity)
 					undef['factory'] = False
 
+			elif party.quantity is None:
+
+				if 'stock' in party.stock.alias and undef['stock'] is None:
+					undef['stock'] = True
+				elif 'transit' in party.stock.alias and undef['transit'] is None:
+					undef['transit'] = True
+				elif ('factory' in party.stock.alias \
+						or 'delivery' in party.stock.alias \
+						or 'order' in party.stock.alias) \
+						and undef['transit'] is None:
+					undef['factory'] = True
+
 			if party.quantity != 0:
 
 				if party.price and party.currency and party.price_type:
@@ -833,16 +905,22 @@ class Product(models.Model):
 		# Записываем информацию в базу
 		if -1 in quantities['stock']:
 			self.quantity.on_stock = -1
+		elif undef['stock']:
+			self.quantity.on_stock = None
 		else:
 			self.quantity.on_stock = sum(quantities['stock'])
 
 		if -1 in quantities['transit']:
 			self.quantity.on_transit = -1
+		elif undef['transit']:
+			self.quantity.on_transit = None
 		else:
 			self.quantity.on_transit = sum(quantities['transit'])
 
 		if -1 in quantities['factory']:
 			self.quantity.on_factory = -1
+		elif undef['factory']:
+			self.quantity.on_factory = None
 		else:
 			self.quantity.on_factory = sum(quantities['factory'])
 
