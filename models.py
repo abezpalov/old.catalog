@@ -642,10 +642,10 @@ class Quantity(models.Model):
 
 		try:
 
-			if self.on_stock:
-				quantity = str(self.on_stock)
-			elif self.on_stock == -1:
+			if self.on_stock == -1:
 				quantity = '&infin;'
+			elif self.on_stock:
+				quantity = str(self.on_stock)
 			elif self.on_stock is None:
 				quantity = '?'
 			else:
@@ -660,10 +660,10 @@ class Quantity(models.Model):
 
 		try:
 
-			if self.on_transit:
-				quantity = str(self.on_transit)
-			elif self.on_transit == -1:
+			if self.on_transit == -1:
 				quantity = '&infin;'
+			elif self.on_transit:
+				quantity = str(self.on_transit)
 			elif self.on_transit is None:
 				quantity = '?'
 			else:
@@ -679,10 +679,10 @@ class Quantity(models.Model):
 
 		try:
 
-			if self.on_factory:
-				quantity = str(self.on_factory)
-			elif self.on_factory == -1:
+			if self.on_factory == -1:
 				quantity = '&infin;'
+			elif self.on_factory:
+				quantity = str(self.on_factory)
 			elif self.on_factory is None:
 				quantity = '?'
 			else:
