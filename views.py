@@ -231,7 +231,7 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 	return render(request, 'catalog/products.html', locals())
 
 
-def product(request, id=None, vendor=None, article=None):
+def product(request, id = None, vendor = None, article = None):
 	"Представление: продукт."
 
 	from catalog.models import Vendor, Product
@@ -746,6 +746,7 @@ def ajax_switch_state(request, *args, **kwargs):
 
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
+
 def ajax_delete(request, *args, **kwargs):
 	"AJAX-представление: Delete Object."
 
@@ -776,7 +777,6 @@ def ajax_delete(request, *args, **kwargs):
 	return HttpResponse(json.dumps(result), 'application/javascript')
 
 
-# TODO Need refactoring
 def ajax_link_same_foreign(request, *args, **kwargs):
 	"AJAX-представление: Link Model to Same Foreign."
 

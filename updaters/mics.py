@@ -63,7 +63,7 @@ class Runner(catalog.runner.Runner):
 			category_id = o.attrib.get('GroupID')
 			parent_id = o.attrib.get('ParentID')
 
-			category_name = o.attrib.get('Name')
+			category_name = o.attrib.get('Name').strip()
 
 			try:
 				parent_name = categories[parent_id]
@@ -117,7 +117,6 @@ class Runner(catalog.runner.Runner):
 					unit     = self.default_unit)
 				self.count['product'] += 1
 
-				# TODO TEST
 				if not product.description and product_description:
 					product.description = product_description
 					product.save()
@@ -137,7 +136,7 @@ class Runner(catalog.runner.Runner):
 						time         = self.start_time)
 					self.count['party'] += 1
 
-				if transit:
+				if transit is None:
 
 					party = Party.objects.make(
 						product      = product,
@@ -158,4 +157,6 @@ class Runner(catalog.runner.Runner):
 	def fix_transit(self, value):
 
 		if value == 'Транзит':
-			return -2
+			return None
+		else:
+			return 0

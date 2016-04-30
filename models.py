@@ -637,17 +637,20 @@ class Quantity(models.Model):
 
 		return result
 
+
 	class Meta:
 		ordering = ['-created']
 
 
 class ProductManager(models.Manager):
 
+
 	def get_all_dicted(self):
 		result = []
 		for o in self.all():
 			result.append(o.get_dicted())
 		return result
+
 
 	def take(self, article, vendor, name, category = None, unit = None,
 			description = None):
@@ -698,14 +701,6 @@ class ProductManager(models.Manager):
 
 		return product
 
-	def fixNames(self):
-		products = self.all()
-		for product in products:
-			product.name     = product.name.replace("\u00AD", '')
-			product.modified = timezone.now()
-			product.save()
-		return True
-
 
 class Product(models.Model):
 
@@ -725,6 +720,7 @@ class Product(models.Model):
 	modified    = models.DateTimeField()
 
 	objects     = ProductManager()
+
 
 	def get_dicted(self):
 
@@ -760,15 +756,13 @@ class Product(models.Model):
 
 		return result
 
+
 	def __str__(self):
 		return self.name
 
-	def recalculate(self):
 
-		from catalog.models import Party
-		from catalog.models import Unit
-		from catalog.models import Currency
-		from catalog.models import PriceType
+	# TODO Need rafactoring
+	def recalculate(self):
 
 		# Определяем переменные
 		rp = PriceType.objects.take(
@@ -782,83 +776,94 @@ class Product(models.Model):
 			rate      = 1,
 			quantity  = 1)
 
-		# Получаем партии продукта
-		parties = Party.objects.filter(product=self)
+		# Получаем объекты количества и цены
+		if self.quantity is None:
+			self.quantity = Quantity()
+			self.quantity.created = timezone.now()
+			self.quantity.save()
+			self.save()
 
-		# Получаем объект количества
-		if self.quantity:
-			quantity = self.quantity
-		else:
-			quantity = Quantity()
-			quantity.created = timezone.now()
+		if self.price is None:
+			self.price = Price()
+			self.price.created = timezone.now()
+			self.price.save()
+			self.save()
 
 		# Вычисляем количество товара
-		on_stock   = [0]
-		on_transit = [0]
-		on_factory = [0]
+		quantities = {
+			'stock'   : [0],
+			'transit' : [0],
+			'factory' : [0]}
 
-		for party in parties:
+		undef = {
+			'stock'   : True,
+			'transit' : True,
+			'factory' : True}
+
+		prices = []
+		prices_null = []
+
+		# Проходим по всем партиям продукта
+		for party in Party.objects.filter(product = self):
+
 			if party.quantity:
+
 				if 'stock' in party.stock.alias:
-					on_stock.append(party.quantity)
+					quantities['stock'].append(party.quantity)
+					undef['stock'] = False
 				elif 'transit' in party.stock.alias:
-					on_transit.append(party.quantity)
-				elif 'factory' in party.stock.alias:
-					on_factory.append(party.quantity)
-				elif 'delivery' in party.stock.alias:
-					on_factory.append(party.quantity)
-				elif 'order' in party.stock.alias:
-					on_factory.append(party.quantity)
+					quantities['transit'].append(party.quantity)
+					undef['transit'] = False
+				elif 'factory' in party.stock.alias \
+						or 'delivery' in party.stock.alias \
+						or 'order' in party.stock.alias:
+					quantities['factory'].append(party.quantity)
+					undef['factory'] = False
+
+			if party.quantity != 0:
+
+				if party.price and party.currency and party.price_type:
+					prices.append(party.price * party.currency.rate * party.price_type.multiplier / party.currency.quantity)
+
+			else:
+
+				if party.price and party.currency and party.price_type:
+					prices_null.append(party.price * party.currency.rate * party.price_type.multiplier / party.currency.quantity)
 
 		# Записываем информацию в базу
-		if -1 in on_stock: quantity.on_stock = -1
-		else: quantity.on_stock = sum(on_stock)
-
-		if -1 in on_transit: quantity.on_transit = -1
-		else: quantity.on_transit = sum(on_transit)
-
-		if -1 in on_factory: quantity.on_factory = -1
-		else: quantity.on_factory = sum(on_factory)
-
-		quantity.modified = timezone.now()
-		quantity.save()
-
-		# Если объект количества не привязан к продукту, привязываем
-		if self.quantity is None:
-			self.quantity = quantity
-			self.save()
-
-		# Получаем цену
-		if self.price:
-			price = self.price
+		if -1 in quantities['stock']:
+			self.quantity.on_stock = -1
 		else:
-			price = Price()
-			price.created = timezone.now()
+			self.quantity.on_stock = sum(quantities['stock'])
 
-		# Вычисляем розничные цены на основании входных цен
-		prices = []
-		for party in parties:
-			if party.price and party.currency and party.price_type:
-				prices.append(party.price * party.currency.rate * party.price_type.multiplier / party.currency.quantity)
+		if -1 in quantities['transit']:
+			self.quantity.on_transit = -1
+		else:
+			self.quantity.on_transit = sum(quantities['transit'])
 
-		# Записываем лучшую в базу
+		if -1 in quantities['factory']:
+			self.quantity.on_factory = -1
+		else:
+			self.quantity.on_factory = sum(quantities['factory'])
+
+		self.quantity.modified = timezone.now()
+		self.quantity.save()
+
 		if len(prices):
-			price.price      = min(prices)
-			price.price_type = rp
-			price.currency   = rub
+			self.price.price      = min(prices)
+			self.price.price_type = rp
+			self.price.currency   = rub
+		elif len(prices_null):
+			self.price.price      = min(prices_null)
+			self.price.price_type = rp
+			self.price.currency   = rub
 		else:
-			price.price      = None
-			price.price_type = rp
-			price.currency   = rub
-		price.modified = timezone.now()
-		price.save()
+			self.price.price      = None
+			self.price.price_type = rp
+			self.price.currency   = rub
 
-		# Если цена не привязана к продукту, привязываем
-		if self.price is None:
-			self.price = price
-			self.save()
-
-		return True
+		self.price.modified = timezone.now()
+		self.price.save()
 
 
 	class Meta:
