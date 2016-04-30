@@ -840,12 +840,14 @@ class Product(models.Model):
 		if self.quantity is None:
 			self.quantity = Quantity()
 			self.quantity.created = timezone.now()
+			self.quantity.modified = timezone.now()
 			self.quantity.save()
 			self.save()
 
 		if self.price is None:
 			self.price = Price()
 			self.price.created = timezone.now()
+			self.price.modified = timezone.now()
 			self.price.save()
 			self.save()
 

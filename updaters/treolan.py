@@ -88,25 +88,25 @@ class Runner(catalog.runner.Runner):
 			# Заголовок таблицы
 			if trn == num['header']:
 				for tdn, td in enumerate(tr):
-					if td[0].text == word['article']:
+					if td[0].text.strip() == word['article']:
 						num['article'] = tdn
-					elif td[0].text == word['name']:
+					elif td[0].text.strip() == word['name']:
 						num['name'] = tdn
-					elif td[0].text == word['vendor']:
+					elif td[0].text.strip() == word['vendor']:
 						num['vendor'] = tdn
-					elif td[0].text == word['stock']:
+					elif td[0].text.strip() == word['stock']:
 						num['stock'] = tdn
-					elif td[0].text == word['transit']:
+					elif td[0].text.strip() == word['transit']:
 						num['transit'] = tdn
-					elif td[0].text == word['transit_date']:
+					elif td[0].text.strip() == word['transit_date']:
 						num['transit_date'] = tdn
 #					elif td[0].text == word['price']:
 #						num['price'] = tdn
-					elif td[0].text == word['price_usd']:
+					elif td[0].text.strip() == word['price_usd']:
 						num['price_usd'] = tdn
-					elif td[0].text == word['price_rub']:
+					elif td[0].text.strip() == word['price_rub']:
 						num['price_rub'] = tdn
-					elif td[0].text == word['dop']:
+					elif td[0].text.strip() == word['dop']:
 						num['dop'] = tdn
 
 				# Проверяем, все ли столбцы распознались
@@ -225,10 +225,10 @@ class Runner(catalog.runner.Runner):
 						price        = price,
 						price_type   = self.dp,
 						currency     = currency,
-						quantity     = -2,
+						quantity     = None,
 						unit         = self.default_unit,
 						product_name = name,
 						time         = self.start_time)
-					self.count['party'] += 1	
+					self.count['party'] += 1
 
 		return True
