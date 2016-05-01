@@ -10,6 +10,7 @@ $("body").delegate("[data-do='open-new-parameter']", "click", function(){
 	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-alias').val('');
 	$('#edit-' + model + '-parametertype').val('0');
+	$('#edit-' + model + '-unit').val('0');
 	$('#edit-' + model + '-order').val('0');
 	$('#edit-' + model + '-state').prop('checked', true);
 
@@ -43,6 +44,11 @@ $("body").delegate("[data-do='open-edit-parameter']", "click", function(){
 			} else {
 				$('#edit-' + model + '-parametertype').val(0);
 			}
+			if (data[model]['unit']) {
+				$('#edit-' + model + '-unit').val(data[model]['unit']['id']);
+			} else {
+				$('#edit-' + model + '-unit').val(0);
+			}
 			$('#edit-' + model + '-order').val(data[model]['order']);
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
@@ -66,6 +72,7 @@ $("body").delegate("[data-do='edit-parameter-save']", "click", function(){
 		name             : $('#edit-' + model + '-name').val(),
 		alias            : $('#edit-' + model + '-alias').val(),
 		parametertype_id : $('#edit-' + model + '-parametertype').val(),
+		unit_id          : $('#edit-' + model + '-unit').val(),
 		order            : $('#edit-' + model + '-order').val(),
 		state            : $('#edit-' + model + '-state').prop('checked'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
@@ -88,10 +95,21 @@ $("body").delegate("[data-do='edit-parameter-save']", "click", function(){
 				$('[data-' + model + '-parametertype-name="' + data[model]['id'] + '"]').data('parametertype-name', '0');
 			}
 
+			if (data[model]['unit']) {
+				$('[data-' + model + '-unit-name="' + data[model]['id'] + '"]').text(data[model]['unit']['name']);
+				$('[data-' + model + '-unit-name="' + data[model]['id'] + '"]').data('unit-id', data[model]['unit']['id']);
+				$('[data-' + model + '-unit-name="' + data[model]['id'] + '"]').data('unit-name', data[model]['unit']['id']);
+			} else {
+				$('[data-' + model + '-unit-name="' + data[model]['id'] + '"]').text('');
+				$('[data-' + model + '-unit-name="' + data[model]['id'] + '"]').data('unit-id', '0');
+				$('[data-' + model + '-unit-name="' + data[model]['id'] + '"]').data('unit-name', '0');
+			}
+
 			$('#edit-' + model + '-id').val('0');
 			$('#edit-' + model + '-name').val('');
 			$('#edit-' + model + '-alias').val('');
-			$('#edit-' + model + '-parametertype').val('');
+			$('#edit-' + model + '-parametertype').val('0');
+			$('#edit-' + model + '-unit').val('0');
 			$('#edit-' + model + '-order').val('0');
 			$('#edit-' + model + '-state').prop('checked', false);
 
@@ -113,7 +131,8 @@ $("body").delegate("[data-do='edit-parameter-cancel']", "click", function(){
 	$('#edit-' + model + '-id').val('0');
 	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-alias').val('');
-	$('#edit-' + model + '-parametertype').val('');
+	$('#edit-' + model + '-parametertype').val('0');
+	$('#edit-' + model + '-unit').val('0');
 	$('#edit-' + model + '-order').val('0');
 	$('#edit-' + model + '-state').prop('checked', false);
 

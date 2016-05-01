@@ -4,14 +4,12 @@ from project.models import Log
 
 class Runner:
 
-
 	name = 'Перерасчет розничных цен и количества'
 	alias = 'recalculate'
 
 
 	def __init__(self):
 
-		# Получаем необходимые объекты
 		self.updater = Updater.objects.take(
 			alias = self.alias,
 			name  = self.name)
@@ -22,9 +20,9 @@ class Runner:
 		products = Product.objects.all()
 
 		for n, product in enumerate(products):
-			print("{} of {}. {} {}".format(
-				str(n+1),
-				len(products),
+			print('{} of {}. {} {}'.format(
+				'{:,}'.format(n+1).replace(',', ' '),
+				'{:,}'.format(len(products)).replace(',', ' '),
 				product.vendor.name,
 				product.article))
 
@@ -34,6 +32,5 @@ class Runner:
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Обновлены розничные цены и количества: {} шт.".format(len(products)))
-
-		return True
+			description = "Products: {}.".format(
+				'{:,}'.format(len(products)).replace(',', ' ')))

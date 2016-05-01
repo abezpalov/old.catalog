@@ -54,11 +54,9 @@ class Runner:
 
 			except Exception as error:
 				Log.objects.add(
-					subject    = "Catalog Updater Everyday: {}".format(updater),
+					subject    = "catalog.updater.{}".format(updater),
 					channel    = "error",
 					title      = "Exception",
 					description = error)
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
-
-		return True

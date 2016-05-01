@@ -8,9 +8,10 @@
 {% block content %}
 
 <div class="row collapse">
-	<ul class="button-group even-2">
+	<ul class="button-group even-3">
 	{% if perms.catalog.add_parameter %}<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>{% endif %}
 	{% if perms.catalog.add_parametertype %}<li><button data-do="open-new-parametertype" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип параметра</button></li>{% endif %}
+	{% if perms.catalog.add_unit %}<li><button data-do="open-new-unit" class="secondary expand"><i class="fa fa-pencil"></i> Добавить единицу измерения</button></li>{% endif %}
 	</ul>
 </div>
 
@@ -22,6 +23,7 @@
 			<th class="text-center">#</th>
 			<th>Наименование</th>
 			<th>Тип данных</th>
+			<th>Единица измерения</th>
 			<th colspan = "2">Статус</th>
 		</tr>
 		{% for parameter in parameters %}
@@ -38,6 +40,12 @@
 					data-parametertype-id = "{{ parameter.parametertype.id }}"
 					data-parametertype-name = "{{ parameter.parametertype.id }}"
 					data-parameter-parametertype-name = "{{ parameter.id }}">{{ parameter.parametertype.name }}</a></td>
+			<td>
+				<a
+					data-do = "open-edit-unit"
+					data-unit-id = "{{ parameter.unit.id }}"
+					data-unit-name = "{{ parameter.unit.id }}"
+					data-parameter-unit-name = "{{ parameter.id }}">{{ parameter.unit.name }}</a></td>
 			<td>
 				<div class = "switch small">
 					<input
@@ -73,12 +81,14 @@
 
 {% include "catalog/modal/parameter.html" %}
 {% include "catalog/modal/parametertype.html" %}
+{% include "catalog/modal/unit.html" %}
 {% endblock %}
 
 {% block js-content %}
 <script>
 {% include "catalog/js/parameter.js" %}
 {% include "catalog/js/parametertype.js" %}
+{% include "catalog/js/unit.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

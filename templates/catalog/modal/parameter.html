@@ -22,6 +22,15 @@
 		</select>
 	</label>
 
+	<label>Единица измерения
+		<select id="edit-parameter-unit">
+			<option value="0" selected> - Не определена (None) - </option>
+			{% for unit in units %}
+			<option value="{{ unit.id }}">{{ unit.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
 	<label>Порядковый номер
 		<input id="edit-parameter-order" type="text" value="">
 	</label>

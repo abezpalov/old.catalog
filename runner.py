@@ -289,3 +289,14 @@ class Runner:
 
 		except Exception:
 			return 0
+
+
+	def log(self):
+
+		Log.objects.add(
+			subject     = "catalog.updater.{}".format(self.updater.alias),
+			channel     = "info",
+			title       = "Updated",
+			description = "Products: {}; Parties: {}.".format(
+				'{:,}'.format(self.count['product']).replace(',', ' '),
+				'{:,}'.format(self.count['party']).replace(',', ' ')))

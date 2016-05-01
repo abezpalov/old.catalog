@@ -76,15 +76,8 @@ class Runner(catalog.runner.Runner):
 		# Чистим устаревшие партии
 		Party.objects.clear(stock = self.stock, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
-				self.count['product'],
-				self.count['party']))
-
-		return True
+		# Пишем в лог
+		self.log()
 
 
 	def get_prices_urls(self):

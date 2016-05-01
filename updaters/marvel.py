@@ -78,15 +78,7 @@ class Runner(catalog.runner.Runner):
 		Party.objects.clear(stock = self.stock_msk, time = self.start_time)
 		Party.objects.clear(stock = self.stock_spb, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
-				self.count['product'],
-				self.count['party']))
-
-		return True
+		self.log()
 
 
 	def update_product_description(self, product_id):
@@ -295,7 +287,7 @@ class Runner(catalog.runner.Runner):
 			for p in ps:
 
 				name  = p['ParameterName']
-				value = p['ParameterValue']	
+				value = p['ParameterValue']
 
 				parameter_synonym = ParameterSynonym.objects.take(
 					name        = name,

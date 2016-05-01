@@ -69,19 +69,14 @@ class Runner(catalog.runner.Runner):
 					data = self.load_data(url)
 					self.parse(data)
 
+		# Чистим устаревшие партии
 		Party.objects.clear(stock = self.factory, time = self.start_time)
 		Party.objects.clear(stock = self.stock,   time = self.start_time)
 		Party.objects.clear(stock = self.transit, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
-				self.count['product'],
-				self.count['party']))
+		# Пишем в лог
+		self.log()
 
-		return True
 
 	def parse(self, data):
 
@@ -132,35 +127,36 @@ class Runner(catalog.runner.Runner):
 					if   str(cel).strip() == word['category']:
 						num['category'] = cel_num
 					elif str(cel).strip() == word['category_sub']:
-						num['category_sub']       = cel_num
+						num['category_sub'] = cel_num
 					elif str(cel).strip() == word['product_vendor']:
-						num['product_vendor']     = cel_num
+						num['product_vendor'] = cel_num
 					elif str(cel).strip() == word['party_article']:
-						num['party_article']      = cel_num
+						num['party_article'] = cel_num
 					elif str(cel).strip() == word['product_article']:
-						num['product_article']    = cel_num
+						num['product_article'] = cel_num
 					elif str(cel).strip() == word['product_name']:
-						num['product_name']       = cel_num
+						num['product_name'] = cel_num
 					elif str(cel).strip() == word['quantity_factory']:
-						num['quantity_factory']   = cel_num
+						num['quantity_factory'] = cel_num
 					elif str(cel).strip() == word['quantity_stock']:
-						num['quantity_stock']     = cel_num
+						num['quantity_stock'] = cel_num
 					elif str(cel).strip() == word['quantity_transit']:
-						num['quantity_transit']   = cel_num
+						num['quantity_transit'] = cel_num
 					elif str(cel).strip() == word['party_price_in']:
-						num['party_price']        = cel_num
-						num['party_currency']     = cel_num + 1
+						num['party_price'] = cel_num
+						num['party_currency'] = cel_num + 1
 					elif str(cel).strip() == word['party_price_out']:
-						num['party_price_out']     = cel_num
-						num['party_currency_out']  = cel_num + 1
+						num['party_price_out'] = cel_num
+						num['party_currency_out'] = cel_num + 1
 					elif str(cel).strip() == word['product_warranty']:
-						num['product_warranty']   = cel_num
+						num['product_warranty'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
 				if not len(num) == 15:
 					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
-				else: print("Структура данных без изменений.")
+				else:
+					print("Структура данных без изменений.")
 
 			# Товар
 			elif row[num['product_article']] and row[num['product_vendor']]:
@@ -183,6 +179,9 @@ class Runner(catalog.runner.Runner):
 				product_article    = row[num['product_article']]
 				product_name       = row[num['product_name']]
 
+				# Гарантия
+				product_warranty = self.fix_warranty(row[num['product_warranty']])
+
 				if product_article and product_name and vendor_synonym.vendor:
 
 					product = Product.objects.take(
@@ -192,6 +191,10 @@ class Runner(catalog.runner.Runner):
 						category = category_synonym.category,
 						unit     = self.default_unit)
 					self.count['product'] += 1
+
+					parameter_to_product = product.get_parameter_to_product('warranty')
+					if parameter_to_product:
+						parameter_to_product.set_value(product_warranty)
 
 					# Партии
 					party_article = row[num['party_article']]
@@ -242,7 +245,7 @@ class Runner(catalog.runner.Runner):
 						self.count['party'] += 1
 
 					# Партии на заказ
-					if quantity['factory']:
+					if quantity['factory'] is None:
 						party = Party.objects.make(
 							product        = product,
 							stock          = self.factory,
@@ -258,13 +261,11 @@ class Runner(catalog.runner.Runner):
 							time           = self.start_time)
 						self.count['party'] += 1
 
-		return True
-
 
 	def fix_quantity_factory(self, quantity):
 		quantity = str(quantity).strip()
-		if quantity in ('под заказ'): return -1
-		else: return None
+		if quantity in ('под заказ'): return None
+		else: return 0
 
 
 	def fix_quantity_stock(self, quantity):
@@ -282,4 +283,22 @@ class Runner(catalog.runner.Runner):
 		if quantity:
 			return 5
 		else:
+			return None
+
+
+	def fix_warranty(self, text):
+
+		x = 1
+		r = 1
+
+		if 'год' in text:
+			x = 12
+		elif 'лет' in text:
+			x = 12
+		elif 'дней':
+			r = 30
+
+		try:
+			return int(text.strip().split(' ')[0]) * x // r
+		except Exception:
 			return None

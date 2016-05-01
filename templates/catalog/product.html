@@ -2,29 +2,30 @@
 {% block title %}{{ product.name }}{% endblock %}
 
 {% block search %}
-<li class="divider"></li>
-<li class="has-form">
-	<div class="row collapse">
-		<div class="large-10 small-9 columns">
-			<input id="top-search-input" type="text" placeholder="Поиск по складу..." value="{{ search }}">
-		</div>
-		<div class="large-2 small-3 columns">
-			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
-		</div>
-	</div>
-</li>
+{% include "catalog/search-on-stocks.html" %}
 {% endblock %}
 
 {% block content %}
 
 <div class="row">
-	<div class="small-12 columns">
+	<div class="medium-6 columns">
 		<h3>{{ product.name }}</h3>
+		<p>{{ product.description }}</p>
+		<table>
+		<thead>Характеристики</thead>
+		{% for parameter in parameters %}
+		<tr><td>Производитель</td><td>{{ product.vendor }}</td></tr>
+		<tr><td>Артикул</td><td>{{ product.article }}</td></tr>
+		{% if parameter.parameter_value_xml %}
+		<tr>
+			<td>{{ parameter.parameter_name_xml }}</td>
+			<td>{% autoescape off %}{{ parameter.parameter_value_xml }}{% endautoescape %}</td>
+		</tr>
+		{% endif %}
+		{% endfor %}
+		</table>
 	</div>
-</div>
-
-<div class="row">
-	<div class="large-8 medium-6 columns">
+	<div class="medium-6 columns">
 		<div class="fotorama"
 			data-nav="thumbs"
 			data-transition="crossfade"
@@ -38,27 +39,19 @@
 			<img src="http://s.fotorama.io/4.jpg" data-caption="4">
 			<img src="http://s.fotorama.io/5.jpg" data-caption="5">
 		</div>
-	</div>
-	<div class="large-4 medium-6 columns">
 		<ul class="pricing-table">
-			<li class="bullet-item">{{ product.vendor }}</li>
-			<li class="bullet-item">{{ product.article }}</li>
 			<li class="price">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</li>
-			<li class="cta-button"><button><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;В заказ</button></li>
+			<li class="cta-button"><button><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;Заказать</button></li>
 		</ul>
 	</div>
 </div>
 
-<div class="row">
-	<div class="large-12 visible-for-large-up columns">
-		<p>{{ product.description }}</p>
-		<p>Характеристики</p>
-	</div>
-</div>
-
+{% include "catalog/modal/pricetype.html" %}
 {% endblock %}
+
 {% block js-content %}
 <script>
-
+{% include "catalog/js/product.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

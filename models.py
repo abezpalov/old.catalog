@@ -390,7 +390,7 @@ class UnitManager(models.Manager):
 
 class Unit(models.Model):
 
-	name           = models.CharField(max_length = 100, unique = True)
+	name           = models.CharField(max_length = 100)
 	name_short     = models.CharField(max_length = 100, null = True, default = None)
 	name_short_xml = models.CharField(max_length = 100, null = True, default = None)
 	alias          = models.CharField(max_length = 100, unique = True)
@@ -946,6 +946,28 @@ class Product(models.Model):
 		self.price.save()
 
 
+	def get_parameter_to_product(self, parameter_alias):
+
+		try:
+			parameter = Parameter.objects.get(alias = parameter_alias)
+		except Exception:
+			return None
+
+		try:
+			parameter_to_product = ParameterToProduct.objects.get(
+				product = self,
+				parameter = parameter)
+		except Exception:
+			parameter_to_product = ParameterToProduct(
+				product   = self,
+				parameter = parameter,
+				created   = timezone.now(),
+				modified  = timezone.now())
+			parameter_to_product.save()
+
+		return parameter_to_product
+
+
 	class Meta:
 		ordering = ['name']
 
@@ -1307,6 +1329,7 @@ class Parameter(models.Model):
 	name          = models.CharField(max_length = 100, unique = True)
 	alias         = models.CharField(max_length = 100, unique = True)
 	parametertype = models.ForeignKey(ParameterType, null = True, default = None)
+	unit          = models.ForeignKey(Unit, null = True, default = None)
 	order         = models.IntegerField(default = 0)
 	state         = models.BooleanField(default = True)
 	created       = models.DateTimeField()
@@ -1352,7 +1375,6 @@ class ParameterValue(models.Model):
 	parameter    = models.ForeignKey(Parameter)
 	value_text   = models.TextField()
 	value_search = models.CharField(max_length = 100, null = True, default = None)
-	unit         = models.ForeignKey(Unit, null = True, default = None)
 	order        = models.IntegerField()
 	state        = models.BooleanField(default = True)
 	created      = models.DateTimeField()
@@ -1504,58 +1526,90 @@ class ParameterToProduct(models.Model):
 
 		return result
 
+
 	def __str__(self):
-		return '{} - {} {}'.format(
-			self.parameter.name,
-			Self.product.vendor.name,
-			self.product.arvicle)
+
+		return '{} {} - {}'.format(
+			self.product.vendor.name,
+			self.product.article,
+			self.parameter.name)
+
+
+	def set_value(self, value):
+
+		if str(type(value)) == "<class 'int'>":
+			self.value_integer = value
+			self.save()
+
+		print("{} = {}".format(self, value))
+
+
+	def _get_parameter_name_xml(self):
+
+		return self.parameter.name
+
+	parameter_name_xml = property(_get_parameter_name_xml)
+
+
+	def _get_parameter_value_xml(self):
+
+		if self.value_text:
+			value = self.value_text
+		elif self.value_integer:
+			value = '{:,}'.format(self.value_integer).replace(',', ' ')
+		elif self.value_decimal:
+			value = '{:,}'.format(self.value_decimal).replace(',', ' ').replace('.', ',')
+		elif self.value_list:
+			value = self.value_list.value_text
+		else:
+			return ''
+
+		if self.parameter.unit:
+			value = '{}&nbsp;{}'.format(value, self.parameter.unit.name_short_xml)
+
+		return value
+
+	parameter_value_xml = property(_get_parameter_value_xml)
+
 
 	class Meta:
 		ordering = ['created']
 		db_table = 'catalog_parameter_to_product'
 
 
-	def setValue(self, value):
+#	def set_value(self, value):
 
-		print('setValue')
+#		print('setValue')
 
-		if 'text' == self.parameter.parameter_type.alias:
+#		if 'text' == self.parameter.parametertype.alias:
 
-			print('text')
+#			print('text')
 
-			self.value_text   = value
-			self.value_search = value[:100]
-			self.save()
+#			self.value_text   = value
+#			self.value_search = value[:100]
+#			self.save()
 
-			print("{} = {}".format(self.parameter.name, self.value_search))
+#			print("{} = {}".format(self.parameter.name, self.value_search))
 
-		elif 'months' == self.parameter.parameter_type.alias:
+#		elif 'months' == self.parameter.parametertype.alias:
 
-			print('months')
+#			print('months')
 
-			if 'Y' in value:                                                    # Входные данные в годах
-				value = int(value.replace('Y', '').strip())*12
-				self.value_text    = "{} месяцев".format(value)
-				self.value_search  = self.value_text[:100]
-				self.value_integer = value
-				self.save()
-			else:
-				print('Что делать со значением [{}]?'.format(value))
+#			if 'Y' in value:                                                    # Входные данные в годах
+#				value = int(value.replace('Y', '').strip())*12
+#				self.value_text    = "{} месяцев".format(value)
+#				self.value_search  = self.value_text[:100]
+#				self.value_integer = value
+#				self.save()
+#			else:
+#				print('Что делать со значением [{}]?'.format(value))
 
-			print("{} = {}".format(self.parameter.name, self.value_search))
+#			print("{} = {}".format(self.parameter.name, self.value_search))
 
-		elif 'list' == self.parameter.parameter_type.alias:
+#		elif 'list' == self.parameter.parametertype.alias:
 
-			print('list')
+#			print('list')
 
-			# TODO
-			# TODO
-			# TODO
-			# TODO
-			# TODO
-			# TODO
-			# TODO
-			# TODO
 			# TODO
 
 
@@ -1655,6 +1709,7 @@ class ParameterSynonym(models.Model):
 		except: result['parameter']   = None
 
 		return result
+
 
 	def __str__(self):
 		return self.name

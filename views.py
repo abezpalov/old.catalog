@@ -234,13 +234,15 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 def product(request, id = None, vendor = None, article = None):
 	"Представление: продукт."
 
-	from catalog.models import Vendor, Product
+	from catalog.models import Vendor, Product, ParameterToProduct
 
 	if id:
 		product = Product.objects.get(id=id)
 	elif vendor and article:
 		vendor = Vendor.objects.get(alias=vendor)
 		product = Product.objects.get(vendor=vendor, article=article)
+
+	parameters = ParameterToProduct.objects.filter(product = product)
 
 	return render(request, 'catalog/product.html', locals())
 
@@ -258,10 +260,11 @@ def parametertypes(request):
 def parameters(request):
 	"Представление: список параметров."
 
-	from catalog.models import Parameter, ParameterType
+	from catalog.models import Parameter, ParameterType, Unit
 
 	parameters = Parameter.objects.all().order_by('name')
 	parametertypes = ParameterType.objects.all().order_by('name')
+	units = Unit.objects.all().order_by('name')
 
 	return render(request, 'catalog/parameters.html', locals())
 
@@ -598,19 +601,19 @@ def ajax_save(request, *args, **kwargs):
 			except Exception:
 				o.multiplier = 1.0
 
-		elif 'connector_id' == key:
-			try:
-				m = catalog.models.models['connector']
-				o.connector = m.objects.get(id = request.POST.get(key, ''))
-			except Exception:
-				o.connector = None
-
 		elif key == 'updater_id':
 			try:
 				m = catalog.models.models['updater']
 				o.updater = m.objects.get(id = request.POST.get(key, ''))
 			except Exception:
 				o.updater = None
+
+		elif key == 'unit_id':
+			try:
+				m = catalog.models.models['unit']
+				o.unit = m.objects.get(id = request.POST.get(key, ''))
+			except Exception:
+				o.unit = None
 
 		elif key == 'distributor_id':
 			try:

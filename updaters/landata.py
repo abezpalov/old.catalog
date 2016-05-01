@@ -70,15 +70,7 @@ class Runner(catalog.runner.Runner):
 		Party.objects.clear(stock = self.bt, time = self.start_time)
 		Party.objects.clear(stock = self.dt, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
-				self.count['product'],
-				self.count['party']))
-
-		return True
+		self.log()
 
 
 	def parse(self, tree, vendor_synonym_name):

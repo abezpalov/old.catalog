@@ -42,15 +42,9 @@ class Runner(catalog.runner.Runner):
 		# Чистим устаревшие партии
 		Party.objects.clear(stock = self.stock, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
-				self.count['product'],
-				self.count['party']))
+		# Пишем в лог
+		self.log()
 
-		return True
 
 	def parse(self, tree):
 
@@ -59,9 +53,9 @@ class Runner(catalog.runner.Runner):
 
 		# Распознаваемые слова
 		word = {
-			'article':    'Артикул',
-			'code':       'Код (ID)',
-			'name':       'Наименование продукции'}
+			'article' : 'Артикул',
+			'code'    : 'Код (ID)',
+			'name'    : 'Наименование продукции'}
 
 		# Парсим
 		tables = tree.xpath(".//div[@class='price-list']")
@@ -132,15 +126,3 @@ class Runner(catalog.runner.Runner):
 						unit       = self.default_unit,
 						time       = self.start_time)
 					self.count['party'] += 1
-
-		# Чистим устаревшие партии
-		Party.objects.clear(stock = self.stock, time = self.start_time)
-
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
-
-		return True
-
