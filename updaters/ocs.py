@@ -2,142 +2,43 @@
 	API поставщика работает только с разрешёнными IP-адресами.
 """
 
-
-import requests
-import json
-from django.utils import timezone
+import catalog.runner
 from catalog.models import *
-from project.models import Log
 
 
-class Runner:
+class Runner(catalog.runner.Runner):
 
+	name = 'OCS'
+	alias = 'ocs'
+
+	url = 'https://b2bservice.ocs.ru/b2bJSON.asmx/'
 
 	def __init__(self):
 
-		self.name = 'OCS'
-		self.alias = 'ocs'
+		super().__init__()
+
+		self.stocks = {}
+		self.stocks['Самара']          = self.take_stock('stock-samara', 'склад в Самаре', 1, 3)
+		self.stocks['Саратов']         = self.take_stock('stock-saratov', 'склад в Саратове', 3, 10)
+		self.stocks['Оренбург']        = self.take_stock('stock-orenburg', 'склад в Оренбурге', 3, 10)
+		self.stocks['Казань']          = self.take_stock('stock-kazan', 'склад в Казани', 3, 10)
+		self.stocks['Уфа']             = self.take_stock('stock-ufa', 'склад в Уфе', 3, 10)
+		self.stocks['Нижний Новгород'] = self.take_stock('stock-nizhniy-novgorod', 'склад в Нижнем Новгороде', 3, 10)
+		self.stocks['В пути']          = self.take_stock('transit', 'в пути', 10, 60)
+		self.stocks['Транзит из ЦО']   = self.take_stock('transit-from-moskow', 'транзит со склада в Москве', 5, 20)
+		self.stocks['ЦО (Москва)']     = self.take_stock('stock-moskow', 'склад в Москве', 3, 10)
+		self.stocks['ЦО (СПб)']        = self.take_stock('stock-spb', 'склад в Санкт-Петербурге', 3, 10)
+
 		self.count = {
 			'product' : 0,
 			'party'   : 0}
 
-		# Поставщик
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
-
-		# Загрузчик
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
-
-		self.stocks = {}
-
-		self.stocks['Самара'] = Stock.objects.take(
-			alias             = self.alias + '-stock-samara',
-			name              = self.name + ': склад в Самаре',
-			delivery_time_min = 1,
-			delivery_time_max = 3,
-			distributor       = self.distributor)
-
-		self.stocks['Саратов'] = Stock.objects.take(
-			alias             = self.alias + '-stock-saratov',
-			name              = self.name + ': склад в Саратове',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		self.stocks['Оренбург'] = Stock.objects.take(
-			alias             = self.alias + '-stock-orenburg',
-			name              = self.name + ': склад в Оренбурге',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		self.stocks['Казань'] = Stock.objects.take(
-			alias             = self.alias + '-stock-kazan',
-			name              = self.name + ': склад в Казани',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		self.stocks['Уфа'] = Stock.objects.take(
-			alias             = self.alias + '-stock-ufa',
-			name              = self.name + ': склад в Уфе',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		self.stocks['Нижний Новгород'] = Stock.objects.take(
-			alias             = self.alias + '-stock-nizhniy-novgorod',
-			name              = self.name + ': склад в Нижнем Новгороде',
-			delivery_time_min = 5,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		self.stocks['В пути'] = Stock.objects.take(
-			alias             = self.alias + '-transit',
-			name              = self.name + ': в пути',
-			delivery_time_min = 10,
-			delivery_time_max = 60,
-			distributor       = self.distributor)
-
-		self.stocks['Транзит из ЦО'] = Stock.objects.take(
-			alias             = self.alias + '-transit-from-moskow',
-			name              = self.name + ': транзит со склада в Москве',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		self.stocks['ЦО (Москва)'] = Stock.objects.take(
-			alias             = self.alias + '-stock-moskow',
-			name              = self.name + ': склад в Москве',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		self.stocks['ЦО (СПб)'] = Stock.objects.take(
-			alias             = self.alias + '-stock-спб',
-			name              = self.name + ': склад в Санкт-Петербурге',
-			delivery_time_min = 3,
-			delivery_time_max = 10,
-			distributor       = self.distributor)
-
-		# Единица измерения
-		self.default_unit = Unit.objects.take(alias='pcs', name='шт.')
-
-		# Тип цены
-		self.dp = PriceType.objects.take(alias = 'DP', name = 'Диллерская цена')
-
-		# Валюты
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  =1)
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
-		self.eur = Currency.objects.take(
-			alias     = 'EUR',
-			name      = 'EUR',
-			full_name = 'Euro',
-			rate      = 80,
-			quantity  = 1)
-
-		# Используемые ссылки
-		self.url = 'https://b2bservice.ocs.ru/b2bJSON.asmx/'
-
 
 	def run(self):
 
-		# Фиксируем время старта
-		self.start_time = timezone.now()
+		import requests
+		import json
+		from django.utils import timezone
 
 		category_synonyms = {}
 		locations = []
@@ -289,10 +190,4 @@ class Runner:
 		Party.objects.clear(stock = self.stocks['ЦО (Москва)'],     time = self.start_time)
 		Party.objects.clear(stock = self.stocks['ЦО (СПб)'],        time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Обработано продуктов: {} шт.\n Обработано партий: {} шт.".format(self.count['product'], self.count['party']))
-
-		return True
+		self.log()

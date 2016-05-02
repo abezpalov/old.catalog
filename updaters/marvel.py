@@ -15,6 +15,7 @@ class Runner(catalog.runner.Runner):
 
 	url = 'https://b2b.marvel.ru/Api/'
 
+
 	def __init__(self):
 
 		super().__init__()

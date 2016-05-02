@@ -1046,6 +1046,7 @@ class Party(models.Model):
 
 	objects        = PartyManager()
 
+
 	def get_dicted(self):
 
 		result = {}
@@ -1061,26 +1062,40 @@ class Party(models.Model):
 		result['created']      = str(self.created)
 		result['modified']     = str(self.modified)
 
-		try:    result['product']        = self.product.get_dicted()
-		except: result['product']        = None
+		try:
+			result['product'] = self.product.get_dicted()
+		except Exception:
+			result['product'] = None
 
-		try:    result['stock']          = self.stock.get_dicted()
-		except: result['stock']          = None
+		try:
+			result['stock'] = self.stock.get_dicted()
+		except Exception:
+			result['stock'] = None
 
-		try:    result['price_type']     = self.price_type.get_dicted()
-		except: result['price_type']     = None
+		try:
+			result['price_type'] = self.price_type.get_dicted()
+		except Exception:
+			result['price_type'] = None
 
-		try:    result['currency']       = self.currency.get_dicted()
-		except: result['currency']       = None
+		try:
+			result['currency'] = self.currency.get_dicted()
+		except Exception:
+			result['currency'] = None
 
-		try:    result['price_type_out'] = self.price_type_out.get_dicted()
-		except: result['price_type_out'] = None
+		try:
+			result['price_type_out'] = self.price_type_out.get_dicted()
+		except Exception:
+			result['price_type_out'] = None
 
-		try:    result['currency_out']   = self.currency_out.get_dicted()
-		except: result['currency_out']   = None
+		try:
+			result['currency_out'] = self.currency_out.get_dicted()
+		except Exception:
+			result['currency_out'] = None
 
-		try:    result['unit']           = self.unit.get_dicted()
-		except: result['unit']           = None
+		try:
+			result['unit'] = self.unit.get_dicted()
+		except Exception:
+			result['unit'] = None
 
 		result['price_str']     = self._get_price_str()
 		result['price_xml']     = self._get_price_xml()
@@ -1088,6 +1103,7 @@ class Party(models.Model):
 		result['price_out_xml'] = self._get_price_out_xml()
 
 		return result
+
 
 	def _get_price_str(self):
 
@@ -1107,6 +1123,7 @@ class Party(models.Model):
 
 	price_str = property(_get_price_str)
 
+
 	def _get_price_xml(self):
 
 		try:
@@ -1124,6 +1141,7 @@ class Party(models.Model):
 		return price
 
 	price_xml = property(_get_price_xml)
+
 
 	def _get_price_out_str(self):
 		try:
@@ -1151,6 +1169,7 @@ class Party(models.Model):
 
 	price_out_str = property(_get_price_out_str)
 
+
 	class Meta:
 		ordering = ['-created']
 
@@ -1170,6 +1189,7 @@ class PartyHystory(models.Model):
 	unit           = models.ForeignKey(Unit, null = True, default = None)
 	comment        = models.TextField()
 	date           = models.DateField()
+
 
 	def get_dicted(self):
 

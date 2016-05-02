@@ -263,12 +263,17 @@ class Runner(catalog.runner.Runner):
 
 
 	def fix_quantity_factory(self, quantity):
+
 		quantity = str(quantity).strip()
-		if quantity in ('под заказ'): return None
-		else: return 0
+
+		if quantity in ('под заказ'):
+			return None
+		else:
+			return 0
 
 
 	def fix_quantity_stock(self, quantity):
+
 		quantity = str(quantity).strip()
 
 		quantity = quantity.replace('более ', '')
@@ -291,9 +296,7 @@ class Runner(catalog.runner.Runner):
 		x = 1
 		r = 1
 
-		if 'год' in text:
-			x = 12
-		elif 'лет' in text:
+		if 'год' in text or 'лет' in text:
 			x = 12
 		elif 'дней':
 			r = 30
