@@ -180,7 +180,7 @@ class Runner(catalog.runner.Runner):
 				product_name       = row[num['product_name']]
 
 				# Гарантия
-				product_warranty = self.fix_warranty(row[num['product_warranty']])
+				product_warranty = row[num['product_warranty']]
 
 				if product_article and product_name and vendor_synonym.vendor:
 
@@ -288,20 +288,4 @@ class Runner(catalog.runner.Runner):
 		if quantity:
 			return 5
 		else:
-			return None
-
-
-	def fix_warranty(self, text):
-
-		x = 1
-		r = 1
-
-		if 'год' in text or 'лет' in text:
-			x = 12
-		elif 'дней':
-			r = 30
-
-		try:
-			return int(text.strip().split(' ')[0]) * x // r
-		except Exception:
 			return None

@@ -6,28 +6,30 @@ from project.models import Log
 
 class Runner:
 
+	name  = 'Служебное: ежедневный запуск'
+	alias = 'everyday'
+
+	max_time = datetime.timedelta(0, 82800, 0)
+
+	updaters = [
+		'cbr',
+
+		'axoft',
+		'cmo',
+		'digis',
+		'fujitsu',
+		'kramer',
+		'landata',
+		'marvel',
+		'merlion',
+		'ocs',
+		'rrc',
+		'treolan',
+		'mics',
+
+		'recalculate']
+
 	def __init__(self):
-
-		self.name  = 'Служебное: ежедневный запуск'
-		self.alias = 'everyday'
-
-		self.updaters = [
-			'cbr',
-
-			'axoft',
-			'cmo',
-			'digis',
-			'fujitsu',
-			'kramer',
-			'landata',
-			'marvel',
-			'merlion',
-			'ocs',
-			'rrc',
-			'treolan',
-			'mics',
-
-			'recalculate']
 
 		# Загрузчик
 		self.updater = Updater.objects.take(
@@ -60,3 +62,32 @@ class Runner:
 					description = error)
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
+
+		tasks = UpdaterTask.objects.filter(complite = False)
+
+		print("Нашёл {} задач.".format(len(tasks)))
+
+		for task in tasks:
+
+			try:
+				print("Выполняю задачу {}.".format(task))
+
+				Updater = __import__('catalog.updaters.{}'.format(task.updater.alias), fromlist=['Runner'])
+				runner = Updater.Runner()
+
+				if 'update.product.description' == task.name:
+					runner.update_product_description(task.subject)
+
+					# TODO !!!
+
+			except Exception as error:
+				Log.objects.add(
+					subject = str(task),
+					channel = "error",
+					title   = "Exception",
+					description = error)
+
+			# Проверяем не вышло ли время
+			if timezone.now() - self.start > self.max_time:
+				print("Время вышло {}.".format(timezone.now() - self.start))
+				return True

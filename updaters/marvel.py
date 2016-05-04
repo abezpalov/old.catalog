@@ -29,7 +29,6 @@ class Runner(catalog.runner.Runner):
 
 		# Дополнительные переменные
 		# TODO ??
-		self.products = []
 		self.key = ''
 		self.task = {
 			'categories' : 'GetCatalogCategories',
@@ -86,18 +85,18 @@ class Runner(catalog.runner.Runner):
 
 		# TODO
 
-		print('subject = {}'.format(product_id))
+#		print('subject = {}'.format(product_id))
 
 		# Получаем объект продукта
 		try:
 			product = Product.objects.get(id = product_id)
-			print('product.id = {}'.format(product.id))
-			print('product.article = {}'.format(product.article))
-		except:
+#			print('product.id = {}'.format(product.id))
+#			print('product.article = {}'.format(product.article))
+		except Exception:
 			return False
 
 		data = self.get_data('parameters', 'json', 1, product.article)
-		print(data)
+#		print(data)
 
 		# Обрабатываем характеристики товара
 		if data:
@@ -116,21 +115,21 @@ class Runner(catalog.runner.Runner):
 		# Собираем URL
 		if not pack_status is None:
 			url = '{url}{task}?user={login}&password={password}&secretKey={key}&packStatus={pack_status}&responseFormat={request_format}'.format(
-			url            = self.url,
-			task           = self.task[task],
-			login          = self.updater.login,
-			password       = self.updater.password,
-			key            = None,
-			pack_status    = pack_status,
-			request_format = self.request_format[request_format])
+				url            = self.url,
+				task           = self.task[task],
+				login          = self.updater.login,
+				password       = self.updater.password,
+				key            = None,
+				pack_status    = pack_status,
+				request_format = self.request_format[request_format])
 		else:
 			url = '{url}{task}?user={login}&password={password}&secretKey={key}&responseFormat={request_format}'.format(
-			url            = self.url,
-			task           = self.task[task],
-			login          = self.updater.login,
-			password       = self.updater.password,
-			key            = None,
-			request_format = self.request_format[request_format])
+				url            = self.url,
+				task           = self.task[task],
+				login          = self.updater.login,
+				password       = self.updater.password,
+				key            = None,
+				request_format = self.request_format[request_format])
 
 		if article:
 			url = '{url}{midle}{article}{end}'.format(
@@ -142,7 +141,7 @@ class Runner(catalog.runner.Runner):
 		# Выполняем запрос
 		try:
 			r = s.post(url, cookies = self.cookies, verify = False, timeout = 300)
-		except:
+		except Exception:
 			print('Нет соединения')
 			return False
 		else:
@@ -243,7 +242,10 @@ class Runner(catalog.runner.Runner):
 					category = category_synonym.category,
 					unit     = self.default_unit)
 				self.count['product'] += 1
-				self.products.append(product)
+				UpdaterTask.objects.take(
+					name    = 'update.product.description',
+					subject = product.id,
+					updater = self.updater)
 
 				# Партии
 				stock_name = 'msk'
@@ -274,12 +276,12 @@ class Runner(catalog.runner.Runner):
 
 	def parse_parameters(self, data, product):
 
-		print('parseParameters')
+#		print('parseParameters')
 
 		try:
 			ps = data['CategoryItem'][0]['ExtendedInfo']['Parameter']
 
-		except:
+		except Exception:
 			print('return False')
 			return False
 
@@ -289,6 +291,7 @@ class Runner(catalog.runner.Runner):
 
 				name  = p['ParameterName']
 				value = p['ParameterValue']
+				print('\t{} = {}'.format(name, value))
 
 				parameter_synonym = ParameterSynonym.objects.take(
 					name        = name,
@@ -302,6 +305,9 @@ class Runner(catalog.runner.Runner):
 					parameter_to_product = ParameterToProduct.objects.take(
 						parameter = parameter,
 						product   = product)
-					parameter_to_product.set_value(value = value)
+					parameter_to_product.set_value(
+						value = value,
+						updater = self.updater,
+						distributor = self.distributor)
 
 			return True

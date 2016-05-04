@@ -24,39 +24,29 @@ class Runner:
 
 		start = datetime.datetime.now()
 
-		for updater in self.updaters:
-
-			# Выполняем необходимый загрузчик
-			try:
-				print("Пробую выполнить загрузчик {}".format(updater))
-				Runner = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'.format(sys.argv[1].capitalize())])
-				runner = Runner.Runner()
-				if runner.updater.state:
-					if runner.run():
-						runner.updater.updated = timezone.now()
-						runner.updater.save()
-
-			except Exception as error:
-				Log.objects.add(
-					subject    = "Catalog Updater Everyweek: {}".format(updater),
-					channel    = "error",
-					title      = "Exception",
-					description = error)
-
-		tasks = UpdaterTask.objects.all()
+		tasks = UpdaterTask.objects.filter(complite = False)
 
 		print("Нашёл {} задач.".format(len(tasks)))
 
 		for task in tasks:
 
-			Updater = __import__('catalog.updaters.{}'.format(task.updater.alias), fromlist=['Runner'])
-			runner = Updater.Runner()
+			try:
+				print("Выполняю задачу {}.".format(task))
 
-			if 'update.product.description' == task.name:
-				runner.updateProductDescription(task.subject)
+				Updater = __import__('catalog.updaters.{}'.format(task.updater.alias), fromlist=['Runner'])
+				runner = Updater.Runner()
 
-				# TODO !!!
+				if 'update.product.description' == task.name:
+					runner.update_product_description(task.subject)
 
+					# TODO !!!
+
+			except Exception as error:
+				Log.objects.add(
+					subject = str(task),
+					channel = "error",
+					title   = "Exception",
+					description = error)
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
 

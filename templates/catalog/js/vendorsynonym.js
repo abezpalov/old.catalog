@@ -223,9 +223,9 @@ $("body").delegate("[data-do='link-vendorsynonym-same-vendor']", "click", functi
 	function(data) {
 		if ('success' == data.status) {
 
-			$('[data-vendorsynonym-vendor-name="' + data[model]['id'] + '"]').text(data[model]['vendor']['name']);
-			$('[data-vendorsynonym-vendor-name="' + data[model]['id'] + '"]').data('vendor-id', data[model]['vendor']['id']);
-			$('[data-vendorsynonym-vendor-name="' + data[model]['id'] + '"]').data('vendor-name', data[model]['vendor']['id']);
+			$('[data-' + model + '-' + foreign + '-name="' + data[model]['id'] + '"]').text(data[model][foreign]['name']);
+			$('[data-' + model + '-' + foreign + '-name="' + data[model]['id'] + '"]').data(foreign + '-id', data[model][foreign]['id']);
+			$('[data-' + model + '-' + foreign + '-name="' + data[model]['id'] + '"]').data(foreign + '-name', data[model][foreign]['id']);
 
 			// TODO Обновляем список производителей в окне редактирования синонимов
 		}
