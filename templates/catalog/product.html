@@ -13,9 +13,9 @@
 		<p>{{ product.description }}</p>
 		<table>
 		<thead>Характеристики</thead>
-		{% for parameter in parameters %}
 		<tr><td>Производитель</td><td>{{ product.vendor }}</td></tr>
 		<tr><td>Артикул</td><td>{{ product.article }}</td></tr>
+		{% for parameter in parameters %}
 		{% if parameter.parameter_value_xml %}
 		<tr>
 			<td>{{ parameter.parameter_name_xml }}</td>
