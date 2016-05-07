@@ -98,15 +98,13 @@ class Runner(catalog.runner.Runner):
 
 		# Обрабатываем синоним производителя
 		if vendor_synonym_name:
-			vendor_synonym = VendorSynonym.objects.take(
-				name = vendor_synonym_name,
-				updater = self.updater,
-				distributor = self.distributor)
-		else: return False
+			vendor_synonym = self.take_vendorsynonym(vendor_synonym_name)
+			vendor = vendor_synonym.vendor
+		else:
+			vendor = None
 
 		# Получаем объект производителя
-		vendor = vendor_synonym.vendor
-		if not vendor:
+		if vendor is None:
 			return False
 
 		table = tree.xpath('//table[@class="table  table-striped tablevendor"]//tr')

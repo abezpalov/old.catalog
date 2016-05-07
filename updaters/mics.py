@@ -67,7 +67,7 @@ class Runner(catalog.runner.Runner):
 			if parent_name:
 				category_name = '{} | {}'.format(parent_name, category_name)
 
-			category_synonym = self.take_category_synonym(category_name)
+			category_synonym = self.take_categorysynonym(category_name)
 			categories[category_id] = category_synonym.category
 
 		vendors = {}
@@ -81,7 +81,7 @@ class Runner(catalog.runner.Runner):
 
 			for key in vendors:
 
-				vendor_synonym = self.take_vendor_synonym(vendors[key])
+				vendor_synonym = self.take_vendorsynonym(vendors[key])
 				vendors[key] = vendor_synonym.vendor
 
 		for o in tree.xpath('..//Ware'):

@@ -71,10 +71,7 @@ class Runner(catalog.runner.Runner):
 				# Определяем синоним категории
 				group_name = group.xpath(".//div[@class='item-text-root']")[0]
 
-				category_synonym = CategorySynonym.objects.take(
-					name        = str(group_name.text).strip(),
-					updater     = self.updater,
-					distributor = self.distributor)
+				category_synonym = self.take_categorysynonym(group_name.text)
 
 				elements = group.xpath(".//div[@class='item-text']")
 

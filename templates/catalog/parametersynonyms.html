@@ -18,7 +18,7 @@
 {% if perms.catalog.add_parametersynonym or perms.catalog.change_parametersynonym %}
 
 <div class="row collapse">
-	<div class="small-4 columns">
+	<div class="small-6 columns">
 		<label>Загрузчик
 			<select
 				id="filter-updater"
@@ -31,20 +31,7 @@
 			</select>
 		</label>
 	</div>
-	<div class="small-4 columns">
-		<label>Поставщик
-			<select
-				id="filter-distributor"
-				data-do="filter-parametersynonyms">
-				<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
-				<option value="0"{% if distributor_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
-				{% for distributor in distributors %}
-				<option value="{{ distributor.id }}"{% if distributor.id == distributor_selected %} selected{% endif %}>{{ distributor.name }}</option>
-				{% endfor %}
-			</select>
-		</label>
-	</div>
-	<div class="small-4 columns">
+	<div class="small-6 columns">
 		<label>Параметр
 			<select
 				id="filter-parameter"
@@ -64,10 +51,9 @@
 		<tr>
 			<th class="text-center">#</th>
 			<th>Наименование</th>
-			<th class="hide-for-small-only">Загрузчик</th>
-			<th class="hide-for-small-only">Поставщик</th>
 			<th>Параметр</th>
 			<th>Управление</th>
+			<th class="hide-for-small-only">Загрузчик</th>
 		</tr>
 		{% for parametersynonym in parametersynonyms %}
 		<tr data-parametersynonym="{{ parametersynonym.id }}">
@@ -78,21 +64,7 @@
 					data-parametersynonym-id = "{{ parametersynonym.id }}"
 					data-parametersynonym-name = "{{ parametersynonym.id }}">{{ parametersynonym.name }}</a>
 			</td>
-			<td class="hide-for-small-only">
-				<a
-					data-do = "open-edit-updater"
-					data-updater-id = "{{ parametersynonym.updater.id }}"
-					data-updater-name = "{{ parametersynonym.updater.id }}"
-					data-parametersynonym-updater-name = "{{ parametersynonym.id }}">{{ parametersynonym.updater.name }}</a>
-			</td>
-			<td class="hide-for-small-only">
-				<a
-					data-do = "open-edit-distributor"
-					data-distributor-id = "{{ parametersynonym.distributor.id }}"
-					data-distributor-name = "{{ parametersynonym.distributor.id }}"
-					data-parametersynonym-distributor-name = "{{ parametersynonym.id }}">{{ parametersynonym.distributor.name }}</a>
-			</td>
-			<td class = "hide-for-small-only">
+			<td>
 				<a
 					data-do = "open-edit-parameter"
 					data-parameter-id = "{{ parametersynonym.parameter.id }}"
@@ -106,6 +78,13 @@
 				<button class = "tiny alert"
 					data-do = "open-delete-parametersynonym"
 					data-parametersynonym-id = "{{ parametersynonym.id }}"><i class="fa fa-trash"></i></button>
+			</td>
+			<td class="hide-for-small-only">
+				<a
+					data-do = "open-edit-updater"
+					data-updater-id = "{{ parametersynonym.updater.id }}"
+					data-updater-name = "{{ parametersynonym.updater.id }}"
+					data-parametersynonym-updater-name = "{{ parametersynonym.id }}">{{ parametersynonym.updater.name }}</a>
 			</td>
 		</tr>
 		{% endfor %}
@@ -126,7 +105,6 @@
 {% include "catalog/modal/parameter.html" %}
 {% include "catalog/modal/parametertype.html" %}
 {% include "catalog/modal/updater.html" %}
-{% include "catalog/modal/distributor.html" %}
 {% endblock %}
 
 {% block js-content %}
@@ -135,7 +113,6 @@
 {% include "catalog/js/parameter.js" %}
 {% include "catalog/js/parametertype.js" %}
 {% include "catalog/js/updater.js" %}
-{% include "catalog/js/distributor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>
 {% endblock %}

@@ -18,15 +18,6 @@
 		</select>
 	</label>
 
-	<label>Поставщик
-		<select id="edit-categorysynonym-distributor">
-			<option value="0" selected> - Не определён (None) - </option>
-			{% for distributor in distributors %}
-			<option value="{{ distributor.id }}">{{ distributor.name }}</option>
-			{% endfor %}
-		</select>
-	</label>
-
 	<label>Категория
 		<select id="edit-categorysynonym-category">
 			<option value="0" selected> - Не определена (None) - </option>

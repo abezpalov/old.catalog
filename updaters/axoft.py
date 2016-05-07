@@ -57,10 +57,7 @@ class Runner(catalog.runner.Runner):
 				price[0]))
 
 			# Синоним производителя
-			vendor_synonym = VendorSynonym.objects.take(
-				name        = str(price[0]),
-				updater     = self.updater,
-				distributor = self.distributor)
+			vendor_synonym = self.take_vendorsynonym(price[0])
 
 			if vendor_synonym.vendor:
 
@@ -233,10 +230,7 @@ class Runner(catalog.runner.Runner):
 
 					# Получаем объект категории
 					if category_synonym_name:
-						category_synonym = CategorySynonym.objects.take(
-							name        = category_synonym_name,
-							updater     = self.updater,
-							distributor = self.distributor)
+						category_synonym = self.take_categorysynonym(category_synonym_name)
 						category = category_synonym.category
 					else:
 						category = None

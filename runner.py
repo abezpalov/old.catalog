@@ -70,20 +70,18 @@ class Runner:
 		return stock
 
 
-	def take_category_synonym(self, name):
+	def take_categorysynonym(self, name):
 
 		return CategorySynonym.objects.take(
 			name        = name,
-			updater     = self.updater,
-			distributor = self.distributor)
+			updater     = self.updater)
 
 
-	def take_vendor_synonym(self, name):
+	def take_vendorsynonym(self, name):
 
 		return VendorSynonym.objects.take(
 			name        = name,
-			updater     = self.updater,
-			distributor = self.distributor)
+			updater     = self.updater)
 
 
 	def load(self, url, result_type = None, timeout = 100.0, try_quantity = 10):
@@ -297,6 +295,6 @@ class Runner:
 			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "info",
 			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
+			description = "Updated: products - {}; parties - {}.".format(
 				'{:,}'.format(self.count['product']).replace(',', ' '),
 				'{:,}'.format(self.count['party']).replace(',', ' ')))

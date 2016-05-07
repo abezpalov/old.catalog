@@ -151,11 +151,9 @@ class Runner(catalog.runner.Runner):
 
 			# Обрабатываем синоним производителя
 			if vendor_synonym_name:
-				vendor_synonym = VendorSynonym.objects.take(
-					name        = vendor_synonym_name,
-					updater     = self.updater,
-					distributor = self.distributor)
-			else: continue
+				vendor_synonym = self.take_vendorsynonym(vendor_synonym_name)
+			else:
+				continue
 
 			# Получаем объект товара
 			if article and name and vendor_synonym.vendor:
@@ -165,7 +163,8 @@ class Runner(catalog.runner.Runner):
 					name    = name,
 					unit    = self.default_unit)
 				self.count['product'] += 1
-			else: continue
+			else:
+				continue
 
 			# Партии
 			if quantity:

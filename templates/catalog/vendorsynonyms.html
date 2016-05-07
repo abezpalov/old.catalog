@@ -17,7 +17,7 @@
 {% if perms.catalog.add_vendorsynonym or perms.catalog.change_vendorsynonym %}
 
 <div class="row collapse">
-	<div class="small-4 columns">
+	<div class="small-6 columns">
 		<label>Загрузчик
 			<select id="filter-updater" data-do="filter-vendorsynonyms">
 				<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
@@ -28,18 +28,7 @@
 			</select>
 		</label>
 	</div>
-	<div class="small-4 columns">
-		<label>Поставщик
-			<select id="filter-distributor" data-do="filter-vendorsynonyms">
-				<option value="all"{% if distributor_selected == 'all' %} selected{% endif %}> - Все поставщики - </option>
-				<option value="0"{% if distributor_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
-				{% for distributor in distributors %}
-				<option value="{{ distributor.id }}"{% if distributor.id == distributor_selected %} selected{% endif %}>{{ distributor.name }}</option>
-				{% endfor %}
-			</select>
-		</label>
-	</div>
-	<div class="small-4 columns">
+	<div class="small-6 columns">
 		<label>Производитель
 			<select id="filter-vendor" data-do="filter-vendorsynonyms">
 				<option value="all"{% if vendor_selected == 'all' %} selected{% endif %}> - Все производители - </option>
@@ -57,10 +46,9 @@
 		<tr>
 			<th class="text-center">#</th>
 			<th>Наименование</th>
-			<th class="hide-for-small-only">Загрузчик</th>
-			<th class="hide-for-small-only">Поставщик</th>
 			<th>Производитель</th>
 			<th>Управление</th>
+			<th class="hide-for-small-only">Загрузчик</th>
 		</tr>
 		{% for vendorsynonym in vendorsynonyms %}
 		<tr data-vendorsynonym = "{{ vendorsynonym.id }}">
@@ -71,21 +59,7 @@
 					data-vendorsynonym-id = "{{ vendorsynonym.id }}"
 					data-vendorsynonym-name = "vendorsynonym.id">{{ vendorsynonym.name }}</a>
 			</td>
-			<td class = "hide-for-small-only">
-				<a
-					data-do = "open-edit-updater"
-					data-updater-id = "{{ vendorsynonym.updater.id }}"
-					data-updater-name = "{{ vendorsynonym.updater.id }}"
-					data-vendorsynonym-updater-name = "{{ vendorsynonym.id }}">{{ vendorsynonym.updater.name }}</a>
-			</td>
-			<td class = "hide-for-small-only">
-				<a
-					data-do = "open-edit-distributor"
-					data-distributor-id = "{{ vendorsynonym.distributor.id }}"
-					data-distributor-name = "{{ vendorsynonym.distributor.id }}"
-					data-vendorsynonym-distributor-name = "{{ vendorsynonym.id }}">{{ vendorsynonym.distributor.name }}</a>
-			</td>
-			<td class = "hide-for-small-only">
+			<td>
 				<a
 					data-do = "open-edit-vendor"
 					data-vendor-id = "{{ vendorsynonym.vendor.id }}"
@@ -99,6 +73,13 @@
 				<button class="tiny alert"
 					data-do = "open-delete-vendorsynonym"
 					data-vendorsynonym-id="{{ vendorsynonym.id }}"><i class="fa fa-trash"></i></button>
+			</td>
+			<td class = "hide-for-small-only">
+				<a
+					data-do = "open-edit-updater"
+					data-updater-id = "{{ vendorsynonym.updater.id }}"
+					data-updater-name = "{{ vendorsynonym.updater.id }}"
+					data-vendorsynonym-updater-name = "{{ vendorsynonym.id }}">{{ vendorsynonym.updater.name }}</a>
 			</td>
 		</tr>
 		{% endfor %}
@@ -117,7 +98,6 @@
 
 {% include "catalog/modal/vendorsynonym.html" %}
 {% include "catalog/modal/updater.html" %}
-{% include "catalog/modal/distributor.html" %}
 {% include "catalog/modal/vendor.html" %}
 {% endblock %}
 
@@ -125,7 +105,6 @@
 <script>
 {% include "catalog/js/vendorsynonym.js" %}
 {% include "catalog/js/updater.js" %}
-{% include "catalog/js/distributor.js" %}
 {% include "catalog/js/vendor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
 </script>

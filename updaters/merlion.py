@@ -137,10 +137,7 @@ class Runner(catalog.runner.Runner):
 									# Получаем объект синонима категории
 									g[2] = item.text.strip()
 									category_synonym_name = "{} | {} | {}".format(g[0], g[1], g[2])
-									category_synonym = CategorySynonym.objects.take(
-										name = category_synonym_name,
-										updater = self.updater,
-										distributor = self.distributor)
+									category_synonym = self.take_categorysynonym(category_synonym_name)
 								else:
 
 									# Обнуляем значения
@@ -221,10 +218,7 @@ class Runner(catalog.runner.Runner):
 
 									# Обрабатываем синоним производителя
 									if vendor_synonym_name:
-										vendor_synonym = VendorSynonym.objects.take(
-											name        = vendor_synonym_name,
-											updater     = self.updater,
-											distributor = self.distributor)
+										vendor_synonym = self.take_vendorsynonym(vendor_synonym_name)
 									else:
 										continue
 

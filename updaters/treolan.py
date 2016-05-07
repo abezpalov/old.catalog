@@ -110,10 +110,7 @@ class Runner(catalog.runner.Runner):
 
 			# Категория
 			elif len(tr) == 1:
-				category_synonym = CategorySynonym.objects.take(
-					name = tr[0][0].text.strip(),
-					updater = self.updater,
-					distributor = self.distributor)
+				category_synonym = self.take_categorysynonym(tr[0][0].text)
 
 			# Товар
 			elif len(tr) > 8:
@@ -138,10 +135,7 @@ class Runner(catalog.runner.Runner):
 						name = str(td.text).strip()
 
 					elif tdn == num['vendor']:
-						vendor_synonym = VendorSynonym.objects.take(
-							name        = str(td.text).strip(),
-							updater     = self.updater,
-							distributor = self.distributor)
+						vendor_synonym = self.take_vendorsynonym(td.text)
 
 					elif tdn == num['stock']:
 						stock = self.fix_quantity(td.text)

@@ -1,6 +1,6 @@
 {% if perms.catalog.add_vendorsynonym or perms.catalog.change_vendorsynonym or perms.catalog.delete_vendorsynonym %}
 $("body").delegate("[data-do='filter-vendorsynonyms']", "change", function(){
-	location.href = "/catalog/vendorsynonyms/" + $("#filter-updater").val() + "/" + $("#filter-distributor").val() + "/" + $("#filter-vendor").val() + "/";
+	location.href = "/catalog/vendorsynonyms/" + $("#filter-updater").val() + "/" + $("#filter-vendor").val() + "/";
 	return true;
 });
 {% endif %}
@@ -16,7 +16,6 @@ $("body").delegate("[data-do='open-new-vendorsynonym']", "click", function(){
 	$('#edit-' + model + '-id').val('0');
 	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-updater').val('0');
-	$('#edit-' + model + '-distributor').val('0');
 	$('#edit-' + model + '-vendor').val('0');
 
 	$('#modal-edit-' + model).foundation('reveal', 'open');
@@ -47,11 +46,6 @@ $("body").delegate("[data-do='open-edit-vendorsynonym']", "click", function(){
 			} else {
 				$('#edit-' + model + '-updater').val(0);
 			}
-			if (data[model]['distributor']) {
-				$('#edit-' + model + '-distributor').val(data[model]['distributor']['id']);
-			} else {
-				$('#edit-' + model + '-distributor').val(0);
-			}
 			if (data[model]['vendor']) {
 				$('#edit-' + model + '-vendor').val(data[model]['vendor']['id']);
 			} else {
@@ -75,7 +69,6 @@ $("body").delegate("[data-do='edit-vendorsynonym-save']", "click", function(){
 		id             : $('#edit-' + model + '-id').val(),
 		name           : $('#edit-' + model + '-name').val(),
 		updater_id     : $('#edit-' + model + '-updater').val(),
-		distributor_id : $('#edit-' + model + '-distributor').val(),
 		vendor_id      : $('#edit-' + model + '-vendor').val(),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
@@ -93,16 +86,6 @@ $("body").delegate("[data-do='edit-vendorsynonym-save']", "click", function(){
 				$('[data-' + model + '-updater-name="' + data[model]['id'] + '"]').text('');
 				$('[data-' + model + '-updater-name="' + data[model]['id'] + '"]').data('updater-id', '0');
 				$('[data-' + model + '-updater-name="' + data[model]['id'] + '"]').data('updater-name', '0');
-			}
-
-			if (data[model]['distributor']) {
-				$('[data-' + model + '-distributor-name="' + data[model]['id'] + '"]').text(data[model]['distributor']['name']);
-				$('[data-' + model + '-distributor-name="' + data[model]['id'] + '"]').data('distributor-id', data[model]['distributor']['id']);
-				$('[data-' + model + '-distributor-name="' + data[model]['id'] + '"]').data('distributor-name', data[model]['distributor']['id']);
-			} else {
-				$('[data-' + model + '-distributor-name="' + data[model]['id'] + '"]').text('');
-				$('[data-' + model + '-distributor-name="' + data[model]['id'] + '"]').data('distributor-id', '0');
-				$('[data-' + model + '-distributor-name="' + data[model]['id'] + '"]').data('distributor-name', '0');
 			}
 
 			if (data[model]['vendor']) {
@@ -139,7 +122,6 @@ $("body").delegate("[data-do='edit-vendorsynonym-cancel']", "click", function(){
 	$('#edit-' + model + '-id').val('0');
 	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-updater').val('0');
-	$('#edit-' + model + '-distributor').val('0');
 	$('#edit-' + model + '-category').val('0');
 
 	$('#modal-edit-' + model).foundation('reveal', 'close');

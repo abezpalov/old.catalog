@@ -1,6 +1,6 @@
 {% if perms.catalog.add_categorysynonym or perms.catalog.change_categorysynonym or perms.catalog.delete_categorysynonym %}
 $("body").delegate("[data-do='filter-categorysynonyms']", "change", function(){
-	location.href = "/catalog/categorysynonyms/" + $("#filter-updater").val() + "/" + $("#filter-distributor").val() + "/" + $("#filter-category").val() + "/";
+	location.href = "/catalog/categorysynonyms/" + $("#filter-updater").val() + "/" + $("#filter-category").val() + "/";
 	return true;
 });
 {% endif %}
@@ -16,7 +16,6 @@ $("body").delegate("[data-do='open-new-categorysynonym']", "click", function(){
 	$('#edit-' + model_name + '-id').val('0');
 	$('#edit-' + model_name + '-name').val('');
 	$('#edit-' + model_name + '-updater').val('0');
-	$('#edit-' + model_name + '-distributor').val('0');
 	$('#edit-' + model_name + '-category').val('0');
 
 	$('#modal-edit-' + model_name).foundation('reveal', 'open');
@@ -47,11 +46,6 @@ $("body").delegate("[data-do='open-edit-categorysynonym']", "click", function(){
 			} else {
 				$('#edit-' + model_name + '-updater').val(0);
 			}
-			if (data[model_name]['distributor']) {
-				$('#edit-' + model_name + '-distributor').val(data[model_name]['distributor']['id']);
-			} else {
-				$('#edit-' + model_name + '-distributor').val(0);
-			}
 			if (data[model_name]['category']) {
 				$('#edit-' + model_name + '-category').val(data[model_name]['category']['id']);
 			} else {
@@ -74,7 +68,6 @@ $("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
 		id             : $('#edit-' + model_name + '-id').val(),
 		name           : $('#edit-' + model_name + '-name').val(),
 		updater_id     : $('#edit-' + model_name + '-updater').val(),
-		distributor_id : $('#edit-' + model_name + '-distributor').val(),
 		category_id    : $('#edit-' + model_name + '-category').val(),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
@@ -94,16 +87,6 @@ $("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
 				$('[data-' + model_name + '-updater-name="' + data[model_name]['id'] + '"]').data('updater-name', '0');
 			}
 
-			if (data[model_name]['distributor']) {
-				$('[data-' + model_name + '-distributor-name="' + data[model_name]['id'] + '"]').text(data[model_name]['distributor']['name']);
-				$('[data-' + model_name + '-distributor-name="' + data[model_name]['id'] + '"]').data('distributor-id', data[model_name]['distributor']['id']);
-				$('[data-' + model_name + '-distributor-name="' + data[model_name]['id'] + '"]').data('distributor-name', data[model_name]['distributor']['id']);
-			} else {
-				$('[data-' + model_name + '-distributor-name="' + data[model_name]['id'] + '"]').text('');
-				$('[data-' + model_name + '-distributor-name="' + data[model_name]['id'] + '"]').data('distributor-id', '0');
-				$('[data-' + model_name + '-distributor-name="' + data[model_name]['id'] + '"]').data('distributor-name', '0');
-			}
-
 			if (data[model_name]['category']) {
 				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').text(data[model_name]['category']['name']);
 				$('[data-' + model_name + '-category-name="' + data[model_name]['id'] + '"]').data('category-id', data[model_name]['category']['id']);
@@ -117,7 +100,6 @@ $("body").delegate("[data-do='edit-categorysynonym-save']", "click", function(){
 			$('#edit-' + model_name + '-id').val('0');
 			$('#edit-' + model_name + '-name').val('');
 			$('#edit-' + model_name + '-updater').val('0');
-			$('#edit-' + model_name + '-distributor').val('0');
 			$('#edit-' + model_name + '-category').val('0');
 
 			$('#modal-edit-' + model_name).foundation('reveal', 'close');
@@ -138,7 +120,6 @@ $("body").delegate("[data-do='edit-categorysynonym-cancel']", "click", function(
 	$('#edit-' + model_name + '-id').val('0');
 	$('#edit-' + model_name + '-name').val('');
 	$('#edit-' + model_name + '-updater').val('0');
-	$('#edit-' + model_name + '-distributor').val('0');
 	$('#edit-' + model_name + '-category').val('0');
 
 	$('#modal-edit-' + model_name).foundation('reveal', 'close');

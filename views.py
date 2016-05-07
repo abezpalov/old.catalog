@@ -279,15 +279,14 @@ def parametervalues(request):
 	return render(request, 'catalog/parametervalues.html', locals())
 
 
-def parametervaluesynonyms(request, updater_selected = 'all', distributor_selected = 'all', parameter_selected = 'all'):
+def parametervaluesynonyms(request, updater_selected = 'all', parameter_selected = 'all'):
 	"Представление: список синонимов значений параметров."
 
-	from catalog.models import ParameterValueSynonym, Parameter, Updater, Distributor
+	from catalog.models import ParameterValueSynonym, Parameter,\
+			ParameterValue, Updater
 
 	if updater_selected != 'all':
 		updater_selected = int(updater_selected)
-	if distributor_selected != 'all':
-		distributor_selected = int(distributor_selected)
 	if parameter_selected != 'all':
 		parameter_selected = int(parameter_selected)
 
@@ -295,45 +294,37 @@ def parametervaluesynonyms(request, updater_selected = 'all', distributor_select
 	or request.user.has_perm('catalog.change_parametervaluesynonym')\
 	or request.user.has_perm('catalog.delete_parametervaluesynonym'):
 
-		parameter_value_synonyms = ParameterValueSynonym.objects.select_related().all()
+		parametervaluesynonyms = ParameterValueSynonym.objects.select_related().all()
 
 		if updater_selected and updater_selected != 'all':
-			parameter_value_synonyms = parameter_value_synonyms.select_related().filter(
+			parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
 				updater = updater_selected)
 		if not updater_selected:
-			parameter_value_synonyms = parameter_value_synonyms.select_related().filter(
+			parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
 				updater = None)
 
-		if distributor_selected and distributor_selected != 'all':
-			parameter_value_synonyms = parameter_value_synonyms.select_related().filter(
-				distributor = distributor_selected)
-		if not distributor_selected:
-			parameter_value_synonyms = parameter_value_synonyms.select_related().filter(
-				distributor = None)
-
 		if parameter_selected and parameter_selected != 'all':
-			parameter_value_synonyms = parameter_value_synonyms.select_related().filter(
+			parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
 				parameter = parameter_selected)
 		if not parameter_selected:
-			parameter_value_synonyms = parameter_value_synonyms.select_related().filter(
+			parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
 				parameter = None)
 
-		updaters     = Updater.objects.select_related().all()
-		distributors = Distributor.objects.select_related().all()
-		parameters   = Parameter.objects.select_related().all()
+		updaters        = Updater.objects.select_related().all()
+		parameters      = Parameter.objects.select_related().all()
+		parametervalues = ParameterValue.objects.select_related().all()
 
 	return render(request, 'catalog/parametervaluesynonyms.html', locals())
 
 
-def parametersynonyms(request, updater_selected = 'all', distributor_selected = 'all', parameter_selected = 'all'):
+def parametersynonyms(request, updater_selected = 'all', parameter_selected = 'all'):
 	"Представление: список синонимов параметров."
 
-	from catalog.models import ParameterSynonym, Parameter, Updater, Distributor, ParameterType
+	from catalog.models import ParameterSynonym, Parameter, Updater,\
+			ParameterType, Unit
 
 	if updater_selected != 'all':
 		updater_selected = int(updater_selected)
-	if distributor_selected != 'all':
-		distributor_selected = int(distributor_selected)
 	if parameter_selected != 'all':
 		parameter_selected = int(parameter_selected)
 
@@ -341,7 +332,7 @@ def parametersynonyms(request, updater_selected = 'all', distributor_selected = 
 	or request.user.has_perm('catalog.change_parametersynonym')\
 	or request.user.has_perm('catalog.delete_parametersynonym'):
 
-		parametersynonyms = ParameterSynonym.objects.select_related().all().order_by('name')
+		parametersynonyms = ParameterSynonym.objects.select_related().all()
 
 		if updater_selected and updater_selected != 'all':
 			parametersynonyms = parametersynonyms.select_related().filter(
@@ -350,13 +341,6 @@ def parametersynonyms(request, updater_selected = 'all', distributor_selected = 
 			parametersynonyms = parametersynonyms.select_related().filter(
 				updater = None)
 
-		if distributor_selected and distributor_selected != 'all':
-			parametersynonyms = parametersynonyms.select_related().filter(
-				distributor = distributor_selected)
-		if not distributor_selected:
-			parametersynonyms = parametersynonyms.select_related().filter(
-				distributor = None)
-
 		if parameter_selected and parameter_selected != 'all':
 			parametersynonyms = parametersynonyms.select_related().filter(
 				parameter = parameter_selected)
@@ -364,23 +348,21 @@ def parametersynonyms(request, updater_selected = 'all', distributor_selected = 
 			parametersynonyms = parametersynonyms.select_related().filter(
 				parameter = None)
 
-		updaters = Updater.objects.select_related().all()
-		distributors = Distributor.objects.select_related().all()
-		parameters = Parameter.objects.select_related().all()
+		updaters       = Updater.objects.select_related().all()
+		parameters     = Parameter.objects.select_related().all()
 		parametertypes = ParameterType.objects.select_related().all()
+		units          = Unit.objects.select_related().all()
 
 	return render(request, 'catalog/parametersynonyms.html', locals())
 
 
-def categorysynonyms(request, updater_selected = 'all', distributor_selected = 'all', category_selected = 'all'):
+def categorysynonyms(request, updater_selected = 'all', category_selected = 'all'):
 	"Представление: список синонимов категорий."
 
-	from catalog.models import CategorySynonym, Category, Updater, Distributor
+	from catalog.models import CategorySynonym, Category, Updater
 
 	if updater_selected != 'all':
 		updater_selected = int(updater_selected)
-	if distributor_selected != 'all':
-		distributor_selected = int(distributor_selected)
 	if category_selected != 'all':
 		category_selected = int(category_selected)
 
@@ -388,42 +370,34 @@ def categorysynonyms(request, updater_selected = 'all', distributor_selected = '
 	or request.user.has_perm('catalog.change_categorysynonym')\
 	or request.user.has_perm('catalog.delete_categorysynonym'):
 
-		categorysynonyms = CategorySynonym.objects.select_related().all().order_by('name')
+		categorysynonyms = CategorySynonym.objects.select_related().all()
 		if updater_selected and updater_selected != 'all':
 			categorysynonyms = categorysynonyms.select_related().filter(updater = updater_selected)
 		if not updater_selected:
 			categorysynonyms = categorysynonyms.select_related().filter(updater = None)
-
-		if distributor_selected and distributor_selected != 'all':
-			categorysynonyms = categorysynonyms.select_related().filter(distributor = distributor_selected)
-		if not distributor_selected:
-			categorysynonyms = categorysynonyms.select_related().filter(distributor = None)
 
 		if category_selected and category_selected != 'all':
 			categorysynonyms = categorysynonyms.select_related().filter(category = category_selected)
 		if not category_selected:
 			categorysynonyms = categorysynonyms.select_related().filter(category = None)
 
-		updaters = Updater.objects.select_related().all().order_by('name')
-		distributors = Distributor.objects.select_related().all().order_by('name')
+		updaters = Updater.objects.select_related().all()
 		categories = []
 		categories = Category.objects.getCategoryTree(categories)
 
 		for category in categories:
-			category.name = '— ' * category.level + category.name
+			category.name = '{}{}'.format('— ' * category.level, category.name)
 
 	return render(request, 'catalog/categorysynonyms.html', locals())
 
 
-def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'all', vendor_selected = 'all'):
+def vendorsynonyms(request, updater_selected = 'all', vendor_selected = 'all'):
 	"Представление: список синонимов производителей."
 
-	from catalog.models import VendorSynonym, Vendor, Updater, Distributor
+	from catalog.models import VendorSynonym, Vendor, Updater
 
 	if updater_selected != 'all':
 		updater_selected = int(updater_selected)
-	if distributor_selected != 'all':
-		distributor_selected = int(distributor_selected)
 	if vendor_selected != 'all':
 		vendor_selected = int(vendor_selected)
 
@@ -431,17 +405,12 @@ def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'al
 	or request.user.has_perm('catalog.change_vendorsynonym')\
 	or request.user.has_perm('catalog.delete_vendorsynonym'):
 
-		vendorsynonyms = VendorSynonym.objects.select_related().all().order_by('name')
+		vendorsynonyms = VendorSynonym.objects.select_related().all()
 
 		if updater_selected and updater_selected != 'all':
 			vendorsynonyms = vendorsynonyms.select_related().filter(updater = updater_selected)
 		if not updater_selected:
 			vendorsynonyms = vendorsynonyms.select_related().filter(updater = None)
-
-		if distributor_selected and distributor_selected != 'all':
-			vendorsynonyms = vendorsynonyms.select_related().filter(distributor = distributor_selected)
-		if not distributor_selected:
-			vendorsynonyms = vendorsynonyms.select_related().filter(distributor = None)
 
 		if vendor_selected and vendor_selected != 'all':
 			vendorsynonyms = vendorsynonyms.select_related().filter(vendor = vendor_selected)
@@ -449,7 +418,6 @@ def vendorsynonyms(request, updater_selected = 'all', distributor_selected = 'al
 			vendorsynonyms = vendorsynonyms.select_related().filter(vendor = None)
 
 		updaters = Updater.objects.select_related().all()
-		distributors = Distributor.objects.select_related().all()
 		vendors = Vendor.objects.select_related().all()
 
 	return render(request, 'catalog/vendorsynonyms.html', locals())
@@ -817,6 +785,10 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 		f.alias = alias
 		f.created = timezone.now()
 		f.modified = timezone.now()
+		if kwargs['foreign_name'] == 'parametervalue':
+			f.order = 0
+			f.parameter = o.parameter
+
 		f.save()
 
 	if kwargs['foreign_name'] == 'vendor':

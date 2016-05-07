@@ -1,0 +1,58 @@
+{% if perms.catalog.add_parametervaluesynonym or perms.catalog.change_parametervaluesynonym %}
+<div id="modal-edit-parametervaluesynonym" class="reveal-modal large" data-reveal>
+
+	<h2 id="modal-edit-parametervaluesynonym-header"> </h2>
+
+	<input id="edit-parametervaluesynonym-id" type="hidden" value="0">
+
+	<label>Наименование
+		<input id="edit-parametervaluesynonym-name" type="text" value="">
+	</label>
+
+	<label>Значение
+		<select id="edit-parametervaluesynonym-parametervalue">
+			<option value="0" selected> - Не определено (None) - </option>
+			{% for parametervalue in parametervalues %}
+			<option value="{{ parametervalue.id }}">{{ parametervalue.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
+	<label>Загрузчик
+		<select id="edit-parametervaluesynonym-updater">
+			<option value="0" selected> - Не определён (None) - </option>
+			{% for updater in updaters %}
+			<option value="{{ updater.id }}">{{ updater.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
+	<label>Параметр
+		<select id="edit-parametervaluesynonym-parameter">
+			<option value="0" selected> - Не определён (None) - </option>
+			{% for parameter in parameters %}
+			<option value="{{ parameter.id }}">{{ parameter.name }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
+	<button data-do="edit-parametervaluesynonym-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
+	<button data-do="edit-parametervaluesynonym-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}
+
+{% if perms.catalog.delete_parametervaluesynonym %}
+<div id="modal-delete-parametervaluesynonym" class="reveal-modal" data-reveal>
+
+	<h2>Удалить синоним значения параметра?</h2>
+
+	<input id="delete-parametervaluesynonym-id" type="hidden" value="0">
+
+	<p id="delete-parametervaluesynonym-name"></p>
+
+	<button data-do="delete-parametervaluesynonym-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-parametervaluesynonym-cancel" class="secondary">Отменить</button>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+{% endif %}

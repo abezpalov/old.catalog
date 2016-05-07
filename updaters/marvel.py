@@ -222,16 +222,10 @@ class Runner(catalog.runner.Runner):
 				'spb': self.fix_quantity(item['AvailableForShippingInSPBCount'])}
 
 			# Синоним категории
-			category_synonym = CategorySynonym.objects.take(
-				name        = category_synonym_name,
-				updater     = self.updater,
-				distributor = self.distributor)
+			category_synonym = self.take_categorysynonym(category_synonym_name)
 
 			# Синоним производителя
-			vendor_synonym = VendorSynonym.objects.take(
-				name        = vendor_synonym_name,
-				updater     = self.updater,
-				distributor = self.distributor)
+			vendor_synonym = self.take_vendorsynonym(vendor_synonym_name)
 
 			# Продукт
 			if product_article and product_name and vendor_synonym.vendor:

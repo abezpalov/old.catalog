@@ -140,12 +140,9 @@ class Runner(catalog.runner.Runner):
 			elif rown + 1 < len(rows):
 
 				# Получаем объект синонима
-				category_synonym = CategorySynonym.objects.take(
-					name        = "{} | {}".format(
+				category_synonym = self.take_categorysynonym("{} | {}".format(
 						row[num['numb']],
-						row[num['name']].strip().replace('"', '')),
-					updater     = self.updater,
-					distributor = self.distributor)
+						row[num['name']].strip().replace('"', '')))
 				self.category_synonyms[row[num['numb']]] = category_synonym
 
 				#print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))

@@ -1457,13 +1457,13 @@ class ParameterValueManager(models.Manager):
 
 class ParameterValue(models.Model):
 
-	parameter    = models.ForeignKey(Parameter)
-	value_text   = models.TextField()
-	value_search = models.CharField(max_length = 100, null = True, default = None)
-	order        = models.IntegerField()
-	state        = models.BooleanField(default = True)
-	created      = models.DateTimeField()
-	modified     = models.DateTimeField()
+	parameter   = models.ForeignKey(Parameter)
+	name        = models.TextField()
+	name_search = models.CharField(max_length = 100, null = True, default = None)
+	order       = models.IntegerField()
+	state       = models.BooleanField(default = True)
+	created     = models.DateTimeField()
+	modified    = models.DateTimeField()
 
 	objects      = ParameterValueManager()
 
@@ -1472,24 +1472,25 @@ class ParameterValue(models.Model):
 		result = {}
 
 		result['id']           = self.id
-		result['parameter']    = self.parameter
-		result['value_text']   = self.value_text
-		result['value_search'] = self.value_search
+		result['name']         = self.name
+		result['name_search']  = self.name_search
 		result['order']        = self.order
 		result['state']        = self.state
 		result['created']      = str(self.created)
 		result['modified']     = str(self.modified)
 
-		try:    result['parameter'] = self.parameter.get_dicted()
-		except: result['parameter'] = None
+		try:
+			result['parameter'] = self.parameter.get_dicted()
+		except Exception:
+			result['parameter'] = None
 
 		return result
 
 	def __str__(self):
-		return self.value
+		return self.name
 
 	class Meta:
-		ordering = ['order', 'value_search']
+		ordering = ['order', 'name']
 
 
 class ParameterValueSynonymManager(models.Manager):
@@ -1502,20 +1503,18 @@ class ParameterValueSynonymManager(models.Manager):
 		return result
 
 
-	def take(self, name, updater = None, distributor = None, parameter = None):
+	def take(self, name, updater = None, parameter = None):
 
 		name = name.strip()
 
 		try:
 			value_synonym = self.get(
 				name        = name,
-				updater     = updater,
-				distributor = distributor)
+				updater     = updater)
 		except ParameterValueSynonym.DoesNotExist:
 			value_synonym = ParameterValueSynonym(
 				name        = name,
 				updater     = updater,
-				distributor = distributor,
 				parameter   = parameter,
 				created     = timezone.now(),
 				modified    = timezone.now())
@@ -1528,7 +1527,6 @@ class ParameterValueSynonym(models.Model):
 
 	name           = models.CharField(max_length = 1024)
 	updater        = models.ForeignKey(Updater, null = True, default = None)
-	distributor    = models.ForeignKey(Distributor, null = True, default = None)
 	parameter      = models.ForeignKey(Parameter, null = True, default = None)
 	parametervalue = models.ForeignKey(ParameterValue, null = True, default = None)
 	created        = models.DateTimeField()
@@ -1545,17 +1543,20 @@ class ParameterValueSynonym(models.Model):
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
 
-		try:    result['updater']         = self.updater.get_dicted()
-		except: result['updater']         = None
+		try:
+			result['updater'] = self.updater.get_dicted()
+		except Exception:
+			result['updater'] = None
 
-		try:    result['distributor']     = self.distributor.get_dicted()
-		except: result['distributor']     = None
+		try:
+			result['parameter'] = self.parameter.get_dicted()
+		except Exception:
+			result['parameter'] = None
 
-		try:    result['parameter']       = self.parameter.get_dicted()
-		except: result['parameter']       = None
-
-		try:    result['parameter_value'] = self.parameter_value.get_dicted()
-		except: result['parameter_value'] = None
+		try:
+			result['parametervalue'] = self.parametervalue.get_dicted()
+		except Exception:
+			result['parametervalue'] = None
 
 		return result
 
@@ -1788,18 +1789,16 @@ class ParameterSynonymManager(models.Manager):
 			result.append(o.get_dicted())
 		return result
 
-	def take(self, name, updater = None, distributor = None, parameter = None):
-		name = name.strip()
+	def take(self, name, updater = None, parameter = None):
+		name = str(name).strip()
 		try:
 			parameter_synonym = self.get(
 				name        = name,
-				updater     = updater,
-				distributor = distributor)
+				updater     = updater)
 		except ParameterSynonym.DoesNotExist:
 			parameter_synonym = ParameterSynonym(
 				name        = name,
 				updater     = updater,
-				distributor = distributor,
 				parameter   = parameter,
 				created     = timezone.now(),
 				modified    = timezone.now())
@@ -1811,7 +1810,6 @@ class ParameterSynonym(models.Model):
 
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
-	distributor = models.ForeignKey(Distributor, null = True, default = None)
 	parameter   = models.ForeignKey(Parameter, null = True, default = None)
 	created     = models.DateTimeField()
 	modified    = models.DateTimeField()
@@ -1831,11 +1829,6 @@ class ParameterSynonym(models.Model):
 			result['updater'] = self.updater.get_dicted()
 		except Exception:
 			result['updater']     = None
-
-		try:
-			result['distributor'] = self.distributor.get_dicted()
-		except Exception:
-			result['distributor'] = None
 
 		try:
 			result['parameter'] = self.parameter.get_dicted()
@@ -1860,18 +1853,16 @@ class CategorySynonymManager(models.Manager):
 			result.append(o.get_dicted())
 		return result
 
-	def take(self, name, updater = None, distributor = None, category = None):
-		name = name.strip()
+	def take(self, name, updater = None, category = None):
+		name = str(name).strip()
 		try:
 			categorySynonym = self.get(
 				name        = name,
-				updater     = updater,
-				distributor = distributor)
+				updater     = updater)
 		except CategorySynonym.DoesNotExist:
 			categorySynonym = CategorySynonym(
 				name        = name,
 				updater     = updater,
-				distributor = distributor,
 				category    = category,
 				created     = timezone.now(),
 				modified    = timezone.now())
@@ -1883,7 +1874,6 @@ class CategorySynonym(models.Model):
 
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
-	distributor = models.ForeignKey(Distributor, null = True, default = None)
 	category    = models.ForeignKey(Category, null = True, default = None)
 	created     = models.DateTimeField()
 	modified    = models.DateTimeField()
@@ -1903,11 +1893,6 @@ class CategorySynonym(models.Model):
 			result['updater'] = self.updater.get_dicted()
 		except Exception:
 			result['updater']     = None
-
-		try:
-			result['distributor'] = self.distributor.get_dicted()
-		except Exception:
-			result['distributor'] = None
 
 		try:
 			result['category'] = self.category.get_dicted()
@@ -1935,18 +1920,16 @@ class VendorSynonymManager(models.Manager):
 		return result
 
 
-	def take(self, name, updater = None, distributor = None, vendor = None):
+	def take(self, name, updater = None, vendor = None):
 		name = str(name).strip()
 		try:
 			vendorSynonym = self.get(
 				name        = name,
-				updater     = updater,
-				distributor = distributor)
+				updater     = updater)
 		except VendorSynonym.DoesNotExist:
 			vendorSynonym = VendorSynonym(
 				name        = name,
 				updater     = updater,
-				distributor = distributor,
 				vendor      = vendor,
 				created     = timezone.now(),
 				modified    = timezone.now())
@@ -1958,7 +1941,6 @@ class VendorSynonym(models.Model):
 
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
-	distributor = models.ForeignKey(Distributor, null = True, default = None)
 	vendor      = models.ForeignKey(Vendor, null = True, default = None)
 	created     = models.DateTimeField()
 	modified    = models.DateTimeField()
@@ -1979,11 +1961,6 @@ class VendorSynonym(models.Model):
 			result['updater'] = self.updater.get_dicted()
 		except Exception:
 			result['updater'] = None
-
-		try:
-			result['distributor'] = self.distributor.get_dicted()
-		except Exception:
-			result['distributor'] = None
 
 		try:
 			result['vendor'] = self.vendor.get_dicted()

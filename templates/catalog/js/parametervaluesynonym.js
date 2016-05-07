@@ -1,21 +1,22 @@
-{% if perms.catalog.add_parametersynonym or perms.catalog.change_parametersynonym or perms.catalog.delete_parametersynonym %}
-$("body").delegate("[data-do='filter-parametersynonyms']", "change", function(){
-	location.href = "/catalog/parametersynonyms/" + $("#filter-updater").val() + "/" + $("#filter-parameter").val() + "/";
+{% if perms.catalog.add_parametervaluesynonym or perms.catalog.change_parametervaluesynonym or perms.catalog.delete_parametervaluesynonym %}
+$("body").delegate("[data-do='filter-parametervaluesynonyms']", "change", function(){
+	location.href = "/catalog/parametervaluesynonyms/" + $("#filter-updater").val() + "/" + $("#filter-parameter").val() + "/";
 	return true;
 });
 {% endif %}
 
-{% if perms.catalog.add_parametersynonym %}
-$("body").delegate("[data-do='open-new-parametersynonym']", "click", function(){
+{% if perms.catalog.add_parametervaluesynonym %}
+$("body").delegate("[data-do='open-new-parametervaluesynonym']", "click", function(){
 
-	model = 'parametersynonym';
+	model = 'parametervaluesynonym';
 
-	$('#modal-edit-' + model + '-header').text('Добавить синоним параметра');
+	$('#modal-edit-' + model + '-header').text('Добавить синоним значения параметра');
 
 	$('#edit-' + model + '-id').val('0');
 	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-updater').val('0');
 	$('#edit-' + model + '-parameter').val('0');
+	$('#edit-' + model + '-parametervalue').val('0');
 
 	$('#modal-edit-' + model).foundation('reveal', 'open');
 
@@ -24,10 +25,10 @@ $("body").delegate("[data-do='open-new-parametersynonym']", "click", function(){
 {% endif %}
 
 
-{% if perms.catalog.change_parametersynonym %}
-$("body").delegate("[data-do='open-edit-parametersynonym']", "click", function(){
+{% if perms.catalog.change_parametervaluesynonym %}
+$("body").delegate("[data-do='open-edit-parametervaluesynonym']", "click", function(){
 
-	model = 'parametersynonym';
+	model = 'parametervaluesynonym';
 
 	$.post('/catalog/ajax/get/' + model + '/', {
 		id : $(this).data(model + '-id'),
@@ -50,6 +51,11 @@ $("body").delegate("[data-do='open-edit-parametersynonym']", "click", function()
 			} else {
 				$('#edit-' + model + '-parameter').val(0);
 			}
+			if (data[model]['parametervalue']) {
+				$('#edit-' + model + '-parametervalue').val(data[model]['parametervalue']['id']);
+			} else {
+				$('#edit-' + model + '-parametervalue').val(0);
+			}
 
 			$('#modal-edit-' + model).foundation('reveal', 'open');
 
@@ -61,16 +67,17 @@ $("body").delegate("[data-do='open-edit-parametersynonym']", "click", function()
 {% endif %}
 
 
-{% if perms.catalog.change_parametersynonym %}
-$("body").delegate("[data-do='edit-parametersynonym-save']", "click", function(){
+{% if perms.catalog.change_parametervaluesynonym %}
+$("body").delegate("[data-do='edit-parametervaluesynonym-save']", "click", function(){
 
-	model = 'parametersynonym';
+	model = 'parametervaluesynonym';
 
 	$.post('/catalog/ajax/save/' + model + '/', {
-		id             : $('#edit-' + model + '-id').val(),
-		name           : $('#edit-' + model + '-name').val(),
-		updater_id     : $('#edit-' + model + '-updater').val(),
-		parameter_id   : $('#edit-' + model + '-parameter').val(),
+		id                : $('#edit-' + model + '-id').val(),
+		name              : $('#edit-' + model + '-name').val(),
+		updater_id        : $('#edit-' + model + '-updater').val(),
+		parameter_id      : $('#edit-' + model + '-parameter').val(),
+		parametervalue_id : $('#edit-' + model + '-parameter').val(),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
@@ -99,11 +106,21 @@ $("body").delegate("[data-do='edit-parametersynonym-save']", "click", function()
 				$('[data-' + model + '-parameter-name="' + data[model]['id'] + '"]').data('parameter-name', '0');
 			}
 
+			if (data[model]['parametervalue']) {
+				$('[data-' + model + '-parametervalue-name="' + data[model]['id'] + '"]').text(data[model]['parametervalue']['name']);
+				$('[data-' + model + '-parametervalue-name="' + data[model]['id'] + '"]').data('parametervalue-id', data[model]['parametervalue']['id']);
+				$('[data-' + model + '-parametervalue-name="' + data[model]['id'] + '"]').data('parametervalue-name', data[model]['parametervalue']['id']);
+			} else {
+				$('[data-' + model + '-parametervalue-name="' + data[model]['id'] + '"]').text('');
+				$('[data-' + model + '-parametervalue-name="' + data[model]['id'] + '"]').data('parametervalue-id', '0');
+				$('[data-' + model + '-parametervalue-name="' + data[model]['id'] + '"]').data('parametervalue-name', '0');
+			}
+
 			$('#edit-' + model + '-id').val('0');
 			$('#edit-' + model + '-name').val('');
 			$('#edit-' + model + '-updater').val('0');
-			$('#edit-' + model + '-distributor').val('0');
 			$('#edit-' + model + '-parameter').val('0');
+			$('#edit-' + model + '-parametervalue').val('0');
 
 			$('#modal-edit-' + model).foundation('reveal', 'close');
 		}
@@ -114,16 +131,17 @@ $("body").delegate("[data-do='edit-parametersynonym-save']", "click", function()
 {% endif %}
 
 
-{% if perms.catalog.change_parametersynonym %}
-$("body").delegate("[data-do='edit-parametersynonym-cancel']", "click", function(){
+{% if perms.catalog.change_parametervaluesynonym %}
+$("body").delegate("[data-do='edit-parametervaluesynonym-cancel']", "click", function(){
 
-	model = 'parametersynonym';
+	model = 'parametervaluesynonym';
 
 
 	$('#edit-' + model + '-id').val('0');
 	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-updater').val('0');
 	$('#edit-' + model + '-parameter').val('0');
+	$('#edit-' + model + '-parametervalue').val('0');
 
 	$('#modal-edit-' + model).foundation('reveal', 'close');
 
@@ -132,10 +150,10 @@ $("body").delegate("[data-do='edit-parametersynonym-cancel']", "click", function
 {% endif %}
 
 
-{% if perms.catalog.delete_parametersynonym %}
-$("body").delegate("[data-do='open-delete-parametersynonym']", "click", function(){
+{% if perms.catalog.delete_parametervaluesynonym %}
+$("body").delegate("[data-do='open-delete-parametervaluesynonym']", "click", function(){
 
-	model = 'parametersynonym';
+	model = 'parametervaluesynonym';
 
 	$.post('/catalog/ajax/get/' + model + '/', {
 		id : $(this).data(model + '-id'),
@@ -156,10 +174,10 @@ $("body").delegate("[data-do='open-delete-parametersynonym']", "click", function
 {% endif %}
 
 
-{% if perms.catalog.delete_parametersynonym %}
-$("body").delegate("[data-do='delete-parametersynonym-apply']", "click", function(){
+{% if perms.catalog.delete_parametervaluesynonym %}
+$("body").delegate("[data-do='delete-parametervaluesynonym-apply']", "click", function(){
 
-	model = 'parametersynonym';
+	model = 'parametervaluesynonym';
 
 	$.post('/catalog/ajax/delete/' + model + '/', {
 		id : $('#delete-' + model + '-id').val(),
@@ -179,10 +197,10 @@ $("body").delegate("[data-do='delete-parametersynonym-apply']", "click", functio
 {% endif %}
 
 
-{% if perms.catalog.delete_parametersynonym %}
-$("body").delegate("[data-do='delete-parametersynonym-cancel']", "click", function(){
+{% if perms.catalog.delete_parametervaluesynonym %}
+$("body").delegate("[data-do='delete-parametervaluesynonym-cancel']", "click", function(){
 
-	model = 'parametersynonym';
+	model = 'parametervaluesynonym';
 
 	$('#delete-' + model + '-id').val(0);
 
@@ -193,11 +211,11 @@ $("body").delegate("[data-do='delete-parametersynonym-cancel']", "click", functi
 {% endif %}
 
 
-{% if perms.catalog.change_parametersynonym %}
-$("body").delegate("[data-do='link-parametersynonym-same-parameter']", "click", function(){
+{% if perms.catalog.change_parametervaluesynonym %}
+$("body").delegate("[data-do='link-parametervaluesynonym-same-parametervalue']", "click", function(){
 
-	model = 'parametersynonym';
-	foreign = 'parameter';
+	model = 'parametervaluesynonym';
+	foreign = 'parametervalue';
 
 	$.post('/catalog/ajax/link/' + model + '/same/' + foreign + '/', {
 		id : $(this).data(model + '-id'),

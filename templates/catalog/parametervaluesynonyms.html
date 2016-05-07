@@ -1,0 +1,127 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Catalog: Синонимы значений параметров{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row collapse">
+	<ul class="button-group even-4">
+		{% if perms.catalog.add_parametervaluesynonym %}<li><button data-do="open-new-parametervaluesynonym" class="secondary expand"><i class="fa fa-pencil"></i> Добавить синоним значения</button></li>{% endif %}
+		{% if perms.catalog.add_parametervalue %}<li><button data-do="open-new-parametervalue" class="secondary expand"><i class="fa fa-pencil"></i> Добавить значение параметра</button></li>{% endif %}
+		{% if perms.catalog.add_parameter %}<li><button data-do="open-new-parameter" class="secondary expand"><i class="fa fa-pencil"></i> Добавить параметр</button></li>{% endif %}
+		{% if perms.catalog.add_parametertype %}<li><button data-do="open-new-parametertype" class="secondary expand"><i class="fa fa-pencil"></i> Добавить тип параметра</button></li>{% endif %}
+	</ul>
+</div>
+
+{% if perms.catalog.add_parametervaluesynonym or perms.catalog.change_parametervaluesynonym %}
+
+<div class="row collapse">
+	<div class="small-6 columns">
+		<label>Загрузчик
+			<select
+				id="filter-updater"
+				data-do="filter-parametervaluesynonyms">
+				<option value="all"{% if updater_selected == 'all' %} selected{% endif %}> - Все загрузчики - </option>
+				<option value="0"{% if updater_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for updater in updaters %}
+				<option value="{{ updater.id }}"{% if updater.id == updater_selected %} selected{% endif %}>{{ updater.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+	<div class="small-6 columns">
+		<label>Параметр
+			<select
+				id="filter-parameter"
+				data-do="filter-parametervaluesynonyms">
+				<option value="all"{% if parameter_selected == 'all' %} selected{% endif %}> - Все параметры - </option>
+				<option value="0"{% if parameter_selected == 0 %} selected{% endif %}> - Не определён (None) - </option>
+				{% for parameter in parameters %}
+				<option value="{{ parameter.id }}"{% if parameter.id == parameter_selected %} selected{% endif %}>{{ parameter.name }}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+</div>
+
+<div class="row collapse">
+	<table>
+		<tr>
+			<th class="text-center">#</th>
+			<th>Наименование</th>
+			<th>Значение</th>
+			<th>Управление</th>
+			<th class="hide-for-small-only">Параметр</th>
+			<th class="hide-for-small-only">Загрузчик</th>
+		</tr>
+		{% for parametervaluesynonym in parametervaluesynonyms %}
+		<tr data-parametervaluesynonym="{{ parametervaluesynonym.id }}">
+			<td>{{ forloop.counter }}</td>
+			<td>
+				<a
+					data-do = "open-edit-parametervaluesynonym"
+					data-parametervaluesynonym-id = "{{ parametervaluesynonym.id }}"
+					data-parametervaluesynonym-name = "{{ parametervaluesynonym.id }}">{{ parametervaluesynonym.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a
+					data-do = "open-edit-parametervalue"
+					data-parametervalue-id = "{{ parametervaluesynonym.parametervalue.id }}"
+					data-parametervalue-name = "{{ parametervaluesynonym.parametervalue.id }}"
+					data-parametervaluesynonym-parametervalue-name = "{{ parametervaluesynonym.id }}">{{ parametervaluesynonym.parametervalue.name }}</a>
+			</td>
+			<td>
+				<button class = "tiny"
+					data-do = "link-parametervaluesynonym-same-parametervalue"
+					data-parametervaluesynonym-id = "{{ parametervaluesynonym.id }}"><i class="fa fa-link"></i></button>
+				<button class = "tiny alert"
+					data-do = "open-delete-parametervaluesynonym"
+					data-parametervaluesynonym-id = "{{ parametervaluesynonym.id }}"><i class="fa fa-trash"></i></button>
+			</td>
+			<td class = "hide-for-small-only">
+				<a
+					data-do = "open-edit-parameter"
+					data-parameter-id = "{{ parametervaluesynonym.parameter.id }}"
+					data-parameter-name = "{{ parametervaluesynonym.parameter.id }}"
+					data-parametervaluesynonym-parameter-name = "{{ parametervaluesynonym.id }}">{{ parametervaluesynonym.parameter.name }}</a>
+			</td>
+			<td class="hide-for-small-only">
+				<a
+					data-do = "open-edit-updater"
+					data-updater-id = "{{ parametervaluesynonym.updater.id }}"
+					data-updater-name = "{{ parametervaluesynonym.updater.id }}"
+					data-parametervaluesynonym-updater-name = "{{ parametervaluesynonym.id }}">{{ parametervaluesynonym.updater.name }}</a>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/parametervaluesynonym.html" %}
+{% include "catalog/modal/parameter.html" %}
+{% include "catalog/modal/parametertype.html" %}
+{% include "catalog/modal/updater.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/parametervaluesynonym.js" %}
+{% include "catalog/js/parameter.js" %}
+{% include "catalog/js/parametertype.js" %}
+{% include "catalog/js/updater.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

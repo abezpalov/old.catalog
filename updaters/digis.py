@@ -162,18 +162,12 @@ class Runner(catalog.runner.Runner):
 			elif row[num['product_article']] and row[num['product_vendor']]:
 
 				# Синоним категории
-				category_synonym = CategorySynonym.objects.take(
-					name        = "{} | {}".format(
+				category_synonym = self.take_categorysynonym("{} | {}".format(
 									row[num['category']],
-									row[num['category_sub']]),
-					updater     = self.updater,
-					distributor = self.distributor)
+									row[num['category_sub']]))
 
 				# Синоним производителя
-				vendor_synonym = VendorSynonym.objects.take(
-					name        = row[num['product_vendor']],
-					updater     = self.updater,
-					distributor = self.distributor)
+				vendor_synonym = self.take_vendorsynonym(row[num['product_vendor']])
 
 				# Продукт
 				product_article    = row[num['product_article']]

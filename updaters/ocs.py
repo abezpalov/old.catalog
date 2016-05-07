@@ -129,16 +129,10 @@ class Runner(catalog.runner.Runner):
 				category_synonym_name = category_synonyms[p['CategoryID']]
 			except KeyError:
 				category_synonym_name = p['CategoryID']
-			category_synonym = CategorySynonym.objects.take(
-				name        = category_synonym_name,
-				updater     = self.updater,
-				distributor = self.distributor)
+			category_synonym = self.take_categorysynonym(category_synonym_name)
 
 			# Синоним производителя
-			vendor_synonym = VendorSynonym.objects.take(
-				name        = p['Producer'],
-				updater     = self.updater,
-				distributor = self.distributor)
+			vendor_synonym = self.take_vendorsynonym(p['Producer'])
 
 			# Продукт
 			product_article = p['PartNumber']
