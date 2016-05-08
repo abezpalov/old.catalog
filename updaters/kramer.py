@@ -90,14 +90,14 @@ class Runner(catalog.runner.Runner):
 		xls_data = BytesIO(request.content)
 
 		if words['cable'] in filename:
-			self.parseCables(xls_data)
+			self.parse_cables(xls_data)
 			return True
 		elif words['device'] in filename:
-			self.parseDevices(xls_data)
+			self.parse_devices(xls_data)
 			return True
 
 
-	def parseDevices(self, xls_data):
+	def parse_devices(self, xls_data):
 
 		import xlrd
 
@@ -186,7 +186,7 @@ class Runner(catalog.runner.Runner):
 		return True
 
 
-	def parseCables(self, xls_data):
+	def parse_cables(self, xls_data):
 
 		import xlrd
 
@@ -215,33 +215,40 @@ class Runner(catalog.runner.Runner):
 			# Заголовок таблицы
 			elif row_num == num['header']:
 				for cel_num, cel in enumerate(row):
-					if   str(cel).strip() == word['article']: num['article'] = cel_num
-					elif str(cel).strip() == word['model']: num['model'] = cel_num
-					elif str(cel).strip() == word['name']:  num['name'] = cel_num
-					elif str(cel).strip() == word['size']:  num['size'] = cel_num
-					elif str(cel).strip() == word['price']: num['price'] = cel_num
-					elif str(cel).strip() == word['dop']:   num['dop'] = cel_num
+					if   str(cel).strip() == word['article']:
+						num['article'] = cel_num
+					elif str(cel).strip() == word['model']:
+						num['model'] = cel_num
+					elif str(cel).strip() == word['name']:
+						num['name'] = cel_num
+					elif str(cel).strip() == word['size']:
+						num['size'] = cel_num
+					elif str(cel).strip() == word['price']:
+						num['price'] = cel_num
+					elif str(cel).strip() == word['dop']:
+						num['dop'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] or not num['model'] or not num['name'] or not num['size'] or not num['price'] or not num['dop']:
 					print("Ошибка структуры данных: не все столбцы опознаны.")
 					return False
-				else: print("Структура данных без изменений.")
+				else:
+					print("Структура данных без изменений.")
 
 			# Категория
 			elif row[num['name']] and not row[num['article']] and not row[num['price']]:
 				word['category_name'] = row[num['name']]
-				category_synonym = CategorySynonym.objects.take(
-					name = "Cables: {}".format(word['category_name']),
-					updater = self.updater,
-					distributor = self.distributor)
+				category_synonym = self.take_categorysynonym('Cables: {}'.format(word['category_name']))
 
 			# Товар
 			elif row[num['name']] and row[num['article']] and row[num['price']]:
 
 				# Определяем имя
 				name = '{} {} {}'.format(self.vendor.name, row[num['model']], row[num['name']])
-				if row[num['size']]: name += ' (длина: {} м.)'.format(str(row[num['size']]).replace('.', ','))
+				if row[num['size']]:
+					name = '{} (длина: {} м.)'.format(
+						name,
+						str(row[num['size']]).replace('.', ','))
 
 				# Определяем артикул
 				article = row[num['article']]
