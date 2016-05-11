@@ -22,31 +22,39 @@ class Runner:
 
 	def run(self):
 
+		from django.db.models import Count
+
 		start = datetime.datetime.now()
 
 		tasks = UpdaterTask.objects.filter(complite = False)
 
-		print("Нашёл {} задач.".format(len(tasks)))
+#		print("Нашёл {} задач.".format(len(tasks)))
+
+		tasks = UpdaterTask.objects.filter(complite = False, name = 'update.product.description').values('updater').annotate(count = Count('updater')).order_by()
 
 		for task in tasks:
 
-			try:
-				print("Выполняю задачу {}.".format(task))
+#			print('Updater id: {}.'.format(task['updater']))
+#			print('Task quantity: {}.'.format(task['count']))
 
-				Updater = __import__('catalog.updaters.{}'.format(task.updater.alias), fromlist=['Runner'])
-				runner = Updater.Runner()
+			updater = Updater.objects.get(id = task['updater'])
 
-				if 'update.product.description' == task.name:
-					runner.update_product_description(task.subject)
+			print("Загрузчик: {}.".format(updater.name))
 
-					# TODO !!!
+			runner = __import__('catalog.updaters.{}'.format(updater.alias), fromlist=['Runner']).Runner()
 
-			except Exception as error:
-				Log.objects.add(
-					subject = str(task),
-					channel = "error",
-					title   = "Exception",
-					description = error)
+
+#			try:
+			runner.update_products_description()
+
+				# TODO !!!
+
+#			except Exception as error:
+#				Log.objects.add(
+#					subject = str('{} update.products.description'.format(updater.name)),
+#					channel = "error",
+#					title   = "Exception",
+#					description = error)
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
 

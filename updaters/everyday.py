@@ -67,22 +67,26 @@ class Runner:
 
 		print("Нашёл {} задач.".format(len(tasks)))
 
+
+
+
 		for task in tasks:
 
+			updater = Updater.objects.get(id = task['updater'])
+
+			print("Загрузчик: {}.".format(updater.name))
+
+			runner = __import__('catalog.updaters.{}'.format(updater.alias), fromlist=['Runner']).Runner()
+
+
 			try:
-				print("Выполняю задачу {}.".format(task))
+				runner.update_products_description()
 
-				Updater = __import__('catalog.updaters.{}'.format(task.updater.alias), fromlist=['Runner'])
-				runner = Updater.Runner()
-
-				if 'update.product.description' == task.name:
-					runner.update_product_description(task.subject)
-
-					# TODO !!!
+				# TODO !!!
 
 			except Exception as error:
 				Log.objects.add(
-					subject = str(task),
+					subject = str('{} update.products.description'.format(updater.name)),
 					channel = "error",
 					title   = "Exception",
 					description = error)

@@ -1691,7 +1691,6 @@ class ParameterToProduct(models.Model):
 			value_synonym = ParameterValueSynonym.objects.take(
 				name        = value,
 				updater     = updater,
-				distributor = distributor,
 				parameter   = self.parameter)
 
 			if value_synonym.parametervalue:
@@ -1724,7 +1723,7 @@ class ParameterToProduct(models.Model):
 		elif self.value_decimal:
 			value = '{:,}'.format(self.value_decimal).replace(',', ' ').replace('.', ',')
 		elif self.value_list:
-			value = self.value_list.value_text
+			value = self.value_list.name
 		else:
 			return ''
 

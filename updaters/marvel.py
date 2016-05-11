@@ -81,31 +81,45 @@ class Runner(catalog.runner.Runner):
 		self.log()
 
 
-	def update_product_description(self, product_id):
+	def update_products_description(self):
 
-		# TODO
+		l = 50
 
-#		print('subject = {}'.format(product_id))
+		tasks = UpdaterTask.objects.filter(
+			complite = False,
+			name     = 'update.product.description',
+			updater  = self.updater)
 
-		# Получаем объект продукта
-		try:
-			product = Product.objects.get(id = product_id)
-#			print('product.id = {}'.format(product.id))
-#			print('product.article = {}'.format(product.article))
-		except Exception:
-			return False
-
-		data = self.get_data('parameters', 'json', 1, product.article)
-#		print(data)
-
-		# Обрабатываем характеристики товара
-		if data:
-			self.parse_parameters(data, product)
+		if len(tasks) % l:
+			q = len(tasks) // l + 1
 		else:
-			return False
+			q = len(tasks) // l
 
 
-	def get_data(self, task, request_format, pack_status = None, article = None):
+		for n in range(q):
+
+			party = tasks[n * l : (n + 1) * l - 1]
+
+			articles = []
+			products = {}
+
+			for p in party:
+
+				product = Product.objects.get(id = p.subject)
+				articles.append(product.article)
+				products[product.article] = product
+
+			print('Tasks[{}:{}]'.format(n*l, (n+1)*l - 1))
+
+			data = self.get_data('parameters', 'json', 1, articles)
+
+			if data:
+				self.parse_parameters(data, products)
+			else:
+				return False				
+
+
+	def get_data(self, task, request_format, pack_status = None, articles = None):
 
 		import requests
 
@@ -131,12 +145,22 @@ class Runner(catalog.runner.Runner):
 				key            = None,
 				request_format = self.request_format[request_format])
 
-		if article:
-			url = '{url}{midle}{article}{end}'.format(
-				url     = url,
-				midle   = '&getExtendedItemInfo=1&items={"WareItem": [{"ItemId": "',
-				article = article,
-				end     = '"}]}')
+		if articles:
+
+			url = '{url}{mid}'.format(
+				url = url,
+				mid = '&getExtendedItemInfo=1&items={"WareItem": [')
+
+			for article in articles:
+				url = '{url}{mid}{article}{end}'.format(
+					url     = url,
+					mid     = '{"ItemId": "',
+					article = article,
+					end     = '"},')
+
+			url = '{url}{end}'.format(
+				url = url,
+				end = ']}')
 
 		# Выполняем запрос
 		try:
@@ -268,40 +292,39 @@ class Runner(catalog.runner.Runner):
 					self.count['party'] += 1
 
 
-	def parse_parameters(self, data, product):
+	def parse_parameters(self, data, products):
 
-#		print('parseParameters')
+		print('parseParameters')
 
-		try:
-			ps = data['CategoryItem'][0]['ExtendedInfo']['Parameter']
+		for pr in data['CategoryItem']:
+			print(pr['WareArticle'])
 
-		except Exception:
-			print('return False')
-			return False
+			try:
+				product = products[pr['WareArticle']]
+				ps = data['CategoryItem'][0]['ExtendedInfo']['Parameter']
 
-		else:
+			except Exception:
+				continue
 
-			for p in ps:
+			else:
 
-				name  = p['ParameterName']
-				value = p['ParameterValue']
-				print('\t{} = {}'.format(name, value))
+				for p in ps:
 
-				parameter_synonym = ParameterSynonym.objects.take(
-					name        = name,
-					updater     = self.updater,
-					distributor = self.distributor)
+					name  = p['ParameterName']
+					value = p['ParameterValue']
+#					print('\t{} = {}'.format(name, value))
 
-				parameter = parameter_synonym.parameter
+					parameter_synonym = self.take_parametersynonym(name)
 
-				if parameter:
-					print('Распознан параметр: {} = {}.'.format(parameter.name, value))
-					parameter_to_product = ParameterToProduct.objects.take(
-						parameter = parameter,
-						product   = product)
-					parameter_to_product.set_value(
-						value = value,
-						updater = self.updater,
-						distributor = self.distributor)
+					parameter = parameter_synonym.parameter
 
-			return True
+					if parameter:
+						print('Распознан параметр: {} = {}.'.format(parameter.name, value))
+						parameter_to_product = ParameterToProduct.objects.take(
+							parameter = parameter,
+							product   = product)
+						parameter_to_product.set_value(
+							value = value,
+							updater = self.updater)
+
+		return True
