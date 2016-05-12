@@ -46,5 +46,5 @@ class Runner(catalog.runner.Runner):
 				self.count['product'],
 				self.count['party']))
 
-	def parse(self):
+	def parse(self, data):
 		pass

@@ -111,13 +111,14 @@ class Runner(catalog.runner.Runner):
 				articles.append(product.article)
 				products[product.article] = product
 
-			print('Tasks[{}:{}] - {}'.format(n*l, (n+1)*l, len(party)))
+			print('Tasks[{}:{}] - {} products.'.format(n*l, (n+1)*l, len(party)))
 
 			data = self.get_data('parameters', 'json', 1, articles)
 
 			if data:
 				self.parse_parameters(data, products)
 			else:
+				print('Error!')
 				continue
 
 
@@ -312,6 +313,7 @@ class Runner(catalog.runner.Runner):
 				ps = data['CategoryItem'][0]['ExtendedInfo']['Parameter']
 
 			except Exception:
+				print('Error?')
 				continue
 
 			else:

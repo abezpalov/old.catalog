@@ -8,8 +8,7 @@ $("body").delegate("[data-do='open-new-parametervalue']", "click", function(){
 
 	$('#edit-' + model + '-id').val('0');
 	$('#edit-' + model + '-parameter').val('0');
-	$('#edit-' + model + '-value-text').val('');
-	$('#edit-' + model + '-value').val('0');
+	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-order').val('0');
 	$('#edit-' + model + '-state').prop('checked', true);
 
@@ -44,15 +43,7 @@ $("body").delegate("[data-do='open-edit-parametervalue']", "click", function(){
 				$('#edit-' + model + '-' + key).val(0);
 			}
 
-			$('#edit-' + model + '-value-text').val(data[model]['value_text']);
-
-			key = 'unit';
-			if (data[model][key]) {
-				$('#edit-' + model + '-' + key).val(data[model][key]['id']);
-			} else {
-				$('#edit-' + model + '-' + key).val(0);
-			}
-
+			$('#edit-' + model + '-name').val(data[model]['name']);
 			$('#edit-' + model + '-order').val(data[model]['order']);
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
@@ -67,14 +58,14 @@ $("body").delegate("[data-do='open-edit-parametervalue']", "click", function(){
 
 // Save
 {% if perms.catalog.change_parametervalue %}
-$("body").delegate("[data-do='edit-parameter-value-save']", "click", function(){
+$("body").delegate("[data-do='edit-parametervalue-save']", "click", function(){
 
 	model = 'parametervalue';
 
 	$.post('/catalog/ajax/save/' + model + '/', {
 		id           : $('#edit-' + model + '-id').val(),
 		parameter_id : $('#edit-' + model + '-parameter').val(),
-		value_text   : $('#edit-' + model + '-value-text').val(),
+		name         : $('#edit-' + model + '-name').val(),
 		order        : $('#edit-' + model + '-order').val(),
 		state        : $('#edit-' + model + '-state').prop('checked'),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
@@ -93,24 +84,13 @@ $("body").delegate("[data-do='edit-parameter-value-save']", "click", function(){
 				$('[data-' + model + '-' + key + '-name="' + data[model]['id'] + '"]').data(key + '-name', '0');
 			}
 
-			$('[data-' + model + '-value="' + data[model]['id'] + '"]').text(data[model]['value_search']);
-
-			key = 'unit';
-			if (data[model][key]) {
-				$('[data-' + model + '-' + key + '-name="' + data[model]['id'] + '"]').text(data[model][key]['name']);
-				$('[data-' + model + '-' + key + '-name="' + data[model]['id'] + '"]').data(key + '-id', data[model][key]['id']);
-				$('[data-' + model + '-' + key + '-name="' + data[model]['id'] + '"]').data(key + '-name', data[model][key]['id']);
-			} else {
-				$('[data-' + model + '-' + key + '-name="' + data[model]['id'] + '"]').text('');
-				$('[data-' + model + '-' + key + '-name="' + data[model]['id'] + '"]').data(key + '-id', '0');
-				$('[data-' + model + '-' + key + '-name="' + data[model]['id'] + '"]').data(key + '-name', '0');
-			}
+			$('[data-' + model + '-value="' + data[model]['id'] + '"]').text(data[model]['name']);
 
 			$('[data-' + model + '-state="' + o.id + '"]').prop('checked', data[model]['state']);
 
 			$('#edit-' + model + '-id').val('0');
 			$('#edit-' + model + '-parameter').val('0');
-			$('#edit-' + model + '-value-text').val('');
+			$('#edit-' + model + '-name').val('');
 			$('#edit-' + model + '-order').val('0');
 			$('#edit-' + model + '-state').prop('checked', false);
 
@@ -125,13 +105,13 @@ $("body").delegate("[data-do='edit-parameter-value-save']", "click", function(){
 
 // Cancel Edit
 {% if perms.catalog.change_parametervalue %}
-$("body").delegate("[data-do='edit-parameter-value-cancel']", "click", function(){
+$("body").delegate("[data-do='edit-parametervalue-cancel']", "click", function(){
 
 	model = 'parametervalue';
 
 	$('#edit-' + model + '-id').val('0');
 	$('#edit-' + model + '-parameter').val('0');
-	$('#edit-' + model + '-value-text').val('');
+	$('#edit-' + model + '-name').val('');
 	$('#edit-' + model + '-order').val('0');
 	$('#edit-' + model + '-state').prop('checked', false);
 

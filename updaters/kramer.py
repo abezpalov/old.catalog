@@ -128,12 +128,18 @@ class Runner(catalog.runner.Runner):
 			# Заголовок таблицы
 			elif row_num == num['header']:
 				for cel_num, cel in enumerate(row):
-					if   str(cel).strip() == word['article']:  num['article'] = cel_num
-					elif str(cel).strip() == word['model']:    num['model']   = cel_num
-					elif str(cel).strip() == word['size']:     num['size']    = cel_num
-					elif str(cel).strip() == word['name']:     num['name']    = cel_num
-					elif str(cel).strip() == word['price']:    num['price']   = cel_num
-					elif str(cel).strip() == word['dop']:      num['dop']     = cel_num
+					if str(cel).strip() == word['article']:
+						num['article'] = cel_num
+					elif str(cel).strip() == word['model']:
+						num['model'] = cel_num
+					elif str(cel).strip() == word['size']:
+						num['size'] = cel_num
+					elif str(cel).strip() == word['name']:
+						num['name'] = cel_num
+					elif str(cel).strip() == word['price']:
+						num['price'] = cel_num
+					elif str(cel).strip() == word['dop']:
+						num['dop'] = cel_num
 
 				# Проверяем, все ли столбцы распознались
 				if not num['article'] == 0 or not num['model'] or not num['size'] or not num['name'] or not num['price'] or not num['dop']:
@@ -165,11 +171,6 @@ class Runner(catalog.runner.Runner):
 					category = category_synonym.category,
 					unit     = self.default_unit)
 				self.count['product'] += 1
-
-				# Указываем категорию
-				if not product.category and category_synonym.category:
-					product.category = category_synonym.category
-					product.save()
 
 				# Добавляем партии
 				party = Party.objects.make(

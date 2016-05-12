@@ -15,17 +15,9 @@
 	</label>
 
 	<label>Значение параметра (текстовое)
-		<input id="edit-parametervalue-value-text" type="text" value="">
+		<input id="edit-parametervalue-name" type="text" value="">
 	</label>
 
-	<label>Единица измерения
-		<select id="edit-parametervalue-unit">
-			<option value="0" selected> - Не определена (None) - </option>
-			{% for unit in units %}
-			<option value="{{ unit.id }}">{{ unit.name }}</option>
-			{% endfor %}
-		</select>
-	</label>
 
 	<label>Порядковый номер
 		<input id="edit-parametervalue-order" type="text" value="">
@@ -44,17 +36,17 @@
 </div>
 {% endif %}
 
-{% if perms.catalog.delete_pricetype %}
-<div id="modal-delete-pricetype" class="reveal-modal" data-reveal>
+{% if perms.catalog.delete_parametervalue %}
+<div id="modal-delete-parametervalue" class="reveal-modal" data-reveal>
 
-	<h2>Удалить тип цены?</h2>
+	<h2>Удалить значение параметра?</h2>
 
-	<input id="delete-pricetype-id" type="hidden" value="0">
+	<input id="delete-parametervalue-id" type="hidden" value="0">
 
-	<p id="delete-pricetype-name"></p>
+	<p id="delete-parametervalue-name"></p>
 
-	<button data-do="delete-pricetype-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
-	<button data-do="delete-pricetype-cancel" class="secondary">Отменить</button>
+	<button data-do="delete-parametervalue-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
+	<button data-do="delete-parametervalue-cancel" class="secondary">Отменить</button>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}
