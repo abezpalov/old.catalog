@@ -26,10 +26,6 @@ class Runner:
 
 		start = datetime.datetime.now()
 
-		tasks = UpdaterTask.objects.filter(complite = False)
-
-#		print("Нашёл {} задач.".format(len(tasks)))
-
 		tasks = UpdaterTask.objects.filter(complite = False, name = 'update.product.description').values('updater').annotate(count = Count('updater')).order_by()
 
 		for task in tasks:

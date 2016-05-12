@@ -1,6 +1,6 @@
 import datetime
 from django.utils import timezone
-from catalog.models import Updater
+from catalog.models import *
 from project.models import Log
 
 
@@ -9,7 +9,7 @@ class Runner:
 	name  = 'Служебное: ежедневный запуск'
 	alias = 'everyday'
 
-	max_time = datetime.timedelta(0, 82800, 0)
+	max_time = datetime.timedelta(0, 22*60*60, 0)
 
 	updaters = [
 		'cbr',
@@ -63,12 +63,7 @@ class Runner:
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
 
-		tasks = UpdaterTask.objects.filter(complite = False)
-
-		print("Нашёл {} задач.".format(len(tasks)))
-
-
-
+		tasks = UpdaterTask.objects.filter(complite = False, name = 'update.product.description').values('updater').annotate(count = Count('updater')).order_by()
 
 		for task in tasks:
 
@@ -77,7 +72,6 @@ class Runner:
 			print("Загрузчик: {}.".format(updater.name))
 
 			runner = __import__('catalog.updaters.{}'.format(updater.alias), fromlist=['Runner']).Runner()
-
 
 			try:
 				runner.update_products_description()
@@ -95,3 +89,7 @@ class Runner:
 			if timezone.now() - self.start > self.max_time:
 				print("Время вышло {}.".format(timezone.now() - self.start))
 				return True
+
+		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
+
+		return True
