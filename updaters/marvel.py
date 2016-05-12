@@ -83,12 +83,14 @@ class Runner(catalog.runner.Runner):
 
 	def update_products_description(self):
 
-		l = 50
+		l = 100
 
 		tasks = UpdaterTask.objects.filter(
 			complite = False,
 			name     = 'update.product.description',
 			updater  = self.updater)
+
+		print(len(tasks))
 
 		if len(tasks) % l:
 			q = len(tasks) // l + 1
@@ -98,7 +100,7 @@ class Runner(catalog.runner.Runner):
 
 		for n in range(q):
 
-			party = tasks[n * l : (n + 1) * l - 1]
+			party = tasks[n * l : (n + 1) * l]
 
 			articles = []
 			products = {}
@@ -109,14 +111,14 @@ class Runner(catalog.runner.Runner):
 				articles.append(product.article)
 				products[product.article] = product
 
-			print('Tasks[{}:{}]'.format(n*l, (n+1)*l - 1))
+			print('Tasks[{}:{}] - {}'.format(n*l, (n+1)*l, len(party)))
 
 			data = self.get_data('parameters', 'json', 1, articles)
 
 			if data:
 				self.parse_parameters(data, products)
 			else:
-				return False				
+				continue
 
 
 	def get_data(self, task, request_format, pack_status = None, articles = None):
@@ -147,10 +149,12 @@ class Runner(catalog.runner.Runner):
 
 		if articles:
 
+			# Готовим начало
 			url = '{url}{mid}'.format(
 				url = url,
 				mid = '&getExtendedItemInfo=1&items={"WareItem": [')
 
+			# Добавляем артикулы
 			for article in articles:
 				url = '{url}{mid}{article}{end}'.format(
 					url     = url,
@@ -158,6 +162,10 @@ class Runner(catalog.runner.Runner):
 					article = article,
 					end     = '"},')
 
+			# Удаляем лишнюю запятую
+			url = url[0 : len(url) - 1]
+
+			# Добавляем конец
 			url = '{url}{end}'.format(
 				url = url,
 				end = ']}')
@@ -319,7 +327,7 @@ class Runner(catalog.runner.Runner):
 					parameter = parameter_synonym.parameter
 
 					if parameter:
-						print('Распознан параметр: {} = {}.'.format(parameter.name, value))
+#						print('Распознан параметр: {} = {}.'.format(parameter.name, value))
 						parameter_to_product = ParameterToProduct.objects.take(
 							parameter = parameter,
 							product   = product)
