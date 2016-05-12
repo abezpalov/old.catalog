@@ -14,6 +14,7 @@ class Runner:
 	updaters = [
 		'cbr',
 
+		'auvix',
 		'axoft',
 		'cmo',
 		'digis',
