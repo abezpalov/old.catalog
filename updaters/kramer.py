@@ -60,17 +60,10 @@ class Runner(catalog.runner.Runner):
 				request = self.load(url)
 				self.parse_price(request)
 
-		else:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "return False",
-				description = "Не найти прайс-листы.")
-			return False
-
 		# Чистим партии
 		Party.objects.clear(stock=self.stock, time = self.start_time)
 
+		# Пишем результат в лог
 		self.log()
 
 

@@ -31,20 +31,22 @@ class Runner(catalog.runner.Runner):
 
 	def run(self):
 
+		# Авторизуемся
 		payload = {}
 		self.login(payload)
 
+		# Получаем данные
 		###
 
+		# Парсим
+		###
+
+		# Пишем устаревшие партии
 		Party.objects.clear(stock = self.stock, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
-				self.count['product'],
-				self.count['party']))
+		# Пишем результат в лог
+		self.log()
+
 
 	def parse(self, data):
 		pass

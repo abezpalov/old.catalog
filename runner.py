@@ -54,7 +54,7 @@ class Runner:
 			rate      = 80,
 			quantity  = 1)
 
-		self.s      = requests.Session()
+		self.s = requests.Session()
 
 
 	def take_stock(self, alias_end = 'stock', name_end = 'склад',

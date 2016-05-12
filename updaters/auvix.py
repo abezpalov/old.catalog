@@ -28,6 +28,7 @@ class Runner(catalog.runner.Runner):
 
 	def run(self):
 
+		# Авторизуемся
 		payload = {
 			'AUTH_FORM'     : 'Y',
 			'TYPE'          : 'AUTH',
@@ -36,31 +37,23 @@ class Runner(catalog.runner.Runner):
 			'USER_PASSWORD' : self.updater.password,
 			'Login'         : '%C2%A0',
 			'USER_REMEMBER' : 'Y'}
-
 		if not self.login(payload):
 			return False
 
-		print(self.url['price'])
-
+		# Загружаем
 		data = self.load_data(self.url['price'])
-		print(type(data))
-
 		data = self.unpack(data)
 
-		print(type(data))
-
+		# Порсим
 		self.parse(data)
 
+		# Чистим партии
 		Party.objects.clear(stock = self.stock,   time = self.start_time)
 		Party.objects.clear(stock = self.factory, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Products: {}; Parties: {}.".format(
-				self.count['product'],
-				self.count['party']))
+		# Пишем результат в лог
+		self.log()
+		
 
 	def parse(self, data):
 
