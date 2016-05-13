@@ -598,11 +598,17 @@ def ajax_save(request, *args, **kwargs):
 				o.vendor = None
 
 		elif key == 'category_id':
+
+			old_category = o.category
+
 			try:
 				m = catalog.models.models['category']
 				o.category = m.objects.get(id = request.POST.get(key, ''))
 			except Exception:
 				o.category = None
+
+			if o.category != old_category:
+				result['reload'] = True
 
 		elif key == 'parent_id' and kwargs['model_name'] == 'category':
 
@@ -643,7 +649,7 @@ def ajax_save(request, *args, **kwargs):
 			else:
 				o.path = "/{}/".format(o.id)
 
-		elif key == 'duble_id' and model_name == 'product':
+		elif key == 'duble_id' and kwargs['model_name'] == 'product':
 			try:
 				m = catalog.models.models[kwargs['model_name']]
 				o.duble = m.objects.get(id = request.POST.get(key, ''))

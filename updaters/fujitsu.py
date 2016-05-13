@@ -53,6 +53,7 @@ class Runner(catalog.runner.Runner):
 		tree = self.load_html(self.url['links'])
 
 		# Получаем ссылки со страницы
+		result = False
 		urls = tree.xpath('//a/@href')
 		for url in urls:
 			if self.url['search'] in url:
@@ -71,19 +72,21 @@ class Runner(catalog.runner.Runner):
 				mdb = self.unpack(data, 'prices.mdb')
 				self.parse_prices(mdb)
 
-				Party.objects.clear(stock = self.stock, time = self.start_time)
+				result = True
 
-				self.log()
+		if result:
 
-				return True
+			Party.objects.clear(stock = self.stock, time = self.start_time)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "error",
-			title       = "return False",
-			description = "Не найден прайс-лист.")
+			self.log()
 
-		return False
+		else:
+
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "return False",
+				description = "Не найден прайс-лист.")
 
 
 	def unpack(self, data, mdb_name):
@@ -241,7 +244,9 @@ class Runner(catalog.runner.Runner):
 						description = description)
 					self.count['product'] += 1
 
-		return True
+					if 'Warranty group: ' in product.name:
+						product.state = False
+						product.save()
 
 
 	def parse_prices(self, mdb):
