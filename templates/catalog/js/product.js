@@ -290,7 +290,7 @@ $("body").delegate("[data-do='edit-product-save']", "click", function(){
 
 	model = 'product';
 
-	$.post("/catalog/ajax/save-product/", {
+	$.post('/catalog/ajax/save/' + model + '/', {
 		id          : $('#edit-' + model + '-id').val(),
 		name        : $('#edit-' + model + '-name').val(),
 		article     : $('#edit-' + model + '-article').val(),
