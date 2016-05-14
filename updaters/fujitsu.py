@@ -73,6 +73,7 @@ class Runner(catalog.runner.Runner):
 				self.parse_prices(mdb)
 
 				result = True
+				break
 
 		if result:
 
