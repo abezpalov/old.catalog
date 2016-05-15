@@ -128,7 +128,7 @@ $("body").delegate("[data-do='filter-products-apply']", "click", function(){
 
 	// Категория
 	if (ct != ''){
-		url = url + 'c/' + ct;
+		url = url + 'category/' + ct;
 		if (ch == true) {
 			url = url + '-y/';
 		} else {
@@ -138,7 +138,7 @@ $("body").delegate("[data-do='filter-products-apply']", "click", function(){
 
 	// Производитель
 	if (vn != ''){
-		url = url + vn + '/';
+		url = url + 'vendor/' + vn + '/';
 	}
 
 	// Строка поиска
