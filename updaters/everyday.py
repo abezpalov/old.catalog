@@ -27,6 +27,7 @@ class Runner:
 		'rrc',
 		'treolan',
 		'mics',
+		'europarts',
 
 		'recalculate']
 
