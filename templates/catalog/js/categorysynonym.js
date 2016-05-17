@@ -188,3 +188,28 @@ $("body").delegate("[data-do='delete-categorysynonym-cancel']", "click", functio
 	return false;
 });
 {% endif %}
+
+
+{% if perms.catalog.change_categorysynonym %}
+$("body").delegate("[data-do='link-categorysynonym-same-category']", "click", function(){
+
+	model = 'categorysynonym';
+	foreign = 'category';
+
+	$.post('/catalog/ajax/link/' + model + '/same/' + foreign + '/', {
+		id : $(this).data(model + '-id'),
+		csrfmiddlewaretoken : '{{ csrf_token }}'
+	},
+	function(data) {
+		if ('success' == data.status) {
+
+			$('[data-' + model + '-' + foreign + '-name="' + data[model]['id'] + '"]').text(data[model][foreign]['name']);
+			$('[data-' + model + '-' + foreign + '-name="' + data[model]['id'] + '"]').data(foreign + '-id', data[model][foreign]['id']);
+			$('[data-' + model + '-' + foreign + '-name="' + data[model]['id'] + '"]').data(foreign + '-name', data[model][foreign]['id']);
+
+			// TODO Обновляем список производителей в окне редактирования синонимов
+		}
+	}, "json");
+	return false;
+});
+{% endif %}

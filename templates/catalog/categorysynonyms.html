@@ -71,6 +71,9 @@
 					data-categorysynonym-category-name = "{{ categorysynonym.id }}">{{ categorysynonym.category.name }}</a>
 			</td>
 			<td>
+				<button class="tiny"
+					data-do = "link-categorysynonym-same-category"
+					data-categorysynonym-id = "{{ categorysynonym.id }}"><i class="fa fa-link"></i></button>
 				<button class = "tiny alert"
 					data-do = "open-delete-categorysynonym"
 					data-categorysynonym-id = "{{ categorysynonym.id }}"><i class = "fa fa-trash"></i></button>

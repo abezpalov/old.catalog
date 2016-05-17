@@ -123,7 +123,7 @@ class Runner(catalog.runner.Runner):
 				product_article     = self.fix_article(row[num['product_article']])
 				product_name        = row[num['product_name']]
 				product_vendor      = self.take_vendorsynonym(row[num['product_vendor']]).vendor
-				product_category    = self.take_categorysynonym(row[num['product_category']]).category
+#				product_category    = self.take_categorysynonym(row[num['product_category']]).category
 
 				party_article       = row[num['party_article']]
 				party_price_out     = self.fix_price(row[num['party_price_out']])
@@ -140,7 +140,7 @@ class Runner(catalog.runner.Runner):
 						article  = product_article,
 						vendor   = product_vendor,
 						name     = product_name,
-						category = product_category,
+						category = None,
 						unit     = self.default_unit)
 					self.count['product'] += 1
 
