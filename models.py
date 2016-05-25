@@ -31,9 +31,7 @@ class DistributorManager(models.Manager):
 
 			result = Distributor(
 				alias    = alias,
-				name     = name,
-				created  = timezone.now(),
-				modified = timezone.now())
+				name     = name)
 			result.save()
 
 		return result
@@ -45,8 +43,8 @@ class Distributor(models.Model):
 	alias       = models.CharField(max_length = 100, unique = True)
 	description = models.TextField()
 	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects     = DistributorManager()
 
@@ -92,10 +90,7 @@ class UpdaterManager(models.Manager):
 			updater = Updater(
 				alias       = alias,
 				name        = name,
-				distributor = distributor,
-				created     = timezone.now(),
-				modified    = timezone.now(),
-				updated     = timezone.now())
+				distributor = distributor)
 			updater.save()
 		return updater
 
@@ -108,9 +103,9 @@ class Updater(models.Model):
 	login       = models.CharField(max_length = 100)
 	password    = models.CharField(max_length = 100)
 	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
-	updated     = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
+	updated     = models.DateTimeField(default = timezone.now)
 
 	objects     = UpdaterManager()
 
@@ -166,9 +161,7 @@ class StockManager(models.Manager):
 				name              = name,
 				delivery_time_min = delivery_time_min,
 				delivery_time_max = delivery_time_max,
-				distributor       = distributor,
-				created           = timezone.now(),
-				modified          = timezone.now())
+				distributor       = distributor)
 			stock.save()
 		return stock
 
@@ -181,8 +174,8 @@ class Stock(models.Model):
 	delivery_time_min = models.IntegerField()
 	delivery_time_max = models.IntegerField()
 	state             = models.BooleanField(default = True)
-	created           = models.DateTimeField()
-	modified          = models.DateTimeField()
+	created           = models.DateTimeField(default = timezone.now)
+	modified          = models.DateTimeField(default = timezone.now)
 
 	objects           = StockManager()
 
@@ -302,8 +295,8 @@ class Category(models.Model):
 	order       = models.IntegerField(default = 999999)
 	path        = models.CharField(max_length = 512)
 	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects     = CategoryManager()
 
@@ -355,7 +348,9 @@ class VendorManager(models.Manager):
 		try:
 			vendor = self.get(alias=alias)
 		except Vendor.DoesNotExist:
-			vendor = Vendor(alias=alias, name=name, created=timezone.now(), modified=timezone.now())
+			vendor = Vendor(
+				alias = alias,
+				name  = name)
 			vendor.save()
 		return vendor
 
@@ -366,8 +361,8 @@ class Vendor(models.Model):
 	alias       = models.CharField(max_length = 100, unique = True)
 	description = models.TextField()
 	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects     = VendorManager()
 
@@ -410,10 +405,8 @@ class UnitManager(models.Manager):
 			unit = self.get(alias=alias)
 		except Unit.DoesNotExist:
 			unit = Unit(
-				alias    = alias,
-				name     = name,
-				created  = timezone.now(),
-				modified = timezone.now())
+				alias = alias,
+				name  = name)
 			unit.save()
 		return unit
 
@@ -425,8 +418,8 @@ class Unit(models.Model):
 	name_short_xml = models.CharField(max_length = 100, null = True, default = None)
 	alias          = models.CharField(max_length = 100, unique = True)
 	state          = models.BooleanField(default = True)
-	created        = models.DateTimeField()
-	modified       = models.DateTimeField()
+	created        = models.DateTimeField(default = timezone.now)
+	modified       = models.DateTimeField(default = timezone.now)
 
 	objects  = UnitManager()
 
@@ -470,10 +463,8 @@ class PriceTypeManager(models.Manager):
 			price_type = self.get(alias=alias)
 		except PriceType.DoesNotExist:
 			price_type = PriceType(
-				alias    = alias,
-				name     = name,
-				created  = timezone.now(),
-				modified = timezone.now())
+				alias = alias,
+				name  = name)
 			price_type.save()
 		return price_type
 
@@ -484,8 +475,8 @@ class PriceType(models.Model):
 	alias      = models.CharField(max_length = 100, unique = True)
 	state      = models.BooleanField(default = True)
 	multiplier = models.DecimalField(max_digits = 10, decimal_places = 4, default = 1.0)
-	created    = models.DateTimeField()
-	modified   = models.DateTimeField()
+	created    = models.DateTimeField(default = timezone.now)
+	modified   = models.DateTimeField(default = timezone.now)
 
 	objects    = PriceTypeManager()
 
@@ -532,9 +523,7 @@ class CurrencyManager(models.Manager):
 				name      = name,
 				full_name = full_name,
 				rate      = rate,
-				quantity  = quantity,
-				created   = timezone.now(),
-				modified  = timezone.now())
+				quantity  = quantity)
 			currency.save()
 
 		return currency
@@ -548,8 +537,8 @@ class Currency(models.Model):
 	rate      = models.DecimalField(max_digits = 10, decimal_places = 4)
 	quantity  = models.DecimalField(max_digits = 10, decimal_places = 3)
 	state     = models.BooleanField(default = True)
-	created   = models.DateTimeField()
-	modified  = models.DateTimeField()
+	created   = models.DateTimeField(default = timezone.now)
+	modified  = models.DateTimeField(default = timezone.now)
 
 	objects   = CurrencyManager()
 
@@ -586,8 +575,8 @@ class Price(models.Model):
 	currency   = models.ForeignKey(Currency, null = True, default = None)
 	fixed      = models.BooleanField(default = False)
 	state      = models.BooleanField(default = True)
-	created    = models.DateTimeField()
-	modified   = models.DateTimeField()
+	created    = models.DateTimeField(default = timezone.now)
+	modified   = models.DateTimeField(default = timezone.now)
 
 
 	def get_dicted(self):
@@ -665,14 +654,14 @@ class Price(models.Model):
 
 class Quantity(models.Model):
 
-	on_stock   = models.IntegerField(null = True, default = None)
-	on_transit = models.IntegerField(null = True, default = None)
-	on_factory = models.IntegerField(null = True, default = None)
+	on_stock   = models.IntegerField(null = True, default = 0)
+	on_transit = models.IntegerField(null = True, default = 0)
+	on_factory = models.IntegerField(null = True, default = 0)
 	unit       = models.ForeignKey(Unit, null = True, default = None)
 	fixed      = models.BooleanField(default = False)
 	state      = models.BooleanField(default = True)
-	created    = models.DateTimeField()
-	modified   = models.DateTimeField()
+	created    = models.DateTimeField(default = timezone.now)
+	modified   = models.DateTimeField(default = timezone.now)
 
 
 	def get_dicted(self):
@@ -773,6 +762,7 @@ class ProductManager(models.Manager):
 	def take(self, article, vendor, name, category = None, unit = None,
 			description = None):
 
+		# TODO NEED Refactoring
 		name = str(name).strip()
 		name = name.replace("\u00AD", "")
 		name = name.replace("™", "")
@@ -801,13 +791,11 @@ class ProductManager(models.Manager):
 				article     = article,
 				vendor      = vendor,
 				category    = category,
-				unit        = unit,
-				created     = timezone.now(),
-				modified    = timezone.now())
+				unit        = unit)
 			product.save()
 		except Product.MultipleObjectsReturned:
 			print("MultipleObjectsReturned: {} {}".format(vendor, article))
-			products = self.get(article = article, vendor = vendor)
+			products = self.filter(article = article, vendor = vendor)
 			product  = products[0]
 
 		if product.duble:
@@ -834,8 +822,8 @@ class Product(models.Model):
 	state       = models.BooleanField(default = True)
 	price       = models.ForeignKey(Price, null = True, default = None)
 	quantity    = models.ForeignKey(Quantity, null = True, default = None)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects     = ProductManager()
 
@@ -854,23 +842,35 @@ class Product(models.Model):
 		result['created']     = str(self.created)
 		result['modified']    = str(self.modified)
 
-		try:    result['vendor']   = self.vendor.get_dicted()
-		except: result['vendor']   = None
+		try:
+			result['vendor'] = self.vendor.get_dicted()
+		except Exception:
+			result['vendor'] = None
 
-		try:    result['category'] = self.category.get_dicted()
-		except: result['category'] = None
+		try:
+			result['category'] = self.category.get_dicted()
+		except Exception:
+			result['category'] = None
 
-		try:    result['unit']     = self.unit.get_dicted()
-		except: result['unit']     = None
+		try:
+			result['unit'] = self.unit.get_dicted()
+		except Exception:
+			result['unit'] = None
 
-		try:    result['duble']    = self.duble.get_dicted()
-		except: result['duble']    = None
+		try:
+			result['duble'] = self.duble.get_dicted()
+		except Exception:
+			result['duble'] = None
 
-		try:    result['price']    = self.price.get_dicted()
-		except: result['price']    = None
+		try:
+			result['price'] = self.price.get_dicted()
+		except Exception:
+			result['price'] = None
 
-		try:    result['quantity'] = self.quantity.get_dicted()
-		except: result['quantity'] = None
+		try:
+			result['quantity'] = self.quantity.get_dicted()
+		except Exception:
+			result['quantity'] = None
 
 		return result
 
@@ -896,18 +896,18 @@ class Product(models.Model):
 
 		# Получаем объекты количества и цены
 		if self.quantity is None:
-			self.quantity = Quantity()
-			self.quantity.created = timezone.now()
-			self.quantity.modified = timezone.now()
-			self.quantity.save()
+			quantity = Quantity()
+			quantity.save()
+			self.quantity = quantity
 			self.save()
+			print('new Quantity ' * 5)
 
 		if self.price is None:
-			self.price = Price()
-			self.price.created = timezone.now()
-			self.price.modified = timezone.now()
-			self.price.save()
+			price = Price()
+			price.save()
+			self.price = price
 			self.save()
+			print('new Price ' * 5)
 
 		# Вычисляем количество товара
 		quantities = {
@@ -1018,9 +1018,7 @@ class Product(models.Model):
 		except Exception:
 			parameter_to_product = ParameterToProduct(
 				product   = self,
-				parameter = parameter,
-				created   = timezone.now(),
-				modified  = timezone.now())
+				parameter = parameter)
 			parameter_to_product.save()
 
 		return parameter_to_product
@@ -1060,9 +1058,7 @@ class PartyManager(models.Manager):
 			currency_out   = currency,
 			quantity       = quantity,
 			unit           = unit,
-			product_name   = product_name,
-			created        = timezone.now(),
-			modified       = timezone.now())
+			product_name   = product_name)
 		party.save()
 
 		print('{} {} = {}; {} on {}'.format(
@@ -1101,8 +1097,8 @@ class Party(models.Model):
 	unit           = models.ForeignKey(Unit, null = True, default = None)
 	product_name   = models.TextField()
 	state          = models.BooleanField(default = True)
-	created        = models.DateTimeField()
-	modified       = models.DateTimeField()
+	created        = models.DateTimeField(default = timezone.now)
+	modified       = models.DateTimeField(default = timezone.now)
 
 	objects        = PartyManager()
 
@@ -1247,7 +1243,6 @@ class PartyHystory(models.Model):
 	currency_out   = models.ForeignKey(Currency, related_name = 'party_hystory_requests_currency_out', null = True, default = None)
 	quantity       = models.IntegerField(null = True, default = None)
 	unit           = models.ForeignKey(Unit, null = True, default = None)
-	comment        = models.TextField()
 	date           = models.DateField()
 
 
@@ -1372,8 +1367,8 @@ class ParameterType(models.Model):
 	alias     = models.CharField(max_length = 100, unique = True)
 	order     = models.IntegerField(default = 0)
 	state     = models.BooleanField(default = True)
-	created   = models.DateTimeField()
-	modified  = models.DateTimeField()
+	created   = models.DateTimeField(default = timezone.now)
+	modified  = models.DateTimeField(default = timezone.now)
 
 	objects   = ParameterTypeManager()
 
@@ -1415,8 +1410,8 @@ class Parameter(models.Model):
 	unit          = models.ForeignKey(Unit, null = True, default = None)
 	order         = models.IntegerField(default = 0)
 	state         = models.BooleanField(default = True)
-	created       = models.DateTimeField()
-	modified      = models.DateTimeField()
+	created       = models.DateTimeField(default = timezone.now)
+	modified      = models.DateTimeField(default = timezone.now)
 
 	objects        = ParameterManager()
 
@@ -1462,8 +1457,8 @@ class ParameterValue(models.Model):
 	name_search = models.CharField(max_length = 100, null = True, default = None)
 	order       = models.IntegerField()
 	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects      = ParameterValueManager()
 
@@ -1515,9 +1510,7 @@ class ParameterValueSynonymManager(models.Manager):
 			value_synonym = ParameterValueSynonym(
 				name        = name,
 				updater     = updater,
-				parameter   = parameter,
-				created     = timezone.now(),
-				modified    = timezone.now())
+				parameter   = parameter)
 			value_synonym.save()
 
 		return value_synonym
@@ -1529,8 +1522,8 @@ class ParameterValueSynonym(models.Model):
 	updater        = models.ForeignKey(Updater, null = True, default = None)
 	parameter      = models.ForeignKey(Parameter, null = True, default = None)
 	parametervalue = models.ForeignKey(ParameterValue, null = True, default = None)
-	created        = models.DateTimeField()
-	modified       = models.DateTimeField()
+	created        = models.DateTimeField(default = timezone.now)
+	modified       = models.DateTimeField(default = timezone.now)
 
 	objects        = ParameterValueSynonymManager()
 
@@ -1584,9 +1577,7 @@ class ParameterToProductManager(models.Manager):
 		except ParameterToProduct.DoesNotExist:
 			parameter_to_product = ParameterToProduct(
 				parameter = parameter,
-				product   = product,
-				created   = timezone.now(),
-				modified  = timezone.now())
+				product   = product)
 			parameter_to_product.save()
 
 		return parameter_to_product
@@ -1603,8 +1594,8 @@ class ParameterToProduct(models.Model):
 	value_decimal = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
 	value_list    = models.ForeignKey(ParameterValue, null = True, default = None)
 	state         = models.BooleanField(default = True)
-	created       = models.DateTimeField()
-	modified      = models.DateTimeField()
+	created       = models.DateTimeField(default = timezone.now)
+	modified      = models.DateTimeField(default = timezone.now)
 
 	objects       = ParameterToProductManager()
 
@@ -1748,8 +1739,8 @@ class ParameterToCategory(models.Model):
 	category  = models.ForeignKey(Category)
 	order     = models.IntegerField()
 	state     = models.BooleanField(default = True)
-	created   = models.DateTimeField()
-	modified  = models.DateTimeField()
+	created   = models.DateTimeField(default = timezone.now)
+	modified  = models.DateTimeField(default = timezone.now)
 
 	def get_dicted(self):
 
@@ -1798,9 +1789,7 @@ class ParameterSynonymManager(models.Manager):
 			parameter_synonym = ParameterSynonym(
 				name        = name,
 				updater     = updater,
-				parameter   = parameter,
-				created     = timezone.now(),
-				modified    = timezone.now())
+				parameter   = parameter)
 			parameter_synonym.save()
 		return parameter_synonym
 
@@ -1810,8 +1799,8 @@ class ParameterSynonym(models.Model):
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
 	parameter   = models.ForeignKey(Parameter, null = True, default = None)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects     = ParameterSynonymManager()
 
@@ -1862,9 +1851,7 @@ class CategorySynonymManager(models.Manager):
 			categorySynonym = CategorySynonym(
 				name        = name,
 				updater     = updater,
-				category    = category,
-				created     = timezone.now(),
-				modified    = timezone.now())
+				category    = category)
 			categorySynonym.save()
 		return categorySynonym
 
@@ -1874,8 +1861,8 @@ class CategorySynonym(models.Model):
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
 	category    = models.ForeignKey(Category, null = True, default = None)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects     = CategorySynonymManager()
 
@@ -1929,9 +1916,7 @@ class VendorSynonymManager(models.Manager):
 			vendorSynonym = VendorSynonym(
 				name        = name,
 				updater     = updater,
-				vendor      = vendor,
-				created     = timezone.now(),
-				modified    = timezone.now())
+				vendor      = vendor)
 			vendorSynonym.save()
 		return vendorSynonym
 
@@ -1941,8 +1926,8 @@ class VendorSynonym(models.Model):
 	name        = models.CharField(max_length = 1024)
 	updater     = models.ForeignKey(Updater, null = True, default = None)
 	vendor      = models.ForeignKey(Vendor, null = True, default = None)
-	created     = models.DateTimeField()
-	modified    = models.DateTimeField()
+	created     = models.DateTimeField(default = timezone.now)
+	modified    = models.DateTimeField(default = timezone.now)
 
 	objects     = VendorSynonymManager()
 
@@ -1996,9 +1981,7 @@ class UpdaterTaskManager(models.Manager):
 				name     = name,
 				subject  = subject,
 				updater  = updater,
-				complite = complite,
-				created  = timezone.now(),
-				modified = timezone.now())
+				complite = complite)
 			task.save()
 
 		return task
@@ -2010,8 +1993,8 @@ class UpdaterTask(models.Model):
 	name     = models.CharField(max_length = 1024)
 	subject  = models.CharField(max_length = 1024)
 	updater  = models.ForeignKey(Updater, null = True, default = None)
-	created  = models.DateTimeField()
-	modified = models.DateTimeField()
+	created  = models.DateTimeField(default = timezone.now)
+	modified = models.DateTimeField(default = timezone.now)
 	complite = models.BooleanField(default = False)
 
 	objects     = UpdaterTaskManager()
@@ -2044,6 +2027,39 @@ class UpdaterTask(models.Model):
 		ordering = ['created']
 
 
+class ProductPhoto(models.Model):
+
+	id          = models.CharField(
+					max_length  = 100,
+					primary_key = True,
+					default     = uuid.uuid4,
+					editable    = False)
+	product     = models.ForeignKey(Product, null = True, default = None)
+	name        = models.TextField(null = True, default = None)
+	name_search = models.CharField(max_length = 512, null = True, default = None)
+	patch       = models.CharField(max_length = 512, null = True)
+	src         = models.CharField(max_length = 512, null = True)
+	trumb       = models.ForeignKey('self', null = True, default = None)
+
+	description  = models.TextField(null = True, default = None)
+
+	source       = models.TextField(null = True, default = None)
+
+	state        = models.BooleanField(default = True)
+	created      = models.DateTimeField(default = timezone.now)
+	created_by   = models.CharField(max_length = 100, null = True, default = None)
+	modified     = models.DateTimeField(default = timezone.now)
+	modified_by  = models.CharField(max_length = 100, null = True, default = None)
+
+	hash_md5     = models.CharField(max_length = 100, null = True, default = None)
+
+	def __str__(self):
+		return self.title
+
+	class Meta:
+		ordering = ['-created']
+
+
 models = {
 	'distributor'           : Distributor,
 	'updater'               : Updater,
@@ -2069,4 +2085,5 @@ models = {
 	'parametersynonym'      : ParameterSynonym,
 	'categorysynonym'       : CategorySynonym,
 	'vendorsynonym'         : VendorSynonym,
-	'updatertask'           : UpdaterTask}
+	'updatertask'           : UpdaterTask,
+	'productphoto'          : ProductPhoto}
