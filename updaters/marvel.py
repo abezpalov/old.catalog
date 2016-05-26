@@ -358,36 +358,9 @@ class Runner(catalog.runner.Runner):
 
 		print('parsePhotos')
 
-		print(str(data)[:2000])
-
-#{'Photo':
-#	[
-#		{
-#		'BigImage':
-#			{
-#			'Width': 1000,
-#			'Size': 87175,
-#			'URL': 'https://b2b.marvel.ru/AppData/items/NX.EEYER.008/NX.EEYER.008_264991395.png',
-#			'Height': 924,
-#			'WareArticle': 'NX.EEYER.008'}},
-#		{
-
-
-
 		for pr in data['Photo']:
-#			print(pr['BigImage']['WareArticle'])
 
 			product = products[pr['BigImage']['WareArticle']]
 			source  = pr['BigImage']['URL']
 
 			photo = ProductPhoto.objects.load(product = product, source = source)
-
-
-		print(len(data['Photo']))
-
-		exit()
-
-
-
-
-
