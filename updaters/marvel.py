@@ -84,7 +84,7 @@ class Runner(catalog.runner.Runner):
 	def update_products_description(self):
 
 		# Количество продуктов за один запрос
-		l = 100
+		l = 50
 
 		# Получаем задачи с базы
 		tasks = UpdaterTask.objects.filter(
@@ -195,8 +195,14 @@ class Runner(catalog.runner.Runner):
 
 			# Обрабатываем ответ
 			if 'json' == request_format:
+
 				import json
-				data = json.loads(r.text)
+
+				try:
+					data = json.loads(r.text)
+				except Exception:
+					return False
+
 				if data['Header']['Key']: self.key = data['Header']['Key']
 				if data['Header']['Code'] != 0:
 					if data['Header']['Message']:
