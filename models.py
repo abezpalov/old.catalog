@@ -2027,6 +2027,67 @@ class UpdaterTask(models.Model):
 		ordering = ['created']
 
 
+
+class ProductPhotoManager(models.Manager):
+
+
+	def load(self, *args, **kwargs):
+
+		# Библиотеки. необходимые для загрузки данных в память
+		import requests
+#		from io import BytesIO
+		from django.conf import settings
+
+		# Инициализация переменных
+		product = kwargs.get('product', None)
+		source  = str(kwargs.get('source', '')).strip()
+
+		# Если указаны продукт и источник изображения
+		if product and source:
+
+			# Получаем объект с базы, или создаём его
+			try:
+				photo = self.get(product = product, source = source)
+			except Exception:
+				photo = ProductPhoto(product = product, source = source)
+
+			# Если изображение ещё не загружено
+			if not photo.patch:
+				r = requests.get(source)
+#				print(type(r.content))
+#				print(photo.id)
+
+				# Получаем разрешение файла
+				s = source.split('.')
+				ext = s[len(s) - 1].lower()
+#				print(ext)
+
+				photo.src = '{media_url}catalog/photos/{id}.{ext}'.format(
+					media_url = settings.MEDIA_URL,
+					id        = photo.id,
+					ext       = ext)
+				photo.patch = '{media_dir}catalog/photos/{id}.{ext}'.format(
+					media_dir = settings.MEDIA_DIR,
+					id        = photo.id,
+					ext       = ext)
+
+#				print(photo.src)
+#				print(photo.patch)
+
+				# Записывваем фото на диск
+				f = open(photo.patch, 'wb')
+				f.write(r.content)
+				f.close()
+
+				# Записываем изменения в память
+				photo.save()
+
+			print('ProductPhoto {} {}: {}'.format(
+				product.vendor.name,
+				product.article,
+				source))
+
+
 class ProductPhoto(models.Model):
 
 	id          = models.CharField(
@@ -2052,6 +2113,8 @@ class ProductPhoto(models.Model):
 	modified_by  = models.CharField(max_length = 100, null = True, default = None)
 
 	hash_md5     = models.CharField(max_length = 100, null = True, default = None)
+
+	objects = ProductPhotoManager()
 
 	def __str__(self):
 		return self.title

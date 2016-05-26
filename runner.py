@@ -91,8 +91,6 @@ class Runner:
 			updater     = self.updater)
 
 
-
-
 	def load(self, url, result_type = None, timeout = 100.0, try_quantity = 10):
 
 		import time

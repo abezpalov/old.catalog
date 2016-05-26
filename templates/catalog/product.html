@@ -25,7 +25,9 @@
 		{% endfor %}
 		</table>
 	</div>
+
 	<div class="medium-6 columns">
+		{% if photos %}
 		<div class="fotorama"
 			data-nav="thumbs"
 			data-transition="crossfade"
@@ -33,12 +35,11 @@
 			data-click="false"
 			data-swipe="false"
 			data-trackpad="true">
-			<img src="http://s.fotorama.io/1.jpg" data-caption="1">
-			<img src="http://s.fotorama.io/2.jpg" data-caption="2">
-			<img src="http://s.fotorama.io/3.jpg" data-caption="3">
-			<img src="http://s.fotorama.io/4.jpg" data-caption="4">
-			<img src="http://s.fotorama.io/5.jpg" data-caption="5">
+			{% for photo in photos %}
+			<img src="{{ photo.src }}"{% if photo.name %} data-caption="{{ photo.name }}"{% endif %}>
+			{% endfor %}
 		</div>
+		{% endif %}
 		<ul class="pricing-table">
 			<li class="price">{% autoescape off %}{{ product.price.price_str }}{% endautoescape %}</li>
 			<li class="cta-button"><button><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;Заказать</button></li>

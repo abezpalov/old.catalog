@@ -234,7 +234,7 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 def product(request, id = None, vendor = None, article = None):
 	"Представление: продукт."
 
-	from catalog.models import Vendor, Product, ParameterToProduct
+	from catalog.models import Vendor, Product, ParameterToProduct, ProductPhoto
 
 	if id:
 		product = Product.objects.get(id=id)
@@ -243,6 +243,7 @@ def product(request, id = None, vendor = None, article = None):
 		product = Product.objects.get(vendor=vendor, article=article)
 
 	parameters = ParameterToProduct.objects.filter(product = product)
+	photos     = ProductPhoto.objects.filter(product = product)
 
 	return render(request, 'catalog/product.html', locals())
 

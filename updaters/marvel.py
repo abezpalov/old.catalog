@@ -83,21 +83,22 @@ class Runner(catalog.runner.Runner):
 
 	def update_products_description(self):
 
+		# Количество продуктов за один запрос
 		l = 100
 
+		# Получаем задачи с базы
 		tasks = UpdaterTask.objects.filter(
 			complite = False,
 			name     = 'update.product.description',
 			updater  = self.updater)
 
-		print(len(tasks))
-
+		# Вычисляем количество запросов
 		if len(tasks) % l:
 			q = len(tasks) // l + 1
 		else:
 			q = len(tasks) // l
 
-
+		# Формируем группы товаров для запросов
 		for n in range(q):
 
 			party = tasks[n * l : (n + 1) * l]
@@ -113,10 +114,23 @@ class Runner(catalog.runner.Runner):
 
 			print('Tasks[{}:{}] - {} products.'.format(n*l, (n+1)*l, len(party)))
 
+			# Выполняем запрос
 			data = self.get_data('parameters', 'json', 1, articles)
 
+			# Парсим параметры продуктов
 			if data:
 				self.parse_parameters(data, products)
+			else:
+				print('Error!')
+				continue
+
+
+			# Выполняем запрос перечней фотографий продуктов
+			data = self.get_data('photos', 'json', 1, articles)
+
+			# Парсим перечни фотографий продуктов
+			if data:
+				self.parse_photos(data, products)
 			else:
 				print('Error!')
 				continue
@@ -338,3 +352,42 @@ class Runner(catalog.runner.Runner):
 							updater = self.updater)
 
 		return True
+
+
+	def parse_photos(self, data, products):
+
+		print('parsePhotos')
+
+		print(str(data)[:2000])
+
+#{'Photo':
+#	[
+#		{
+#		'BigImage':
+#			{
+#			'Width': 1000,
+#			'Size': 87175,
+#			'URL': 'https://b2b.marvel.ru/AppData/items/NX.EEYER.008/NX.EEYER.008_264991395.png',
+#			'Height': 924,
+#			'WareArticle': 'NX.EEYER.008'}},
+#		{
+
+
+
+		for pr in data['Photo']:
+#			print(pr['BigImage']['WareArticle'])
+
+			product = products[pr['BigImage']['WareArticle']]
+			source  = pr['BigImage']['URL']
+
+			photo = ProductPhoto.objects.load(product = product, source = source)
+
+
+		print(len(data['Photo']))
+
+		exit()
+
+
+
+
+
