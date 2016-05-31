@@ -202,8 +202,8 @@ def products(request, search=None, vendor=None, category=None, childs=None, page
 
 		# Формируем базовый URL
 		url = '/catalog/products/'
-		if category: url = "{}c/{}-{}/".format(url, category.id, childs)
-		if vendor:   url = "{}{}/".format(url, vendor.alias)
+		if category: url = "{}category/{}-{}/".format(url, category.id, childs)
+		if vendor:   url = "{}vendor/{}/".format(url, vendor.alias)
 		if search:   url = "{}search/{}/".format(url, search)
 
 		# Формируем список номеров страниц для ссылок
