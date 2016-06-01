@@ -51,7 +51,7 @@
 				<div class="row">
 					{% for vendor in vendors %}
 					<div class="large-3 medium-6 small-12 columns" data-is="vendor-selector">
-					<a href="/catalog/products/{{ vendor.alias }}/" data-do="filter-products-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
+					<a href="/catalog/products/vendor/{{ vendor.alias }}/" data-do="filter-products-select-vendor" data-alias="{{ vendor.alias }}">{{ vendor.name }}</a>
 					</div>
 					{% endfor %}
 				</div>
