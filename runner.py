@@ -298,10 +298,20 @@ class Runner:
 
 	def log(self):
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Updated: products - {}; parties - {}.".format(
-				'{:,}'.format(self.count['product']).replace(',', ' '),
-				'{:,}'.format(self.count['party']).replace(',', ' ')))
+		if self.count['product'] and self.count['party']:
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "info",
+				title       = "Updated",
+				description = "Updated: products - {}; parties - {}.".format(
+					'{:,}'.format(self.count['product']).replace(',', ' '),
+					'{:,}'.format(self.count['party']).replace(',', ' ')))
+
+		else:
+			Log.objects.add(
+				subject     = "catalog.updater.{}".format(self.updater.alias),
+				channel     = "error",
+				title       = "Error",
+				description = "Updated error: products - {}; parties - {}.".format(
+					'{:,}'.format(self.count['product']).replace(',', ' '),
+					'{:,}'.format(self.count['party']).replace(',', ' ')))

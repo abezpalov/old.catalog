@@ -65,33 +65,4 @@ class Runner:
 
 		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
 
-		tasks = UpdaterTask.objects.filter(complite = False, name = 'update.product.description').values('updater').annotate(count = Count('updater')).order_by()
-
-		for task in tasks:
-
-			updater = Updater.objects.get(id = task['updater'])
-
-			print("Загрузчик: {}.".format(updater.name))
-
-			runner = __import__('catalog.updaters.{}'.format(updater.alias), fromlist=['Runner']).Runner()
-
-			try:
-				runner.update_products_description()
-
-				# TODO !!!
-
-			except Exception as error:
-				Log.objects.add(
-					subject = str('{} update.products.description'.format(updater.name)),
-					channel = "error",
-					title   = "Exception",
-					description = error)
-
-			# Проверяем не вышло ли время
-			if timezone.now() - self.start > self.max_time:
-				print("Время вышло {}.".format(timezone.now() - self.start))
-				return True
-
-		print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
-
 		return True
