@@ -10,8 +10,8 @@ class Runner(catalog.runner.Runner):
 	name  = 'Fujitsu'
 	alias = 'fujitsu'
 	url = {
-		'start'  : 'https://partners.ts.fujitsu.com/com/Pages/Default.aspx',
-		'login'  : 'https://partners.ts.fujitsu.com/CookieAuth.dll?Logon',
+		'start'  : 'https://login.ts.fujitsu.com/vpn/tmindex.html',
+		'login'  : 'https://login.ts.fujitsu.com/cgi/login',
 		'links'  : 'https://partners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
 		'search' : '2016.zip',
 		'prefix' : 'https://partners.ts.fujitsu.com'}
@@ -39,14 +39,8 @@ class Runner(catalog.runner.Runner):
 	def run(self):
 
 		payload = {
-			'curl': '/',
-			'flags': '0',
-			'forcedownlevel': '0',
-			'formdir': '15',
-			'username': self.updater.login,
-			'password': self.updater.password,
-			'SubmitCreds': 'Sign In',
-			'trusted': '0'}
+			'login':    self.updater.login,
+			'password': self.updater.password}
 		self.login(payload)
 
 		# Заходим на страницу загрузки
