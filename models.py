@@ -924,7 +924,7 @@ class Product(models.Model):
 		prices_null = []
 
 		# Проходим по всем партиям продукта
-		for party in Party.objects.filter(product = self):
+		for party in Party.objects.filter(product = self, stock__state = True, stock__distributor__state = True):
 
 			if party.quantity:
 
