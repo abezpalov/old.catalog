@@ -47,6 +47,7 @@ class Runner(catalog.runner.Runner):
 		# Чистим партии
 		Party.objects.clear(stock = self.stock,   time = self.start_time)
 		Party.objects.clear(stock = self.transit, time = self.start_time)
+		Party.objects.clear(stock = self.factory, time = self.start_time)
 
 		self.log()
 
