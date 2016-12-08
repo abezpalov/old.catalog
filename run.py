@@ -4,7 +4,7 @@ import sys
 from django.utils import timezone
 
 # Импортируем настройки проекта Django
-sys.path.append('/home/abezpalov/anodos.ru/project/')
+sys.path.append('/home/ubuntu/anodos.ru/project/')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'project.settings'
 
 # Магия
