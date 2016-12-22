@@ -17,9 +17,12 @@ class Runner:
 
 	def run(self):
 
-		products = Product.objects.all()
+		products = Product.objects.values('id')
 
 		for n, product in enumerate(products):
+
+			product = Product.objects.get(id = product['id'])
+
 			print('{} of {}. {} {}'.format(
 				'{:,}'.format(n+1).replace(',', ' '),
 				'{:,}'.format(len(products)).replace(',', ' '),
