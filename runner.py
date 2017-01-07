@@ -56,6 +56,12 @@ class Runner:
 
 		self.s = requests.Session()
 
+		Log.objects.add(
+			subject     = "tenders.updater.{}".format(self.updater.alias),
+			channel     = "start",
+			title       = "Start",
+			description = "Запущен загрузчик {}.".format(self.updater.name))
+
 
 	def take_stock(self, alias_end = 'stock', name_end = 'склад',
 				delivery_time_min = 5, delivery_time_max = 10):
