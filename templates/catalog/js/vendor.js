@@ -35,7 +35,7 @@ $("body").delegate("[data-do='open-edit-vendor']", "click", function(){
 			$('#edit-' + model + '-id').val(data[model]['id']);
 			$('#edit-' + model + '-name').val(data[model]['name']);
 			$('#edit-' + model + '-alias').val(data[model]['alias']);
-			$('#edit-' + model + '-description').val(data[model]['alias']);
+			$('#edit-' + model + '-description').val(data[model]['description']);
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
 			$('#modal-edit-' + model).foundation('reveal', 'open');
