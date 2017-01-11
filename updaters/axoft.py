@@ -43,7 +43,8 @@ class Runner(catalog.runner.Runner):
 			'USER_LOGIN'    : self.updater.login,
 			'USER_PASSWORD' : self.updater.password,
 			'Login'         : 'Вход для партнеров'}
-		self.login(payload)
+		if not self.login(payload):
+			return False
 
 		# Получаем список производителей
 		prices = self.get_prices_urls()

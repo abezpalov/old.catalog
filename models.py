@@ -39,12 +39,15 @@ class DistributorManager(models.Manager):
 
 class Distributor(models.Model):
 
-	name        = models.CharField(max_length = 100)
-	alias       = models.CharField(max_length = 100, unique = True)
-	description = models.TextField()
-	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+
+	name        = models.TextField(db_index = True)
+	alias       = models.TextField(unique = True)
+	description = models.TextField(null = True, default = '')
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = DistributorManager()
 
@@ -53,7 +56,7 @@ class Distributor(models.Model):
 
 		result = {}
 
-		result['id']          = self.id
+		result['id']          = str(self.id)
 		result['name']        = self.name
 		result['alias']       = self.alias
 		result['description'] = self.description
@@ -97,15 +100,18 @@ class UpdaterManager(models.Manager):
 
 class Updater(models.Model):
 
-	name        = models.CharField(max_length = 100)
-	alias       = models.CharField(max_length = 100, unique = True)
-	distributor = models.ForeignKey(Distributor, null = True, default = None)
-	login       = models.CharField(max_length = 100)
-	password    = models.CharField(max_length = 100)
-	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	distributor = models.ForeignKey(Distributor, related_name = '+', null = True, default = None)
+
+	name        = models.TextField(db_index = True)
+	alias       = models.TextField(unique = True)
+	login       = models.TextField(null = True, default = '')
+	password    = models.TextField(null = True, default = '')
 	updated     = models.DateTimeField(default = timezone.now)
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = UpdaterManager()
 
@@ -114,15 +120,15 @@ class Updater(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['name']     = self.name
 		result['alias']    = self.alias
 		result['login']    = self.login
 		result['password'] = self.password
 		result['state']    = self.state
+		result['updated']  = str(self.updated)
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
-		result['updated']  = str(self.updated)
 
 		try:
 			result['distributor'] = self.distributor.get_dicted()
@@ -168,14 +174,17 @@ class StockManager(models.Manager):
 
 class Stock(models.Model):
 
-	name              = models.CharField(max_length = 100)
-	alias             = models.CharField(max_length = 100, unique = True)
-	distributor       = models.ForeignKey(Distributor, null = True, default = None)
-	delivery_time_min = models.IntegerField()
-	delivery_time_max = models.IntegerField()
-	state             = models.BooleanField(default = True)
-	created           = models.DateTimeField(default = timezone.now)
-	modified          = models.DateTimeField(default = timezone.now)
+	id                = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	distributor       = models.ForeignKey(Distributor, related_name = '+', null = True, default = None)
+
+	name              = models.TextField(db_index = True)
+	alias             = models.TextField(unique = True)
+	description       = models.TextField(null = True, default = '')
+	delivery_time_min = models.BigIntegerField(db_index = True)
+	delivery_time_max = models.BigIntegerField(db_index = True)
+	state             = models.BooleanField(default = True, db_index = True)
+	created           = models.DateTimeField(default = timezone.now, db_index = True)
+	modified          = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects           = StockManager()
 
@@ -184,7 +193,7 @@ class Stock(models.Model):
 
 		result = {}
 
-		result['id']                = self.id
+		result['id']                = str(self.id)
 		result['name']              = self.name
 		result['alias']             = self.alias
 		result['delivery_time_min'] = self.delivery_time_min
@@ -286,17 +295,19 @@ class CategoryManager(models.Manager):
 
 class Category(models.Model):
 
-	name        = models.TextField()
-	name_search = models.CharField(max_length = 512, null = True)
-	alias       = models.CharField(max_length = 100)
-	description = models.TextField()
-	parent      = models.ForeignKey('self', null = True, default = None)
-	level       = models.IntegerField(default = 0)
-	order       = models.IntegerField(default = 999999)
-	path        = models.CharField(max_length = 512)
-	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.BigAutoField(primary_key = True)
+	parent      = models.ForeignKey('self', related_name = '+', null = True, default = None)
+
+	name        = models.TextField(db_index = True)
+	alias       = models.TextField(null = True, default = '', db_index = True)
+	description = models.TextField(null = True, default = '')
+	level       = models.BigIntegerField(default = 0, db_index = True)
+	order       = models.BigIntegerField(default = 999999, db_index = True)
+	path        = models.TextField(null = True, default = '', db_index = True)
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = CategoryManager()
 
@@ -305,9 +316,8 @@ class Category(models.Model):
 
 		result = {}
 
-		result['id']           = self.id
+		result['id']           = str(self.id)
 		result['name']         = self.name
-		result['name_search']  = self.name_search
 		result['name_leveled'] = '— ' * self.level + self.name
 		result['alias']        = self.alias
 		result['description']  = self.description
@@ -327,7 +337,7 @@ class Category(models.Model):
 
 
 	def __str__(self):
-		return self.name_search
+		return self.name
 
 
 	class Meta:
@@ -357,12 +367,15 @@ class VendorManager(models.Manager):
 
 class Vendor(models.Model):
 
-	name        = models.CharField(max_length = 100, unique = True)
-	alias       = models.CharField(max_length = 100, unique = True)
-	description = models.TextField()
-	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.BigAutoField(primary_key = True)
+
+	name        = models.TextField(unique = True)
+	alias       = models.TextField(unique = True)
+	description = models.TextField(null = True, default = '')
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = VendorManager()
 
@@ -371,7 +384,7 @@ class Vendor(models.Model):
 
 		result = {}
 
-		result['id']          = self.id
+		result['id']          = str(self.id)
 		result['name']        = self.name
 		result['alias']       = self.alias
 		result['description'] = self.description
@@ -413,13 +426,16 @@ class UnitManager(models.Manager):
 
 class Unit(models.Model):
 
-	name           = models.CharField(max_length = 100)
-	name_short     = models.CharField(max_length = 100, null = True, default = None)
-	name_short_xml = models.CharField(max_length = 100, null = True, default = None)
-	alias          = models.CharField(max_length = 100, unique = True)
-	state          = models.BooleanField(default = True)
-	created        = models.DateTimeField(default = timezone.now)
-	modified       = models.DateTimeField(default = timezone.now)
+	id             = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+
+	name           = models.TextField(db_index = True)
+	name_short     = models.TextField(null = True, default = '', db_index = True)
+	name_short_xml = models.TextField(null = True, default = '')
+	alias          = models.TextField(unique = True)
+
+	state          = models.BooleanField(default = True, db_index = True)
+	created        = models.DateTimeField(default = timezone.now, db_index = True)
+	modified       = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects  = UnitManager()
 
@@ -428,7 +444,7 @@ class Unit(models.Model):
 
 		result = {}
 
-		result['id']             = self.id
+		result['id']             = str(self.id)
 		result['name']           = self.name
 		result['name_short']     = self.name_short
 		result['name_short_xml'] = self.name_short_xml
@@ -471,21 +487,23 @@ class PriceTypeManager(models.Manager):
 
 class PriceType(models.Model):
 
-	name       = models.CharField(max_length = 100)
-	alias      = models.CharField(max_length = 100, unique = True)
-	state      = models.BooleanField(default = True)
-	multiplier = models.DecimalField(max_digits = 10, decimal_places = 4, default = 1.0)
-	created    = models.DateTimeField(default = timezone.now)
-	modified   = models.DateTimeField(default = timezone.now)
+	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+
+	name       = models.TextField(db_index = True)
+	alias      = models.TextField(unique = True)
+	multiplier = models.DecimalField(max_digits = 10, decimal_places = 4, default = 1.0, db_index = True)
+
+	state      = models.BooleanField(default = True, db_index = True)
+	created    = models.DateTimeField(default = timezone.now, db_index = True)
+	modified   = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects    = PriceTypeManager()
-
 
 	def get_dicted(self):
 
 		result = {}
 
-		result['id']         = self.id
+		result['id']         = str(self.id)
 		result['name']       = self.name
 		result['alias']      = self.alias
 		result['state']      = self.state
@@ -494,7 +512,6 @@ class PriceType(models.Model):
 		result['modified']   = str(self.modified)
 
 		return result
-
 
 	def __str__(self):
 		return self.name
@@ -531,14 +548,17 @@ class CurrencyManager(models.Manager):
 
 class Currency(models.Model):
 
-	name      = models.CharField(max_length = 100)
-	full_name = models.CharField(max_length = 100)
-	alias     = models.CharField(max_length = 100, unique = True)
-	rate      = models.DecimalField(max_digits = 10, decimal_places = 4)
-	quantity  = models.DecimalField(max_digits = 10, decimal_places = 3)
-	state     = models.BooleanField(default = True)
-	created   = models.DateTimeField(default = timezone.now)
-	modified  = models.DateTimeField(default = timezone.now)
+	id        = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+
+	name      = models.TextField(db_index = True)
+	full_name = models.TextField(db_index = True)
+	alias     = models.TextField(unique = True)
+	rate      = models.DecimalField(max_digits = 10, decimal_places = 4, db_index = True)
+	quantity  = models.DecimalField(max_digits = 10, decimal_places = 3, db_index = True)
+
+	state     = models.BooleanField(default = True, db_index = True)
+	created   = models.DateTimeField(default = timezone.now, db_index = True)
+	modified  = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects   = CurrencyManager()
 
@@ -547,7 +567,7 @@ class Currency(models.Model):
 
 		result = {}
 
-		result['id']        = self.id
+		result['id']        = str(self.id)
 		result['name']      = self.name
 		result['full_name'] = self.full_name
 		result['alias']     = self.alias
@@ -570,20 +590,23 @@ class Currency(models.Model):
 
 class Price(models.Model):
 
-	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
-	price_type = models.ForeignKey(PriceType, null = True, default = None)
-	currency   = models.ForeignKey(Currency, null = True, default = None)
-	fixed      = models.BooleanField(default = False)
-	state      = models.BooleanField(default = True)
-	created    = models.DateTimeField(default = timezone.now)
-	modified   = models.DateTimeField(default = timezone.now)
+	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	price_type = models.ForeignKey(PriceType, related_name = '+', null = True, default = None)
+	currency   = models.ForeignKey(Currency,  related_name = '+', null = True, default = None)
+
+	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None, db_index = True)
+	fixed      = models.BooleanField(default = False, db_index = True)
+
+	state      = models.BooleanField(default = True, db_index = True)
+	created    = models.DateTimeField(default = timezone.now, db_index = True)
+	modified   = models.DateTimeField(default = timezone.now, db_index = True)
 
 
 	def get_dicted(self):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['price']    = str(self.price)
 		result['fixed']    = self.fixed
 		result['state']    = self.state
@@ -654,21 +677,24 @@ class Price(models.Model):
 
 class Quantity(models.Model):
 
-	on_stock   = models.IntegerField(null = True, default = 0)
-	on_transit = models.IntegerField(null = True, default = 0)
-	on_factory = models.IntegerField(null = True, default = 0)
-	unit       = models.ForeignKey(Unit, null = True, default = None)
-	fixed      = models.BooleanField(default = False)
-	state      = models.BooleanField(default = True)
-	created    = models.DateTimeField(default = timezone.now)
-	modified   = models.DateTimeField(default = timezone.now)
+	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	unit       = models.ForeignKey(Unit, related_name = '+', null = True, default = None)
+
+	on_stock   = models.BigIntegerField(null = True, default = 0, db_index = True)
+	on_transit = models.BigIntegerField(null = True, default = 0, db_index = True)
+	on_factory = models.BigIntegerField(null = True, default = 0, db_index = True)
+	fixed      = models.BooleanField(default = False, db_index = True)
+
+	state      = models.BooleanField(default = True, db_index = True)
+	created    = models.DateTimeField(default = timezone.now, db_index = True)
+	modified   = models.DateTimeField(default = timezone.now, db_index = True)
 
 
 	def get_dicted(self):
 
 		result = {}
 
-		result['id']         = self.id
+		result['id']         = str(self.id)
 		result['on_stock']   = self.on_stock
 		result['on_transit'] = self.on_transit
 		result['on_factory'] = self.on_factory
@@ -772,7 +798,7 @@ class ProductManager(models.Manager):
 		article = article.replace("\u00AD", "")
 		article = article.replace("™", "")
 		article = article.replace("®", "")
-		article = article[:100]
+		article = article
 
 		try:
 			product = self.get(article = article, vendor = vendor)
@@ -787,7 +813,6 @@ class ProductManager(models.Manager):
 		except Product.DoesNotExist:
 			product = Product(
 				name        = name,
-				name_search = name[:512],
 				article     = article,
 				vendor      = vendor,
 				category    = category,
@@ -810,20 +835,23 @@ class ProductManager(models.Manager):
 
 class Product(models.Model):
 
-	name        = models.TextField()
-	name_search = models.CharField(max_length = 512, null = True)
-	article     = models.CharField(max_length = 100)
-	vendor      = models.ForeignKey(Vendor)
-	category    = models.ForeignKey(Category, null = True, default = None)
-	unit        = models.ForeignKey(Unit, null = True, default = None)
-	description = models.TextField()
-	duble       = models.ForeignKey('self', null = True, default = None)
-	edited      = models.BooleanField(default = False)
-	state       = models.BooleanField(default = True)
-	price       = models.ForeignKey(Price, null = True, default = None)
-	quantity    = models.ForeignKey(Quantity, null = True, default = None)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.BigAutoField(primary_key = True)
+	vendor      = models.ForeignKey(Vendor,   related_name = '+')
+	category    = models.ForeignKey(Category, related_name = '+', null = True, default = None)
+	unit        = models.ForeignKey(Unit,     related_name = '+', null = True, default = None)
+	duble       = models.ForeignKey('self',   related_name = '+', null = True, default = None)
+	price       = models.ForeignKey(Price,    related_name = '+', null = True, default = None)
+	quantity    = models.ForeignKey(Quantity, related_name = '+', null = True, default = None)
+
+	name        = models.TextField(db_index = True)
+	article     = models.TextField(db_index = True)
+	description = models.TextField(null = True, default = '')
+	edited      = models.BooleanField(default = False, db_index = True)
+	for_export  = models.BooleanField(default = False, db_index = True)
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = ProductManager()
 
@@ -832,12 +860,12 @@ class Product(models.Model):
 
 		result = {}
 
-		result['id']          = self.id
+		result['id']          = str(self.id)
 		result['name']        = self.name
-		result['name_search'] = self.name_search
 		result['article']     = self.article
 		result['description'] = self.description
 		result['edited']      = self.edited
+		result['for_export']  = self.for_export
 		result['state']       = self.state
 		result['created']     = str(self.created)
 		result['modified']    = str(self.modified)
@@ -900,14 +928,12 @@ class Product(models.Model):
 			quantity.save()
 			self.quantity = quantity
 			self.save()
-			print('new Quantity ' * 5)
 
 		if self.price is None:
 			price = Price()
 			price.save()
 			self.price = price
 			self.save()
-			print('new Price ' * 5)
 
 		# Вычисляем количество товара
 		quantities = {
@@ -1083,22 +1109,24 @@ class PartyManager(models.Manager):
 
 class Party(models.Model):
 
-	id             = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
-	product        = models.ForeignKey(Product)
-	stock          = models.ForeignKey(Stock)
-	article        = models.CharField(max_length = 100, null = True, default = None) # Артикул поставщика
-	price          = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
-	price_type     = models.ForeignKey(PriceType, null = True, default = None)
-	currency       = models.ForeignKey(Currency, null = True, default = None)
-	price_out      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
-	price_type_out = models.ForeignKey(PriceType, related_name = 'party_requests_currency_out', null = True, default = None)
-	currency_out   = models.ForeignKey(Currency, related_name = 'party_requests_currency_out', null = True, default = None)
-	quantity       = models.IntegerField(null = True, default = None)
-	unit           = models.ForeignKey(Unit, null = True, default = None)
-	product_name   = models.TextField()
-	state          = models.BooleanField(default = True)
-	created        = models.DateTimeField(default = timezone.now)
-	modified       = models.DateTimeField(default = timezone.now)
+	id             = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	product        = models.ForeignKey(Product,   related_name = '+')
+	stock          = models.ForeignKey(Stock,     related_name = '+')
+	price_type     = models.ForeignKey(PriceType, related_name = '+', null = True, default = None)
+	currency       = models.ForeignKey(Currency,  related_name = '+', null = True, default = None)
+	price_type_out = models.ForeignKey(PriceType, related_name = '+', null = True, default = None)
+	currency_out   = models.ForeignKey(Currency,  related_name = '+', null = True, default = None)
+	unit           = models.ForeignKey(Unit,      related_name = '+', null = True, default = None)
+
+	article        = models.TextField(null = True, default = None, db_index = True) # Артикул поставщика
+	price          = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None, db_index = True)
+	price_out      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None, db_index = True)
+	quantity       = models.BigIntegerField(null = True, default = None, db_index = True)
+	product_name   = models.TextField(null = True, default = None)
+
+	state          = models.BooleanField(default = True, db_index = True)
+	created        = models.DateTimeField(default = timezone.now, db_index = True)
+	modified       = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects        = PartyManager()
 
@@ -1107,7 +1135,7 @@ class Party(models.Model):
 
 		result = {}
 
-		result['id']           = self.id
+		result['id']           = str(self.id)
 		result['article']      = self.article
 		result['price']        = str(self.price)
 		result['price_out']    = self.price_out
@@ -1232,25 +1260,26 @@ class Party(models.Model):
 
 class PartyHystory(models.Model):
 
-	id             = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
-	product        = models.ForeignKey(Product)
-	stock          = models.ForeignKey(Stock)
+	id             = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	product        = models.ForeignKey(Product,   related_name = '+')
+	stock          = models.ForeignKey(Stock,     related_name = '+')
+	price_type     = models.ForeignKey(PriceType, related_name = '+', null = True, default = None)
+	currency       = models.ForeignKey(Currency,  related_name = '+', null = True, default = None)
+	price_type_out = models.ForeignKey(PriceType, related_name = '+', null = True, default = None)
+	currency_out   = models.ForeignKey(Currency,  related_name = '+', null = True, default = None)
+
 	price          = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
-	price_type     = models.ForeignKey(PriceType, null = True, default = None)
-	currency       = models.ForeignKey(Currency, null = True, default = None)
 	price_out      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
-	price_type_out = models.ForeignKey(PriceType, related_name = 'party_hystory_requests_price_type_out', null = True, default = None)
-	currency_out   = models.ForeignKey(Currency, related_name = 'party_hystory_requests_currency_out', null = True, default = None)
-	quantity       = models.IntegerField(null = True, default = None)
-	unit           = models.ForeignKey(Unit, null = True, default = None)
-	date           = models.DateField()
+	quantity       = models.BigIntegerField(null = True, default = None)
+	unit           = models.ForeignKey(Unit, null = True, default = None, db_index = True)
+	date           = models.DateField(db_index = True)
 
 
 	def get_dicted(self):
 
 		result = {}
 
-		result['id']        = self.id
+		result['id']        = str(self.id)
 		result['article']   = self.article
 		result['price']     = str(self.price)
 		result['price_out'] = self.price_out
@@ -1287,19 +1316,20 @@ class PartyHystory(models.Model):
 
 class PriceHystory(models.Model):
 
-	id         = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
+	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
 	product    = models.ForeignKey(Product)
-	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
 	price_type = models.ForeignKey(PriceType, null = True, default = None)
 	currency   = models.ForeignKey(Currency, null = True, default = None)
-	date       = models.DateField()
+
+	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
+	date       = models.DateField(db_index = True)
 
 
 	def get_dicted(self):
 
 		result = {}
 
-		result['id']    = self.id
+		result['id']    = str(self.id)
 		result['price'] = str(self.price)
 		result['date']  = str(self.date)
 
@@ -1321,12 +1351,14 @@ class PriceHystory(models.Model):
 
 class QuantityHystory(models.Model):
 
-	id         = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
-	product    = models.ForeignKey(Product)
-	on_stock   = models.IntegerField(null = True, default = None)
-	on_transit = models.IntegerField(null = True, default = None)
-	on_factory = models.IntegerField(null = True, default = None)
-	unit       = models.ForeignKey(Unit, null = True, default = None)
+	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	product    = models.ForeignKey(Product, related_name = '+')
+	unit       = models.ForeignKey(Unit,    related_name = '+', null = True, default = None)
+
+	on_stock   = models.BigIntegerField(null = True, default = None)
+	on_transit = models.BigIntegerField(null = True, default = None)
+	on_factory = models.BigIntegerField(null = True, default = None)
+
 	date       = models.DateField()
 
 
@@ -1334,7 +1366,7 @@ class QuantityHystory(models.Model):
 
 		result = {}
 
-		result['id']         = self.id
+		result['id']         = str(self.id)
 		result['on_stock']   = self.on_stock
 		result['on_transit'] = self.on_transit
 		result['on_factory'] = self.on_factory
@@ -1363,12 +1395,15 @@ class ParameterTypeManager(models.Manager):
 
 class ParameterType(models.Model):
 
-	name      = models.CharField(max_length = 100, unique = True)
-	alias     = models.CharField(max_length = 100, unique = True)
-	order     = models.IntegerField(default = 0)
-	state     = models.BooleanField(default = True)
-	created   = models.DateTimeField(default = timezone.now)
-	modified  = models.DateTimeField(default = timezone.now)
+	id        = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+
+	name      = models.TextField(unique = True)
+	alias     = models.TextField(unique = True)
+	order     = models.BigIntegerField(default = 0, db_index = True)
+
+	state     = models.BooleanField(default = True, db_index = True)
+	created   = models.DateTimeField(default = timezone.now, db_index = True)
+	modified  = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects   = ParameterTypeManager()
 
@@ -1376,7 +1411,7 @@ class ParameterType(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['name']     = self.name
 		result['alias']    = self.alias
 		result['order']    = self.order
@@ -1404,14 +1439,17 @@ class ParameterManager(models.Manager):
 
 class Parameter(models.Model):
 
-	name          = models.CharField(max_length = 100, unique = True)
-	alias         = models.CharField(max_length = 100, unique = True)
-	parametertype = models.ForeignKey(ParameterType, null = True, default = None)
-	unit          = models.ForeignKey(Unit, null = True, default = None)
-	order         = models.IntegerField(default = 0)
-	state         = models.BooleanField(default = True)
-	created       = models.DateTimeField(default = timezone.now)
-	modified      = models.DateTimeField(default = timezone.now)
+	id            = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	parametertype = models.ForeignKey(ParameterType, related_name = '+', null = True, default = None)
+	unit          = models.ForeignKey(Unit,          related_name = '+', null = True, default = None)
+
+	name          = models.TextField(unique = True)
+	alias         = models.TextField(unique = True)
+	order         = models.BigIntegerField(default = 0, db_index = True)
+
+	state         = models.BooleanField(default = True, db_index = True)
+	created       = models.DateTimeField(default = timezone.now, db_index = True)
+	modified      = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects        = ParameterManager()
 
@@ -1419,7 +1457,7 @@ class Parameter(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['name']     = self.name
 		result['alias']    = self.alias
 		result['order']    = self.order
@@ -1452,13 +1490,15 @@ class ParameterValueManager(models.Manager):
 
 class ParameterValue(models.Model):
 
-	parameter   = models.ForeignKey(Parameter)
-	name        = models.TextField()
-	name_search = models.CharField(max_length = 100, null = True, default = None)
-	order       = models.IntegerField()
-	state       = models.BooleanField(default = True)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	parameter   = models.ForeignKey(Parameter, related_name = '+')
+
+	name        = models.TextField(db_index = True)
+	order       = models.BigIntegerField(db_index = True)
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects      = ParameterValueManager()
 
@@ -1466,9 +1506,8 @@ class ParameterValue(models.Model):
 
 		result = {}
 
-		result['id']           = self.id
+		result['id']           = str(self.id)
 		result['name']         = self.name
-		result['name_search']  = self.name_search
 		result['order']        = self.order
 		result['state']        = self.state
 		result['created']      = str(self.created)
@@ -1518,12 +1557,16 @@ class ParameterValueSynonymManager(models.Manager):
 
 class ParameterValueSynonym(models.Model):
 
-	name           = models.CharField(max_length = 1024)
-	updater        = models.ForeignKey(Updater, null = True, default = None)
-	parameter      = models.ForeignKey(Parameter, null = True, default = None)
-	parametervalue = models.ForeignKey(ParameterValue, null = True, default = None)
-	created        = models.DateTimeField(default = timezone.now)
-	modified       = models.DateTimeField(default = timezone.now)
+	id             = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	updater        = models.ForeignKey(Updater,        related_name = '+', null = True, default = None)
+	parameter      = models.ForeignKey(Parameter,      related_name = '+', null = True, default = None)
+	parametervalue = models.ForeignKey(ParameterValue, related_name = '+', null = True, default = None)
+
+	name           = models.TextField()
+
+	state          = models.BooleanField(default = True, db_index = True)
+	created        = models.DateTimeField(default = timezone.now, db_index = True)
+	modified       = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects        = ParameterValueSynonymManager()
 
@@ -1531,7 +1574,7 @@ class ParameterValueSynonym(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['name']     = self.name
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
@@ -1585,17 +1628,18 @@ class ParameterToProductManager(models.Manager):
 
 class ParameterToProduct(models.Model):
 
-	id            = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
-	parameter     = models.ForeignKey(Parameter)
-	product       = models.ForeignKey(Product)
-	value_text    = models.TextField()
-	value_search  = models.CharField(max_length = 100, null = True, default = None)
-	value_integer = models.IntegerField(null = True, default = None)
-	value_decimal = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
-	value_list    = models.ForeignKey(ParameterValue, null = True, default = None)
-	state         = models.BooleanField(default = True)
-	created       = models.DateTimeField(default = timezone.now)
-	modified      = models.DateTimeField(default = timezone.now)
+	id            = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	parameter     = models.ForeignKey(Parameter,      related_name = '+')
+	product       = models.ForeignKey(Product,        related_name = '+')
+	value_list    = models.ForeignKey(ParameterValue, related_name = '+', null = True, default = None)
+
+	value_text    = models.TextField(null = True, default = None, db_index = True)
+	value_integer = models.BigIntegerField(null = True, default = None, db_index = True)
+	value_decimal = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None, db_index = True)
+
+	state         = models.BooleanField(default = True, db_index = True)
+	created       = models.DateTimeField(default = timezone.now, db_index = True)
+	modified      = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects       = ParameterToProductManager()
 
@@ -1603,9 +1647,8 @@ class ParameterToProduct(models.Model):
 
 		result = {}
 
-		result['id']            = self.id
+		result['id']            = str(self.id)
 		result['value_text']    = self.value_text
-		result['value_search']  = self.value_search
 		result['value_integer'] = self.value_integer
 		result['value_decimal'] = str(self.value_decimal)
 		result['state']         = self.state
@@ -1650,7 +1693,6 @@ class ParameterToProduct(models.Model):
 			print('self.parameter.parametertype.alias == "text"')
 
 			self.value_text   = value.strip()
-			self.value_search = self.value_text[:100]
 			self.save()
 
 		elif self.parameter.parametertype.alias == 'months':
@@ -1734,19 +1776,21 @@ class ParameterToProduct(models.Model):
 
 class ParameterToCategory(models.Model):
 
-	id        = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
-	parameter = models.ForeignKey(Parameter)
-	category  = models.ForeignKey(Category)
-	order     = models.IntegerField()
-	state     = models.BooleanField(default = True)
-	created   = models.DateTimeField(default = timezone.now)
-	modified  = models.DateTimeField(default = timezone.now)
+	id        = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	parameter = models.ForeignKey(Parameter, related_name = '+')
+	category  = models.ForeignKey(Category,  related_name = '+')
+
+	order     = models.BigIntegerField(db_index = True)
+
+	state     = models.BooleanField(default = True, db_index = True)
+	created   = models.DateTimeField(default = timezone.now, db_index = True)
+	modified  = models.DateTimeField(default = timezone.now, db_index = True)
 
 	def get_dicted(self):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['order']    = self.order
 		result['state']    = self.state
 		result['created']  = str(self.created)
@@ -1796,11 +1840,15 @@ class ParameterSynonymManager(models.Manager):
 
 class ParameterSynonym(models.Model):
 
-	name        = models.CharField(max_length = 1024)
-	updater     = models.ForeignKey(Updater, null = True, default = None)
-	parameter   = models.ForeignKey(Parameter, null = True, default = None)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	updater     = models.ForeignKey(Updater,   related_name = '+', null = True, default = None)
+	parameter   = models.ForeignKey(Parameter, related_name = '+', null = True, default = None)
+
+	name        = models.TextField(db_index = True)
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = ParameterSynonymManager()
 
@@ -1808,7 +1856,7 @@ class ParameterSynonym(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['name']     = self.name
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
@@ -1858,11 +1906,15 @@ class CategorySynonymManager(models.Manager):
 
 class CategorySynonym(models.Model):
 
-	name        = models.CharField(max_length = 1024)
-	updater     = models.ForeignKey(Updater, null = True, default = None)
-	category    = models.ForeignKey(Category, null = True, default = None)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	updater     = models.ForeignKey(Updater,  related_name = '+', null = True, default = None)
+	category    = models.ForeignKey(Category, related_name = '+', null = True, default = None)
+
+	name        = models.TextField(db_index = True)
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = CategorySynonymManager()
 
@@ -1870,7 +1922,7 @@ class CategorySynonym(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['name']     = self.name
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
@@ -1923,11 +1975,15 @@ class VendorSynonymManager(models.Manager):
 
 class VendorSynonym(models.Model):
 
-	name        = models.CharField(max_length = 1024)
-	updater     = models.ForeignKey(Updater, null = True, default = None)
-	vendor      = models.ForeignKey(Vendor, null = True, default = None)
-	created     = models.DateTimeField(default = timezone.now)
-	modified    = models.DateTimeField(default = timezone.now)
+	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	updater     = models.ForeignKey(Updater, related_name = '+', null = True, default = None)
+	vendor      = models.ForeignKey(Vendor,  related_name = '+', null = True, default = None)
+
+	name        = models.TextField(db_index = True)
+
+	state       = models.BooleanField(default = True, db_index = True)
+	created     = models.DateTimeField(default = timezone.now, db_index = True)
+	modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects     = VendorSynonymManager()
 
@@ -1936,7 +1992,7 @@ class VendorSynonym(models.Model):
 
 		result = {}
 
-		result['id']       = self.id
+		result['id']       = str(self.id)
 		result['name']     = self.name
 		result['created']  = str(self.created)
 		result['modified'] = str(self.modified)
@@ -1960,71 +2016,6 @@ class VendorSynonym(models.Model):
 
 	class Meta:
 		ordering = ['name']
-
-
-class UpdaterTaskManager(models.Manager):
-
-
-	def take(self, name, subject, updater = None, complite = False):
-
-		name    = str(name).strip()
-		subject = str(subject).strip()
-
-		try:
-			task = self.get(
-				name    = name,
-				subject = subject,
-				updater = updater)
-
-		except UpdaterTask.DoesNotExist:
-			task = UpdaterTask(
-				name     = name,
-				subject  = subject,
-				updater  = updater,
-				complite = complite)
-			task.save()
-
-		return task
-
-
-class UpdaterTask(models.Model):
-
-	id       = models.CharField(max_length = 100, primary_key = True, default = uuid.uuid4, editable = False)
-	name     = models.CharField(max_length = 1024)
-	subject  = models.CharField(max_length = 1024)
-	updater  = models.ForeignKey(Updater, null = True, default = None)
-	created  = models.DateTimeField(default = timezone.now)
-	modified = models.DateTimeField(default = timezone.now)
-	complite = models.BooleanField(default = False)
-
-	objects     = UpdaterTaskManager()
-
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']       = self.id
-		result['name']     = self.name
-		result['subject']  = self.subject
-		result['created']  = str(self.created)
-		result['modified'] = str(self.modified)
-		result['complite'] = self.complite
-
-		try:
-			result['updater'] = self.updater.get_dicted()
-		except Exception:
-			result['updater'] = None
-
-		return result
-
-
-	def __str__(self):
-		return "{} {}: {}".format(self.updater, self.name, self.subject)
-
-
-	class Meta:
-		ordering = ['created']
 
 
 
@@ -2090,29 +2081,20 @@ class ProductPhotoManager(models.Manager):
 
 class ProductPhoto(models.Model):
 
-	id          = models.CharField(
-					max_length  = 100,
-					primary_key = True,
-					default     = uuid.uuid4,
-					editable    = False)
-	product     = models.ForeignKey(Product, null = True, default = None)
-	name        = models.TextField(null = True, default = None)
-	name_search = models.CharField(max_length = 512, null = True, default = None)
-	patch       = models.CharField(max_length = 512, null = True)
-	src         = models.CharField(max_length = 512, null = True)
-	trumb       = models.ForeignKey('self', null = True, default = None)
+	id           = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	product      = models.ForeignKey(Product, related_name = '+', null = True, default = None)
+	trumb        = models.ForeignKey('self',  related_name = '+', null = True, default = None)
 
-	description  = models.TextField(null = True, default = None)
+	name         = models.TextField(null = True, default = '', db_index = True)
+	patch        = models.TextField(null = True, default = '')
+	src          = models.TextField(null = True, default = '')
+	description  = models.TextField(null = True, default = '')
+	source       = models.TextField(null = True, default = '')
+	hash_md5     = models.TextField(null = True, default = None, db_index = True)
 
-	source       = models.TextField(null = True, default = None)
-
-	state        = models.BooleanField(default = True)
-	created      = models.DateTimeField(default = timezone.now)
-	created_by   = models.CharField(max_length = 100, null = True, default = None)
-	modified     = models.DateTimeField(default = timezone.now)
-	modified_by  = models.CharField(max_length = 100, null = True, default = None)
-
-	hash_md5     = models.CharField(max_length = 100, null = True, default = None)
+	state        = models.BooleanField(default = True, db_index = True)
+	created      = models.DateTimeField(default = timezone.now, db_index = True)
+	modified     = models.DateTimeField(default = timezone.now, db_index = True)
 
 	objects = ProductPhotoManager()
 
@@ -2148,5 +2130,4 @@ models = {
 	'parametersynonym'      : ParameterSynonym,
 	'categorysynonym'       : CategorySynonym,
 	'vendorsynonym'         : VendorSynonym,
-	'updatertask'           : UpdaterTask,
 	'productphoto'          : ProductPhoto}
