@@ -39,8 +39,8 @@ class Runner(catalog.runner.Runner):
 	def run(self):
 
 		payload = {
-			'login':    self.updater.login,
-			'password': self.updater.password}
+			'login':  self.updater.login,
+			'passwd': self.updater.password}
 		self.login(payload)
 
 		# Заходим на страницу загрузки
