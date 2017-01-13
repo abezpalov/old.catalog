@@ -13,7 +13,7 @@ class Runner(catalog.runner.Runner):
 		'start'  : 'https://login.ts.fujitsu.com/vpn/tmindex.html',
 		'login'  : 'https://login.ts.fujitsu.com/cgi/login',
 		'links'  : 'https://partners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
-		'search' : '2016.zip',
+		'search' : '2017.zip',
 		'prefix' : 'https://partners.ts.fujitsu.com'}
 
 
