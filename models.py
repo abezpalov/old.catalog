@@ -365,6 +365,19 @@ class VendorManager(models.Manager):
 		return vendor
 
 
+	def get_by_key(self, updater, ext_key):
+
+		if not updater or not ext_key:
+			return None
+
+		key = VendorSynonym.objects.take(updater = updater, name = ext_key)
+
+		if key:
+			return key.vendor
+		else:
+			return None
+
+
 class Vendor(models.Model):
 
 	id          = models.BigAutoField(primary_key = True)

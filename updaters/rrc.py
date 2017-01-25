@@ -43,7 +43,8 @@ class Runner(catalog.runner.Runner):
 			'USER_LOGIN'    : self.updater.login,
 			'USER_PASSWORD' : self.updater.password,
 			'Login'         : '1'}
-		self.login(payload)
+		if not self.login(payload):
+			return False
 
 		tree = self.load_html(self.url['links'])
 
