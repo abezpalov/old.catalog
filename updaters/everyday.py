@@ -28,6 +28,7 @@ class Runner:
 		'treolan',
 		'mics',
 		'europarts',
+		'comptek',
 
 		'recalculate']
 
