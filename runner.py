@@ -57,7 +57,7 @@ class Runner:
 		self.s = requests.Session()
 
 		Log.objects.add(
-			subject     = "tenders.updater.{}".format(self.updater.alias),
+			subject     = "catalog.updater.{}".format(self.updater.alias),
 			channel     = "start",
 			title       = "Start",
 			description = "Запущен загрузчик {}.".format(self.updater.name))
