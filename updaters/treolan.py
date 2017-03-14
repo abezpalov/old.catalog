@@ -99,8 +99,6 @@ class Runner(catalog.runner.Runner):
 						num['price_usd'] = tdn
 					elif td[0].text.strip() == word['price_rub']:
 						num['price_rub'] = tdn
-					elif td[0].text.strip() == word['dop']:
-						num['dop'] = tdn
 
 				# Проверяем, все ли столбцы распознались
 				if 'article' in num and 'name' in num and 'vendor' in num and 'stock' in num and 'transit' in num and 'price_usd' in num and 'price_rub' in num:
@@ -152,9 +150,6 @@ class Runner(catalog.runner.Runner):
 
 					elif tdn == num['price_rub']:
 						price_rub = self.fix_price(td.text)
-
-					elif tdn == num['dop']:
-						dop = td.text
 
 				# Получаем объект продукта
 				if article and name and vendor_synonym.vendor:
