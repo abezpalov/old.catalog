@@ -2,8 +2,6 @@
 	API поставщика имеет странные ограничения на время между запросами.
 """
 
-from project.models import Log
-
 import catalog.runner
 from catalog.models import *
 

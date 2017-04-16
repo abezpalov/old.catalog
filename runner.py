@@ -2,7 +2,7 @@ import requests
 
 from django.utils import timezone
 
-from project.models import Log
+from anodos.models import Log
 from catalog.models import *
 
 
@@ -76,18 +76,11 @@ class Runner:
 		return stock
 
 
-	def take_categorysynonym(self, name):
+	def take_vendor(self, key):
 
-		return CategorySynonym.objects.take(
-			name        = name,
-			updater     = self.updater)
-
-
-	def take_vendorsynonym(self, name):
-
-		return VendorSynonym.objects.take(
-			name        = name,
-			updater     = self.updater)
+		return Vendor.objects.get_by_key(
+			updater = self.updater,
+			key     = key)
 
 
 	def take_parametersynonym(self, name):
@@ -158,6 +151,8 @@ class Runner:
 
 	def login(self, payload = {}, timeout = 100.0):
 
+		url = self.url['login']
+
 		# Параметры авторизации
 		if self.updater.login and self.updater.password:
 			print('Получены параметры авторизации.')
@@ -174,7 +169,7 @@ class Runner:
 
 		# Авторизуемся
 		try:
-			r = self.s.post(self.url['login'], cookies = self.cookies,
+			r = self.s.post(url, cookies = self.cookies,
 					data = payload, allow_redirects = True, verify = False,
 					timeout = timeout)
 			self.cookies = r.cookies

@@ -80,6 +80,38 @@ def vendor(request, alias):
 	return render(request, 'catalog/vendor.html', locals())
 
 
+def vendorkeys(request, updater_selected = 'all', vendor_selected = 'all'):
+	"Представление: ключи производителей."
+
+	from catalog.models import VendorKey, Vendor, Updater
+
+	if updater_selected != 'all':
+		updater_selected = int(updater_selected)
+	if vendor_selected != 'all':
+		vendor_selected = int(vendor_selected)
+
+	if request.user.has_perm('catalog.add_vendorkey')\
+	or request.user.has_perm('catalog.change_vendorkey')\
+	or request.user.has_perm('catalog.delete_vendorkey'):
+
+		vendorkeys = VendorKey.objects.select_related().all()
+
+		if updater_selected and updater_selected != 'all':
+			vendorkeys = vendorkeys.select_related().filter(updater = updater_selected)
+		if not updater_selected:
+			vendorkeys = vendorkeys.select_related().filter(updater = None)
+
+		if vendor_selected and vendor_selected != 'all':
+			vendorkeys = vendorkeys.select_related().filter(vendor = vendor_selected)
+		if not vendor_selected:
+			vendorkeys = vendorkeys.select_related().filter(vendor = None)
+
+		updaters = Updater.objects.select_related().all()
+		vendors = Vendor.objects.select_related().all()
+
+	return render(request, 'catalog/vendorkeys.html', locals())
+
+
 def units(request):
 	"Представление: список единиц измерения."
 
@@ -355,73 +387,6 @@ def parametersynonyms(request, updater_selected = 'all', parameter_selected = 'a
 		units          = Unit.objects.select_related().all()
 
 	return render(request, 'catalog/parametersynonyms.html', locals())
-
-
-def categorysynonyms(request, updater_selected = 'all', category_selected = 'all'):
-	"Представление: список синонимов категорий."
-
-	from catalog.models import CategorySynonym, Category, Updater
-
-	if updater_selected != 'all':
-		updater_selected = int(updater_selected)
-	if category_selected != 'all':
-		category_selected = int(category_selected)
-
-	if request.user.has_perm('catalog.add_categorysynonym')\
-	or request.user.has_perm('catalog.change_categorysynonym')\
-	or request.user.has_perm('catalog.delete_categorysynonym'):
-
-		categorysynonyms = CategorySynonym.objects.select_related().all()
-		if updater_selected and updater_selected != 'all':
-			categorysynonyms = categorysynonyms.select_related().filter(updater = updater_selected)
-		if not updater_selected:
-			categorysynonyms = categorysynonyms.select_related().filter(updater = None)
-
-		if category_selected and category_selected != 'all':
-			categorysynonyms = categorysynonyms.select_related().filter(category = category_selected)
-		if not category_selected:
-			categorysynonyms = categorysynonyms.select_related().filter(category = None)
-
-		updaters = Updater.objects.select_related().all()
-		categories = []
-		categories = Category.objects.getCategoryTree(categories)
-
-		for category in categories:
-			category.name = '{}{}'.format('— ' * category.level, category.name)
-
-	return render(request, 'catalog/categorysynonyms.html', locals())
-
-
-def vendorsynonyms(request, updater_selected = 'all', vendor_selected = 'all'):
-	"Представление: список синонимов производителей."
-
-	from catalog.models import VendorSynonym, Vendor, Updater
-
-	if updater_selected != 'all':
-		updater_selected = int(updater_selected)
-	if vendor_selected != 'all':
-		vendor_selected = int(vendor_selected)
-
-	if request.user.has_perm('catalog.add_vendorsynonym')\
-	or request.user.has_perm('catalog.change_vendorsynonym')\
-	or request.user.has_perm('catalog.delete_vendorsynonym'):
-
-		vendorsynonyms = VendorSynonym.objects.select_related().all()
-
-		if updater_selected and updater_selected != 'all':
-			vendorsynonyms = vendorsynonyms.select_related().filter(updater = updater_selected)
-		if not updater_selected:
-			vendorsynonyms = vendorsynonyms.select_related().filter(updater = None)
-
-		if vendor_selected and vendor_selected != 'all':
-			vendorsynonyms = vendorsynonyms.select_related().filter(vendor = vendor_selected)
-		if not vendor_selected:
-			vendorsynonyms = vendorsynonyms.select_related().filter(vendor = None)
-
-		updaters = Updater.objects.select_related().all()
-		vendors = Vendor.objects.select_related().all()
-
-	return render(request, 'catalog/vendorsynonyms.html', locals())
 
 
 def ajax_get(request, *args, **kwargs):
@@ -780,15 +745,15 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 			'message': 'Ошибка: объект отсутствует в базе.'}
 		return HttpResponse(json.dumps(result), 'application/javascript')
 
-	name = o.name
+	key = o.key
 
-	alias = fix_alias(name)
+	alias = fix_alias(key)
 
 	try:
 		f = foreign.objects.get(alias = alias)
 	except Exception:
 		f = foreign()
-		f.name = name
+		f.name = key
 		f.alias = alias
 		f.created = timezone.now()
 		f.modified = timezone.now()
@@ -799,9 +764,9 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 		f.save()
 
 	if kwargs['foreign_name'] == 'vendor':
-		o.vendor   = f
-	elif kwargs['foreign_name'] == 'category':
-		o.category = f
+		o.vendor = f
+#	elif kwargs['foreign_name'] == 'category':
+#		o.category = f
 	elif kwargs['foreign_name'] == 'parameter':
 		o.parameter = f
 	elif kwargs['foreign_name'] == 'parametervalue':

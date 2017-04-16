@@ -1,9 +1,8 @@
 from datetime import date
 
-from project.models import Log
-
 import catalog.runner
 from catalog.models import *
+from anodos.models import Log
 
 
 class Runner(catalog.runner.Runner):

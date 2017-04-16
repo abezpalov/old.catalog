@@ -16,6 +16,9 @@ urlpatterns = [
 	url(r'^vendors/$', catalog.views.vendors),
 	url(r'^vendor/(?P<alias>[a-zA-Z0-9_-]+)/$', catalog.views.vendor),
 
+	url(r'^vendorkeys/$', catalog.views.vendorkeys),
+	url(r'^vendorkeys/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<vendor_selected>[a-zA-Z0-9_-]+)/$', catalog.views.vendorkeys),
+
 	url(r'^units/$', catalog.views.units),
 
 	url(r'^pricetypes/$', catalog.views.pricetypes),
@@ -38,12 +41,6 @@ urlpatterns = [
 
 	url(r'^parametersynonyms/$', catalog.views.parametersynonyms),
 	url(r'^parametersynonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<parameter_selected>[a-zA-Z0-9_-]+)/$', catalog.views.parametersynonyms),
-
-	url(r'^categorysynonyms/$', catalog.views.categorysynonyms),
-	url(r'^categorysynonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<category_selected>[a-zA-Z0-9_-]+)/$', catalog.views.categorysynonyms),
-
-	url(r'^vendorsynonyms/$', catalog.views.vendorsynonyms),
-	url(r'^vendorsynonyms/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<vendor_selected>[a-zA-Z0-9_-]+)/$', catalog.views.vendorsynonyms),
 
 	# AJAX
 	url(r'^ajax/get/(?P<model_name>[a-zA-Z0-9_-]+)/$', catalog.views.ajax_get),

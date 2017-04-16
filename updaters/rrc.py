@@ -1,8 +1,6 @@
 import re
 import time
 
-from project.models import Log
-
 import catalog.runner
 from catalog.models import *
 

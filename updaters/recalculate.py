@@ -1,5 +1,4 @@
 from catalog.models import *
-from project.models import Log
 
 
 class Runner:

@@ -2,8 +2,6 @@
 
 """
 
-from project.models import Log
-
 import catalog.runner
 from catalog.models import *
 

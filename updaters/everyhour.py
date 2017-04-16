@@ -1,7 +1,7 @@
 import datetime
 from django.utils import timezone
 from catalog.models import Updater
-from project.models import Log
+from anodos.models import Log
 
 
 class Runner:

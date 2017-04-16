@@ -39,7 +39,7 @@ class DistributorManager(models.Manager):
 
 class Distributor(models.Model):
 
-	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	id          = models.BigAutoField(primary_key = True, editable = False)
 
 	name        = models.TextField(db_index = True)
 	alias       = models.TextField(unique = True)
@@ -100,7 +100,7 @@ class UpdaterManager(models.Manager):
 
 class Updater(models.Model):
 
-	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	id          = models.BigAutoField(primary_key = True, editable = False)
 	distributor = models.ForeignKey(Distributor, related_name = '+', null = True, default = None)
 
 	name        = models.TextField(db_index = True)
@@ -174,7 +174,7 @@ class StockManager(models.Manager):
 
 class Stock(models.Model):
 
-	id                = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	id                = models.BigAutoField(primary_key = True, editable = False)
 	distributor       = models.ForeignKey(Distributor, related_name = '+', null = True, default = None)
 
 	name              = models.TextField(db_index = True)
@@ -295,7 +295,7 @@ class CategoryManager(models.Manager):
 
 class Category(models.Model):
 
-	id          = models.BigAutoField(primary_key = True)
+	id          = models.BigAutoField(primary_key = True, editable = False)
 	parent      = models.ForeignKey('self', related_name = '+', null = True, default = None)
 
 	name        = models.TextField(db_index = True)
@@ -365,12 +365,14 @@ class VendorManager(models.Manager):
 		return vendor
 
 
-	def get_by_key(self, updater, ext_key):
+	def get_by_key(self, updater, key):
 
-		if not updater or not ext_key:
+		key = str(key).strip()
+
+		if not updater or not key:
 			return None
 
-		key = VendorSynonym.objects.take(updater = updater, name = ext_key)
+		key = VendorKey.objects.take(updater = updater, key = key)
 
 		if key:
 			return key.vendor
@@ -380,7 +382,7 @@ class VendorManager(models.Manager):
 
 class Vendor(models.Model):
 
-	id          = models.BigAutoField(primary_key = True)
+	id          = models.BigAutoField(primary_key = True, editable = False)
 
 	name        = models.TextField(unique = True)
 	alias       = models.TextField(unique = True)
@@ -416,6 +418,77 @@ class Vendor(models.Model):
 		ordering = ['name']
 
 
+class VendorKeyManager(models.Manager):
+
+
+	def take(self, updater, key):
+
+		if not updater or not key:
+			return None
+
+		try:
+			o = self.select_related().get(updater = updater, key = key)
+
+		except VendorKey.DoesNotExist:
+
+			o = VendorKey()
+			o.updater = updater
+			o.key = key
+			o.save()
+
+		return o
+
+
+
+class VendorKey(models.Model):
+
+	id       = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	updater  = models.ForeignKey(Updater, related_name='+', on_delete = models.CASCADE)
+	vendor   = models.ForeignKey(Vendor,  related_name='+', on_delete = models.CASCADE, null = True, default = None)
+
+	key = models.CharField(max_length = 50, db_index = True)
+
+	state    = models.BooleanField(default = True, db_index = True)
+	created  = models.DateTimeField(default = timezone.now, db_index = True)
+	modified = models.DateTimeField(default = timezone.now, db_index = True)
+
+	objects  = VendorKeyManager()
+
+	def __str__(self):
+		return "{}".format(self.key)
+
+	def get_dicted(self):
+
+		result = {}
+
+		result['id'] = str(self.id)
+
+		if self.updater:
+			result['updater'] = self.updater.get_dicted()
+		else:
+			result['updater'] = None
+
+		if self.vendor:
+			result['vendor'] = self.vendor.get_dicted()
+		else:
+			result['vendor'] = None
+
+		result['key']    = self.key
+
+		result['state']       = self.state
+		result['created']     = str(self.created)
+		result['modified']    = str(self.modified)
+
+		return result
+
+
+	class Meta:
+		db_table        = 'catalog_vendor_key'
+		ordering        = ['key']
+		unique_together = ('updater', 'key')
+
+
+
 class UnitManager(models.Manager):
 
 
@@ -439,7 +512,7 @@ class UnitManager(models.Manager):
 
 class Unit(models.Model):
 
-	id             = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	id             = models.BigAutoField(primary_key = True, editable = False)
 
 	name           = models.TextField(db_index = True)
 	name_short     = models.TextField(null = True, default = '', db_index = True)
@@ -500,7 +573,7 @@ class PriceTypeManager(models.Manager):
 
 class PriceType(models.Model):
 
-	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	id         = models.BigAutoField(primary_key = True, editable = False)
 
 	name       = models.TextField(db_index = True)
 	alias      = models.TextField(unique = True)
@@ -561,7 +634,7 @@ class CurrencyManager(models.Manager):
 
 class Currency(models.Model):
 
-	id        = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+	id        = models.BigAutoField(primary_key = True, editable = False)
 
 	name      = models.TextField(db_index = True)
 	full_name = models.TextField(db_index = True)
@@ -600,192 +673,6 @@ class Currency(models.Model):
 	class Meta:
 		ordering = ['alias']
 
-
-class Price(models.Model):
-
-	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-	price_type = models.ForeignKey(PriceType, related_name = '+', null = True, default = None)
-	currency   = models.ForeignKey(Currency,  related_name = '+', null = True, default = None)
-
-	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None, db_index = True)
-	fixed      = models.BooleanField(default = False, db_index = True)
-
-	state      = models.BooleanField(default = True, db_index = True)
-	created    = models.DateTimeField(default = timezone.now, db_index = True)
-	modified   = models.DateTimeField(default = timezone.now, db_index = True)
-
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']       = str(self.id)
-		result['price']    = str(self.price)
-		result['fixed']    = self.fixed
-		result['state']    = self.state
-		result['created']  = str(self.created)
-		result['modified'] = str(self.modified)
-
-		try:
-			result['price_type'] = self.price_type.get_dicted()
-		except Exception:
-			result['price_type'] = None
-
-		try:
-			result['currency'] = self.currency.get_dicted()
-		except Exception:
-			result['currency'] = None
-
-		result['price_str'] = self._get_price_str()
-		result['price_xml'] = self._get_price_xml()
-
-		return result
-
-
-	def _get_price_str(self):
-
-		try:
-			price    = self.price
-			currency = self.currency
-		except Exception:
-			return ''
-
-		if price:
-			price = '{:,}'.format(round(price, 2))
-			price = price.replace(',', ' ')
-			price = price.replace('.', ',')
-			price = price + ' ' + currency.name
-		else:
-			return ''
-
-		return price
-
-	price_str = property(_get_price_str)
-
-
-	def _get_price_xml(self):
-
-		try:
-			price    = self.price
-			currency = self.currency
-		except:
-			return ''
-
-		if price:
-			price = '{:,}'.format(round(price, 2))
-			price = price.replace(',', '&nbsp;')
-			price = price.replace('.', ',')
-			price = price + '&nbsp;' + currency.name
-		else:
-			return '<i class="fa fa-phone"></i>'
-
-		return price
-
-	price_xml = property(_get_price_xml)
-
-
-	class Meta:
-		ordering = ['-created']
-
-
-class Quantity(models.Model):
-
-	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-	unit       = models.ForeignKey(Unit, related_name = '+', null = True, default = None)
-
-	on_stock   = models.BigIntegerField(null = True, default = 0, db_index = True)
-	on_transit = models.BigIntegerField(null = True, default = 0, db_index = True)
-	on_factory = models.BigIntegerField(null = True, default = 0, db_index = True)
-	fixed      = models.BooleanField(default = False, db_index = True)
-
-	state      = models.BooleanField(default = True, db_index = True)
-	created    = models.DateTimeField(default = timezone.now, db_index = True)
-	modified   = models.DateTimeField(default = timezone.now, db_index = True)
-
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']         = str(self.id)
-		result['on_stock']   = self.on_stock
-		result['on_transit'] = self.on_transit
-		result['on_factory'] = self.on_factory
-		result['fixed']      = self.fixed
-		result['state']      = self.state
-		result['created']    = str(self.created)
-		result['modified']   = str(self.modified)
-
-		try:
-			result['unit'] = self.unit.get_dicted()
-		except Exception:
-			result['unit'] = None
-
-		return result
-
-
-	def _get_on_stock_xml(self):
-
-		try:
-
-			if self.on_stock == -1:
-				quantity = '&infin;'
-			elif self.on_stock:
-				quantity = str(self.on_stock)
-			elif self.on_stock is None:
-				quantity = '?'
-			else:
-				quantity = ''
-		except:
-			quantity = ''
-
-		return quantity
-
-
-	def _get_on_transit_xml(self):
-
-		try:
-
-			if self.on_transit == -1:
-				quantity = '&infin;'
-			elif self.on_transit:
-				quantity = str(self.on_transit)
-			elif self.on_transit is None:
-				quantity = '?'
-			else:
-				quantity = ''
-				
-		except Exception:
-			quantity = ''
-
-		return quantity
-
-
-	def _get_on_factory_xml(self):
-
-		try:
-
-			if self.on_factory == -1:
-				quantity = '&infin;'
-			elif self.on_factory:
-				quantity = str(self.on_factory)
-			elif self.on_factory is None:
-				quantity = '?'
-			else:
-				quantity = ''
-		except Exception:
-			quantity = ''
-
-		return quantity
-
-
-	on_stock_xml   = property(_get_on_stock_xml)
-	on_transit_xml = property(_get_on_transit_xml)
-	on_factory_xml = property(_get_on_factory_xml)
-
-
-	class Meta:
-		ordering = ['-created']
 
 
 class ProductManager(models.Manager):
@@ -848,13 +735,21 @@ class ProductManager(models.Manager):
 
 class Product(models.Model):
 
-	id          = models.BigAutoField(primary_key = True)
-	vendor      = models.ForeignKey(Vendor,   related_name = '+')
-	category    = models.ForeignKey(Category, related_name = '+', null = True, default = None)
-	unit        = models.ForeignKey(Unit,     related_name = '+', null = True, default = None)
-	duble       = models.ForeignKey('self',   related_name = '+', null = True, default = None)
-	price       = models.ForeignKey(Price,    related_name = '+', null = True, default = None)
-	quantity    = models.ForeignKey(Quantity, related_name = '+', null = True, default = None)
+	id          = models.BigAutoField(primary_key = True, editable = False)
+	vendor      = models.ForeignKey(Vendor,    related_name = '+')
+	category    = models.ForeignKey(Category,  related_name = '+', null = True, default = None)
+	unit        = models.ForeignKey(Unit,      related_name = '+', null = True, default = None)
+	duble       = models.ForeignKey('self',    related_name = '+', null = True, default = None)
+	price_type  = models.ForeignKey(PriceType, related_name = '+', null = True, default = None)
+	currency    = models.ForeignKey(Currency,  related_name = '+', null = True, default = None)
+
+	on_stock   = models.BigIntegerField(null = True, default = 0, db_index = True)
+	on_transit = models.BigIntegerField(null = True, default = 0, db_index = True)
+	on_factory = models.BigIntegerField(null = True, default = 0, db_index = True)
+	fixed      = models.BooleanField(default = False, db_index = True)
+
+	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None, db_index = True)
+	fixed      = models.BooleanField(default = False, db_index = True)
 
 	name        = models.TextField(db_index = True)
 	article     = models.TextField(db_index = True)
@@ -1065,6 +960,7 @@ class Product(models.Model):
 
 	class Meta:
 		ordering = ['name']
+
 
 
 class PartyManager(models.Manager):
@@ -1326,75 +1222,6 @@ class PartyHystory(models.Model):
 	class Meta:
 		ordering = ['-date']
 
-
-class PriceHystory(models.Model):
-
-	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-	product    = models.ForeignKey(Product)
-	price_type = models.ForeignKey(PriceType, null = True, default = None)
-	currency   = models.ForeignKey(Currency, null = True, default = None)
-
-	price      = models.DecimalField(max_digits = 20, decimal_places = 2, null = True, default = None)
-	date       = models.DateField(db_index = True)
-
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']    = str(self.id)
-		result['price'] = str(self.price)
-		result['date']  = str(self.date)
-
-		try:    result['product']    = self.product.get_dicted()
-		except: result['product']    = None
-
-		try:    result['price_type'] = self.price_type.get_dicted()
-		except: result['price_type'] = None
-
-		try:    result['currency']   = self.currency.get_dicted()
-		except: result['currency']   = None
-
-		return result
-
-
-	class Meta:
-		ordering = ['-date']
-
-
-class QuantityHystory(models.Model):
-
-	id         = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-	product    = models.ForeignKey(Product, related_name = '+')
-	unit       = models.ForeignKey(Unit,    related_name = '+', null = True, default = None)
-
-	on_stock   = models.BigIntegerField(null = True, default = None)
-	on_transit = models.BigIntegerField(null = True, default = None)
-	on_factory = models.BigIntegerField(null = True, default = None)
-
-	date       = models.DateField()
-
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']         = str(self.id)
-		result['on_stock']   = self.on_stock
-		result['on_transit'] = self.on_transit
-		result['on_factory'] = self.on_factory
-		result['date']       = str(self.date)
-
-		try:    result['product'] = self.product.get_dicted()
-		except: result['product'] = None
-
-		try:    result['unit']    = self.unit.get_dicted()
-		except: result['unit']    = None
-
-		return result
-
-	class Meta:
-		ordering = ['-date']
 
 
 class ParameterTypeManager(models.Manager):
@@ -1894,143 +1721,6 @@ class ParameterSynonym(models.Model):
 		ordering = ['name']
 
 
-class CategorySynonymManager(models.Manager):
-
-	def get_all_dicted(self):
-		result = []
-		for o in self.all():
-			result.append(o.get_dicted())
-		return result
-
-	def take(self, name, updater = None, category = None):
-		name = str(name).strip()
-		try:
-			categorySynonym = self.get(
-				name        = name,
-				updater     = updater)
-		except CategorySynonym.DoesNotExist:
-			categorySynonym = CategorySynonym(
-				name        = name,
-				updater     = updater,
-				category    = category)
-			categorySynonym.save()
-		return categorySynonym
-
-
-class CategorySynonym(models.Model):
-
-	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-	updater     = models.ForeignKey(Updater,  related_name = '+', null = True, default = None)
-	category    = models.ForeignKey(Category, related_name = '+', null = True, default = None)
-
-	name        = models.TextField(db_index = True)
-
-	state       = models.BooleanField(default = True, db_index = True)
-	created     = models.DateTimeField(default = timezone.now, db_index = True)
-	modified    = models.DateTimeField(default = timezone.now, db_index = True)
-
-	objects     = CategorySynonymManager()
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']       = str(self.id)
-		result['name']     = self.name
-		result['created']  = str(self.created)
-		result['modified'] = str(self.modified)
-
-		try:
-			result['updater'] = self.updater.get_dicted()
-		except Exception:
-			result['updater']     = None
-
-		try:
-			result['category'] = self.category.get_dicted()
-		except Exception:
-			result['category'] = None
-
-		return result
-
-
-	def __str__(self):
-		return self.name
-
-
-	class Meta:
-		ordering = ['name']
-
-
-class VendorSynonymManager(models.Manager):
-
-
-	def get_all_dicted(self):
-		result = []
-		for o in self.all():
-			result.append(o.get_dicted())
-		return result
-
-
-	def take(self, name, updater = None, vendor = None):
-		name = str(name).strip()
-		try:
-			vendorSynonym = self.get(
-				name        = name,
-				updater     = updater)
-		except VendorSynonym.DoesNotExist:
-			vendorSynonym = VendorSynonym(
-				name        = name,
-				updater     = updater,
-				vendor      = vendor)
-			vendorSynonym.save()
-		return vendorSynonym
-
-
-class VendorSynonym(models.Model):
-
-	id          = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-	updater     = models.ForeignKey(Updater, related_name = '+', null = True, default = None)
-	vendor      = models.ForeignKey(Vendor,  related_name = '+', null = True, default = None)
-
-	name        = models.TextField(db_index = True)
-
-	state       = models.BooleanField(default = True, db_index = True)
-	created     = models.DateTimeField(default = timezone.now, db_index = True)
-	modified    = models.DateTimeField(default = timezone.now, db_index = True)
-
-	objects     = VendorSynonymManager()
-
-
-	def get_dicted(self):
-
-		result = {}
-
-		result['id']       = str(self.id)
-		result['name']     = self.name
-		result['created']  = str(self.created)
-		result['modified'] = str(self.modified)
-
-		try:
-			result['updater'] = self.updater.get_dicted()
-		except Exception:
-			result['updater'] = None
-
-		try:
-			result['vendor'] = self.vendor.get_dicted()
-		except Exception:
-			result['vendor'] = None
-
-		return result
-
-
-	def __str__(self):
-		return self.name
-
-
-	class Meta:
-		ordering = ['name']
-
-
 
 class ProductPhotoManager(models.Manager):
 
@@ -2118,22 +1808,20 @@ class ProductPhoto(models.Model):
 		ordering = ['-created']
 
 
+
 models = {
 	'distributor'           : Distributor,
 	'updater'               : Updater,
 	'stock'                 : Stock,
 	'category'              : Category,
 	'vendor'                : Vendor,
+	'vendorkey'             : VendorKey,
 	'unit'                  : Unit,
 	'pricetype'             : PriceType,
 	'currency'              : Currency,
-	'price'                 : Price,
-	'quantity'              : Quantity,
 	'product'               : Product,
 	'party'                 : Party,
 	'partyhystory'          : PartyHystory,
-	'pricehystory'          : PriceHystory,
-	'quantityhystory'       : QuantityHystory,
 	'parametertype'         : ParameterType,
 	'parameter'             : Parameter,
 	'parametervalue'        : ParameterValue,
@@ -2141,6 +1829,5 @@ models = {
 	'parametertoproduct'    : ParameterToProduct,
 	'parametertocategory'   : ParameterToCategory,
 	'parametersynonym'      : ParameterSynonym,
-	'categorysynonym'       : CategorySynonym,
-	'vendorsynonym'         : VendorSynonym,
+
 	'productphoto'          : ProductPhoto}
