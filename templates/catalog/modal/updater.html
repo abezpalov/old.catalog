@@ -1,35 +1,47 @@
 {% if perms.catalog.change_updater or perms.catalog.add_updater %}
-<div id="modal-edit-updater" class="reveal-modal large" data-reveal>
+<div id="modal-edit-updater" class="reveal" data-reveal>
 
-	<h2 id="modal-edit-updater-header">&ndsp;</h2>
+    <h2 id="modal-edit-updater-header"> </h2>
 
-	<input id="edit-updater-id" type="hidden" value="0">
+    <form>
 
-	<label>Наименование
-		<input id="edit-updater-name" type="text">
-	</label>
+        <input id="edit-updater-id" type="hidden" value="0">
 
-	<label>Псевдоним
-		<input id="edit-updater-alias" type="text">
-	</label>
+        <label>Наименование
+            <input id="edit-updater-name" type="text">
+        </label>
 
-	<label>Логин
-		<input id="edit-updater-login" type="text">
-	</label>
+        <label>Псевдоним (служебное поле)
+            <input id="edit-updater-alias" type="text">
+        </label>
 
-	<label>Пароль
-		<input id="edit-updater-password" type="text">
-	</label>
+        <label>Логин
+            <input id="edit-updater-login" type="text">
+        </label>
 
-	<label>Статус
-		<div class="switch small">
-			<input id="edit-updater-state" type="checkbox">
-			<label for="edit-updater-state"></label>
-		</div>
-	</label>
+        <label>Пароль
+            <input id="edit-updater-password" type="text">
+        </label>
 
-	<button data-do="edit-updater-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-updater-cancel" class="secondary">Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
+        <label>Статус
+            <div class="switch small">
+                <input class="switch-input" id="edit-updater-state" type="checkbox">
+                <label class="switch-paddle" for="edit-updater-state"></label>
+            </div>
+        </label>
+
+        <hr/>
+
+        <div class="button-group">
+            <a class="button" data-do="edit-updater-save">Сохранить</a>
+            <a class="button secondary" data-do="edit-updater-cancel">Отменить</a>
+        </div>
+
+        </form>
+
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
 </div>
 {% endif %}

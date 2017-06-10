@@ -2,197 +2,130 @@ import catalog.runner
 from catalog.models import *
 
 
-# TODO Добавить проверку на Б/У
-# TODO Добавить классификацию
-
-
 class Runner(catalog.runner.Runner):
 
-	name  = 'Auvix'
-	alias = 'auvix'
-	url = {
-		'start'  : 'http://b2b.auvix.ru/',
-		'login'  : 'http://b2b.auvix.ru/?login=yes',
-		'price'  : 'http://b2b.auvix.ru/prices/Price_AUVIX_dealer_csv.zip'}
+    name  = 'Auvix'
+    alias = 'auvix'
+    test  = False
+    url   = {'start'  : 'https://b2b.auvix.ru/',
+             'login'  : 'https://b2b.auvix.ru/?login=yes',
+             'price'  : 'https://b2b.auvix.ru/prices/Price_AUVIX_dealer_xml.zip'}
 
+    def __init__(self):
 
-	def __init__(self):
+        super().__init__()
 
-		super().__init__()
+        self.stock   = self.take_stock('stock',   'склад', 3, 10)
+        self.factory = self.take_stock('factory', 'на заказ', 20, 80)
 
-		self.stock   = self.take_stock('stock',   'склад', 3, 10)
-		self.factory = self.take_stock('factory', 'на заказ', 20, 80)
+    def run(self):
 
-		self.count = {
-			'product' : 0,
-			'party'   : 0}
+        # Авторизуемся
+        self.login({'AUTH_FORM'     : 'Y',
+                    'TYPE'          : 'AUTH',
+                    'backurl'       : '/',
+                    'USER_LOGIN'    : self.updater.login,
+                    'USER_PASSWORD' : self.updater.password,
+                    'Login'         : '%C2%A0',
+                    'USER_REMEMBER' : 'Y'})
 
+        # Загружаем данные
+        self.data = self.load_data(self.url['price'])
+        self.data = self.unpack_xml(self.data)
+        if self.data is None:
+            return None
 
-	def run(self):
+        # Парсим
+        self.parse(self.data)
 
-		# Авторизуемся
-		payload = {
-			'AUTH_FORM'     : 'Y',
-			'TYPE'          : 'AUTH',
-			'backurl'       : '/',
-			'USER_LOGIN'    : self.updater.login,
-			'USER_PASSWORD' : self.updater.password,
-			'Login'         : '%C2%A0',
-			'USER_REMEMBER' : 'Y'}
-		if not self.login(payload):
-			return False
+        # Чистим партии
+        Party.objects.clear(stock = self.stock,   time = self.start_time)
+        Party.objects.clear(stock = self.factory, time = self.start_time)
 
-		# Загружаем
-		data = self.load_data(self.url['price'])
-		data = self.unpack(data)
+        # Пишем результат в лог
+        self.log()
 
-		# Порсим
-		self.parse(data)
+    def parse(self, tree):
 
-		# Чистим партии
-		Party.objects.clear(stock = self.stock,   time = self.start_time)
-		Party.objects.clear(stock = self.factory, time = self.start_time)
+        import re
 
-		# Пишем результат в лог
-		self.log()
-		
+        currency = {
+            'USD'   : self.usd,
+            'Евро'  : self.eur,
+            'Рубль' : self.rub}
 
-	def parse(self, data):
+        for group in tree.xpath('.//Группа'):
 
-		num = {}
+            self.reg = re.compile('\[(?P<article>[0-9A-Za-z\.\-\_ ]+)\]')
 
-		data = data.read().decode('cp1251')
+            category = self.get_string(group, './Наименование')
 
-		# Распознаваемые слова
-		word = {
-			'party_article'       : 'Идентификатор',
-			'party_price_out'     : 'Розничная цена в валюте товара',
-			'party_price'         : 'Дилерская цена в валюте товара',
-			'party_quantity'      : 'Наличие на складе 0 - нет/1 - есть)',
-			'product_category'    : 'Категория',
-			'product_article'     : 'Модель',
-			'product_name'        : 'Название',
-			'product_vendor'      : 'Производитель',
-			'party_currency'      : 'Валюта товара',
-			'party_price_out_rub' : 'Дилерская цена в рублях'}
+            for element in group.xpath('./Товары/Товар'):
 
-		currency = {
-			'USD'   : self.usd,
-			'Евро'  : self.eur,
-			'Рубль' : self.rub}
+                # Временные значения
+                product_ = {}
+                party_ = {}
 
-		for rn, row in enumerate(data.split('\n')):
+                # Производитель
+                product_['vendor'] = Vendor.objects.get_by_key(self.updater, self.get_string(element, './Производитель'))
 
-			# Распознаём 
-			if rn == 0:
+                # Продукт
+                product_['name'] = self.fix_name(self.get_string(element, './Наименование'))
 
-				for cn, cel in enumerate(row.split(';')):
+                product_['article'] = self.get_string(element, './Модель')
+                product_['article_alt'] = re.search(self.reg, self.get_string(element, './Наименование'))
+                if product_['article_alt']:
+                    product_['article'] = product_['article_alt'].group('article')
+                product_['article'] = self.fix_article(product_['article'])
 
-					if str(cel).strip() == word['party_article']:
-						num['party_article'] = cn
-					elif str(cel).strip() == word['party_price_out']:
-						num['party_price_out'] = cn
-					elif str(cel).strip() == word['party_price']:
-						num['party_price'] = cn
-					elif str(cel).strip() == word['party_quantity']:
-						num['party_quantity'] = cn
-					elif str(cel).strip() == word['product_category']:
-						num['product_category'] = cn
-					elif str(cel).strip() == word['product_article']:
-						num['product_article'] = cn
-					elif str(cel).strip() == word['product_name']:
-						num['product_name'] = cn
-					elif str(cel).strip() == word['product_vendor']:
-						num['product_vendor'] = cn
-					elif str(cel).strip() == word['party_currency']:
-						num['party_currency'] = cn
-					elif str(cel).strip() == word['party_price_out_rub']:
-						num['party_price_out_rub'] = cn
+                try:
+                    product = Product.objects.take(article  = product_['article'],
+                                                   vendor   = product_['vendor'],
+                                                   name     = product_['name'],
+                                                   category = category)
+                    self.products.append(product)
+                except ValueError as error:
+                    if self.test:
+                        print(error)
+                        exit()
+                    continue
 
-				if len(num) < 10:
-					print("Ошибка структуры данных: не все столбцы опознаны.")
-					return False
-				else:
-					print("Структура данных без изменений.")
+                # Партии
+                party_['article'] = self.get_string(element, './Артикул')
 
-			else:
+                party_['quantity'] = self.fix_quantity(self.get_string(element, './Количество'))
 
-				row = row.split(';')
+                party_['currency'] = self.get_string(element, './Валюта')
+                if party_['currency']:
+                    party_['currency'] = currency[party_['currency']]
+                else:
+                    party_['currency'] = None
 
-				if len(row) < 10:
-					continue
+                party_['price_in'] = self.fix_price(self.get_string(element, './Цена_3'))
+                party_['price_out'] = self.fix_price(self.get_string(element, './Цена_1'))
 
-				product_article     = self.fix_article(row[num['product_article']])
-				product_name        = row[num['product_name']]
+                try:
+                    party = Party.objects.make(product    = product,
+                                               stock      = self.stock,
+                                               price      = party_['price_in'],
+                                               currency   = party_['currency'],
+                                               quantity   = party_['quantity'],
+                                               time       = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    if self.test:
+                        print(error)
+                        exit()
 
-				product_vendor      = self.take_vendor(row[num['product_vendor']])
-
-				party_article       = row[num['party_article']]
-				party_price_out     = self.fix_price(row[num['party_price_out']])
-				party_price         = self.fix_price(row[num['party_price']])
-				party_quantity      = self.fix_quantity(row[num['party_quantity']])
-				party_currency      = currency.get(row[num['party_currency']], None)
-
-				party_price_out_rub = self.fix_price(row[num['party_price_out_rub']])
-
-				if product_article and product_name and product_vendor:
-
-					# Получаем объект товара
-					product = Product.objects.take(
-						article  = product_article,
-						vendor   = product_vendor,
-						name     = product_name,
-						category = None,
-						unit     = self.default_unit)
-					self.count['product'] += 1
-
-					# Добавляем партии
-					if party_currency:
-
-						if party_quantity is None:
-
-							party = Party.objects.make(
-								product    = product,
-								stock      = self.stock,
-								price      = party_price,
-								price_type = self.dp,
-								currency   = party_currency,
-								quantity   = None,
-								unit       = self.default_unit,
-								time       = self.start_time)
-							self.count['party'] += 1
-
-						else:
-
-							party = Party.objects.make(
-								product    = product,
-								stock      = self.factory,
-								price      = party_price,
-								price_type = self.dp,
-								currency   = party_currency,
-								quantity   = None,
-								unit       = self.default_unit,
-								time       = self.start_time)
-							self.count['party'] += 1
-
-
-	def fix_quantity(self, quantity):
-
-		if quantity == '1':
-			return None
-		else:
-			return 0
-
-
-	def fix_article(self, article):
-
-		if 'Уценка' in article or 'демо' in article or 'ДЕМО' in article or 'б.у.' in article:
-			return None
-
-		article = article.replace('SAMS ', '')
-		article = article.replace('SH ', '')
-		article = article.replace('LG ', '')
-		article = article.replace('PNC ', '')
-		article = article.replace('PHIL ', '')
-
-		return article
+                try:
+                    party = Party.objects.make(product    = product,
+                                               stock      = self.factory,
+                                               price      = party_['price_in'],
+                                               currency   = party_['currency'],
+                                               quantity   = None,
+                                               time       = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    if self.test:
+                        print(error)
+                        exit()

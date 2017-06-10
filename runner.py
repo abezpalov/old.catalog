@@ -8,311 +8,458 @@ from catalog.models import *
 
 class Runner:
 
+    test = True
 
-	def __init__(self):
+    def __init__(self):
 
-		self.start_time = timezone.now()
+        self.start_time = timezone.now()
 
-		self.distributor = Distributor.objects.take(
-			alias = self.alias,
-			name  = self.name)
+        self.distributor = Distributor.objects.take(
+            alias = self.alias,
+            name  = self.name)
 
-		self.updater = Updater.objects.take(
-			alias       = self.alias,
-			name        = self.name,
-			distributor = self.distributor)
+        self.updater = Updater.objects.take(
+            alias       = self.alias,
+            name        = self.name,
+            distributor = self.distributor)
 
-		self.default_unit = Unit.objects.take(alias = 'pcs', name = 'шт.')
+        self.rub = Currency.objects.take(
+            alias     = 'RUB',
+            name      = 'р.',
+            full_name = 'Российский рубль',
+            rate      = 1,
+            quantity  = 1)
+
+        self.usd = Currency.objects.take(
+            alias     = 'USD',
+            name      = '$',
+            full_name = 'US Dollar',
+            rate      = 60,
+            quantity  = 1)
 
-		self.dp = PriceType.objects.take(
-			alias = 'DP', name = 'Диллерская цена')
+        self.eur = Currency.objects.take(
+            alias     = 'EUR',
+            name      = 'EUR',
+            full_name = 'Euro',
+            rate      = 80,
+            quantity  = 1)
 
-		self.rp = PriceType.objects.take(
-			alias = 'RP', name = 'Розничная цена')
+        self.s = requests.Session()
 
-		self.rrp = PriceType.objects.take(
-			alias = 'RRP', name  = 'Рекомендованная розничная цена')
+        Log.objects.add(
+            subject     = "catalog.updater.{}".format(self.updater.alias),
+            channel     = "start",
+            title       = "Start",
+            description = "Запущен загрузчик {}.".format(self.updater.name))
 
-		self.rub = Currency.objects.take(
-			alias     = 'RUB',
-			name      = 'р.',
-			full_name = 'Российский рубль',
-			rate      = 1,
-			quantity  = 1)
+        self.products = []
+        self.parties = []
 
-		self.usd = Currency.objects.take(
-			alias     = 'USD',
-			name      = '$',
-			full_name = 'US Dollar',
-			rate      = 60,
-			quantity  = 1)
 
-		self.eur = Currency.objects.take(
-			alias     = 'EUR',
-			name      = 'EUR',
-			full_name = 'Euro',
-			rate      = 80,
-			quantity  = 1)
+    def take_stock(self, alias_end = 'stock', name_end = 'склад',
+                delivery_time_min = 5, delivery_time_max = 10):
 
-		self.s = requests.Session()
+        stock = Stock.objects.take(
+            alias             = '{}-{}'.format(self.alias, alias_end),
+            name              = '{}: {}'.format(self.name, name_end),
+            delivery_time_min = delivery_time_min,
+            delivery_time_max = delivery_time_max,
+            distributor       = self.distributor)
 
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "start",
-			title       = "Start",
-			description = "Запущен загрузчик {}.".format(self.updater.name))
+        return stock
 
 
-	def take_stock(self, alias_end = 'stock', name_end = 'склад',
-				delivery_time_min = 5, delivery_time_max = 10):
+    def take_vendor(self, key):
 
-		stock = Stock.objects.take(
-			alias             = '{}-{}'.format(self.alias, alias_end),
-			name              = '{}: {}'.format(self.name, name_end),
-			delivery_time_min = delivery_time_min,
-			delivery_time_max = delivery_time_max,
-			distributor       = self.distributor)
+        return Vendor.objects.get_by_key(
+            updater = self.updater,
+            key     = key)
 
-		return stock
 
+    def take_parametersynonym(self, name):
 
-	def take_vendor(self, key):
+        return ParameterSynonym.objects.take(
+            name        = name,
+            updater     = self.updater)
 
-		return Vendor.objects.get_by_key(
-			updater = self.updater,
-			key     = key)
 
+    def load(self, url, result_type = None, timeout = 100.0, try_quantity = 10):
 
-	def take_parametersynonym(self, name):
+        import time
 
-		return ParameterSynonym.objects.take(
-			name        = name,
-			updater     = self.updater)
+        try:
+            self.cookies
+        except AttributeError:
+            self.cookies = None
 
+        for i in range(try_quantity):
 
-	def load(self, url, result_type = None, timeout = 100.0, try_quantity = 10):
+            try:
+                if self.cookies is None:
+                    r = self.s.get(url, allow_redirects = True, verify = False,
+                        timeout = timeout)
+                    self.cookies = r.cookies
+                else:
+                    r = self.s.get(url, cookies = self.cookies,
+                        allow_redirects = True, verify = False, timeout = timeout)
+                    self.cookies = r.cookies
 
-		import time
+            except requests.exceptions.Timeout:
+                print("Ошибка: превышен интервал ожидания [{}].".format(url))
+                if i + 1 == try_quantity:
+                    return None
+                else:
+                    time.sleep(10)
+                    print("Пробую ещё раз.")
 
-		try:
-			self.cookies
-		except AttributeError:
-			self.cookies = None
+            except Exception:
+                print("Ошибка: нет соединения [{}].".format(url))
+                if i + 1 == try_quantity:
+                    return None
+                else:
+                    time.sleep(10)
+                    print("Пробую ещё раз.")
 
-		for i in range(try_quantity):
+            else:
+                break
 
-			try:
-				if self.cookies is None:
-					r = self.s.get(url, allow_redirects = True, verify = False,
-						timeout = timeout)
-					self.cookies = r.cookies
-				else:
-					r = self.s.get(url, cookies = self.cookies,
-						allow_redirects = True, verify = False, timeout = timeout)
-					self.cookies = r.cookies
+        if result_type == 'cookie':
+            return r.cookie
+        elif result_type == 'text':
+            return r.text
+        elif result_type == 'content':
+            return r.content
+        elif result_type == 'request':
+            return r
 
-			except requests.exceptions.Timeout:
-				print("Ошибка: превышен интервал ожидания [{}].".format(url))
-				if i + 1 == try_quantity:
-					return None
-				else:
-					time.sleep(10)
-					print("Пробую ещё раз.")
+        return r
 
-			except Exception:
-				print("Ошибка: нет соединения [{}].".format(url))
-				if i + 1 == try_quantity:
-					return None
-				else:
-					time.sleep(10)
-					print("Пробую ещё раз.")
 
-			else:
-				break
+    def load_cookie(self, timeout = 100.0):
 
-		if result_type == 'cookie':
-			return r.cookie
-		elif result_type == 'text':
-			return r.text
-		elif result_type == 'content':
-			return r.content
-		elif result_type == 'request':
-			return r
+        self.load(self.url['start'], timeout = 100.0)
 
-		return r
+        return True
 
 
-	def load_cookie(self, timeout = 100.0):
+    def login(self, payload = {}, timeout = 100.0):
 
-		self.load(self.url['start'], timeout = 100.0)
+        url = self.url['login']
 
-		return True
+        # Параметры авторизации
+        if not self.updater.login or not self.updater.password:
+            raise('Ошибка: отсутствуют параметры авторизации.')
 
+        self.load_cookie()
 
-	def login(self, payload = {}, timeout = 100.0):
+        # Авторизуемся
+        try:
+            r = self.s.post(url, cookies = self.cookies,
+                    data = payload, allow_redirects = True, verify = False,
+                    timeout = timeout)
+            self.cookies = r.cookies
+        except requests.exceptions.Timeout:
+            raise(ValueError("Ошибка: превышен интервал ожидания [{}].".format(url)))
+        except Exception:
+            raise(ValueError("Ошибка: нет соединения [{}].".format(url)))
 
-		url = self.url['login']
+        return True
 
-		# Параметры авторизации
-		if self.updater.login and self.updater.password:
-			print('Получены параметры авторизации.')
-		else:
-			print('Ошибка: отсутствуют параметры авторизации.')
-			Log.objects.add(
-				subject     = 'catalog.updater.{}'.format(self.updater.alias),
-				channel     = 'error',
-				title       = 'login error',
-				description = 'Ошибка: отсутствуют параметры авторизации.')
-			return None
 
-		self.load_cookie()
+    def load_text(self, url, timeout = 100.0):
 
-		# Авторизуемся
-		try:
-			r = self.s.post(url, cookies = self.cookies,
-					data = payload, allow_redirects = True, verify = False,
-					timeout = timeout)
-			self.cookies = r.cookies
-		except requests.exceptions.Timeout:
-			print("Ошибка: ревышен интервал ожидания.")
-			return None
-		except Exception:
-			print("Ошибка: нет соединения [{}].".format(url))
-			return None
+        return self.load(url, result_type = 'text', timeout = 100.0)
 
-		return True
 
+    def load_html(self, url, timeout = 100.0):
 
-	def load_text(self, url, timeout = 100.0):
+        import lxml.html
 
-		return self.load(url, result_type = 'text', timeout = 100.0)
+        text = self.load(url, result_type = 'text', timeout = 100.0)
 
+        try:
+            tree = lxml.html.fromstring(text)
 
-	def load_html(self, url, timeout = 100.0):
+        except Exception:
+            return None
 
-		import lxml.html
+        return tree
 
-		text = self.load(url, result_type = 'text', timeout = 100.0)
 
-		try:
-			tree = lxml.html.fromstring(text)
+    def load_xml(self, url, timeout = 100.0):
 
-		except Exception:
-			return None
+        import lxml.etree
 
-		return tree
+        text = self.load(url, result_type = 'text', timeout = 500.0)
 
+        try:
+            tree = lxml.etree.fromstring(text.encode('utf-8'))
 
-	def load_xml(self, url, timeout = 100.0):
+        except Exception:
+            return None
 
-		import lxml.etree
+        return tree
 
-		text = self.load(url, result_type = 'text', timeout = 500.0)
+    def load_data(self, url, timeout = 100.0):
+        from io import BytesIO
+        content = self.load(url, result_type = 'content', timeout = 100.0)
+        return BytesIO(content)
 
-		try:
-			tree = lxml.etree.fromstring(text.encode('utf-8'))
+    def unpack(self, data):
+        from catalog.lib.zipfile import ZipFile
+        try:
+            zip_data = ZipFile(data)
+            data = zip_data.open(zip_data.namelist()[0])
+        except Exception:
+            return None
+        else:
+            return data
 
-		except Exception:
-			return None
+    def unpack_xml(self, data):
+        import lxml.etree
+        data = self.unpack(data)
+        text = data.read()
+        try:
+            tree = lxml.etree.fromstring(text.decode('utf-8'))
+        except Exception:
+            return None
+        return tree
 
-		return tree
+    def fix_string(self, string):
 
+        # Избавляемся от исключений
+        if string is None:
+            string = ''
+        else:
+            string = str(string)
 
-	def load_data(self, url, timeout = 100.0):
+        # Убираем ненужные символы
+        string = string.replace('\t', ' ')
+        string = string.replace('\n', ' ')
 
-		from io import BytesIO
+        # Убираем двойные пробелы
+        while '  ' in string:
+            string = string.replace('  ', ' ')
 
-		content = self.load(url, result_type = 'content', timeout = 100.0)
+        # Убираем обрамляющие пробелы
+        string = string.strip()
 
-		return BytesIO(content)
+        return string
 
+    def get_string(self, element, query):
+        try:
+            string = element.xpath(query)[0].text
+        except Exception:
+            string = ''
+        string = self.fix_string(string)
+        return string
 
-	def unpack(self, data):
+    def fix_text(self, text):
 
-		from catalog.lib.zipfile import ZipFile
+        # Избавляемся от исключений
+        if text is None:
+            text = ''
+        else:
+            text = str(text)
 
-		try:
-			zip_data = ZipFile(data)
-			data = zip_data.open(zip_data.namelist()[0])
-		except Exception:
-			return None
-		else:
-			return data
+        # Убираем двойные пробелы
+        while '  ' in text:
+            text = text.replace('  ', ' ')
 
+        # Убираем обрамляющие пробелы
+        text = text.strip()
 
-	def fix_price(self, price):
+        return text
 
-		price = str(price).strip()
 
-		if price in ('Цена не найдена', 'звоните', 'CALL', '?',):
-			return None
+    def get_text(self, element, query):
 
-		translation_map = {
-			ord('$') : '', ord('€') : '', ord(' ') : '',
-			ord('р') : '', ord('у') : '', ord('б') : '',
-			ord('R') : '', ord('U') : '', ord('B') : '',
-			ord('+') : '', ord(',') : '.'}
+        try:
+            text = element.xpath(query)[0].text
+        except Exception:
+            text = ''
 
-		price = price.translate(translation_map)
+        text = self.fix_text(text)
 
-		try:
-			price = float(price)
+        return text
 
-		except ValueError:
-			return None
 
-		if not price:
-			return None
+    def get_int(self, element, query, index = 0):
 
-		return price
+        try:
+            i = int(element.xpath(query)[index].text.strip())
 
+        except Exception:
+            i = 0
 
-	def fix_quantity(self, quantity):
+        return i
 
-		quantity = str(quantity).strip()
 
-		try:
-			if quantity in ('', '0*', 'call'):
-				return 0
+    def get_float(self, element, query, index = 0):
 
-			elif quantity == 'Есть':
-				return 1
+        try:
+            text = element.xpath(query)[index].text.strip()
+            text = text.replace('₽', '')
+            text = text.replace('$', '')
+            text = text.replace(' ', '')
+            text = text.replace('&nbsp;', '')
+            text = text.replace(' ', '') # Хитрый пробел
+            print(text)
+            result = float(text)
 
-			elif quantity in('мало', '+', '+ '):
-				return 5
+        except Exception:
+            result = None
 
-			elif quantity in ('много', '++', '++ '):
-				return 10
+        return result
 
-			elif quantity in ('+++', '+++ '):
-				return 50
 
-			elif quantity in ('++++', '++++ '):
-				return 100
+    def get_href(self, element, query, index = 0):
 
-			else:
-				return int(quantity)
+        try:
+            result = element.xpath(query)[index].strip()
 
-		except Exception:
-			return 0
+            if self.url.get('base', None):
+                if self.url['base'] not in result:
+                    result = self.url['base'] + result
 
+        except Exception:
+            result = ''
 
-	def log(self):
+        return result
 
-		if self.count['product'] and self.count['party']:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "info",
-				title       = "Updated",
-				description = "Updated: products - {}; parties - {}.".format(
-					'{:,}'.format(self.count['product']).replace(',', ' '),
-					'{:,}'.format(self.count['party']).replace(',', ' ')))
 
-		else:
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "Error",
-				description = "Updated error: products - {}; parties - {}.".format(
-					'{:,}'.format(self.count['product']).replace(',', ' '),
-					'{:,}'.format(self.count['party']).replace(',', ' ')))
+    def fix_price(self, price):
+
+        price = str(price).strip()
+
+        if price in ('Цена не найдена', 'звоните', 'Звоните', 'CALL', '?',):
+            return None
+
+        translation_map = {
+            ord('$') : '', ord('€') : '', ord(' ') : '',
+            ord('р') : '', ord('у') : '', ord('б') : '',
+            ord('R') : '', ord('U') : '', ord('B') : '',
+            ord('+') : '', ord(',') : '.'}
+
+        price = price.translate(translation_map)
+
+        try:
+            price = float(price)
+
+        except ValueError:
+            return None
+
+        if not price:
+            return None
+
+        return price
+
+
+    def fix_quantity(self, quantity):
+
+        # Гарантируем строковой тип
+        quantity = str(quantity).strip()
+
+        quantity = quantity.replace('>', '')
+        quantity = quantity.replace('более ', '')
+
+        if quantity in ('', '0*', 'call', 'Нет'):
+            return 0
+        elif quantity in ('Звоните', 'под заказ'):
+            return None
+        elif quantity in ('Есть'):
+            return 1
+        elif quantity in('мало', '+', '+ '):
+            return 2
+        elif quantity in ('много', '++', '++ ', 'Много'):
+            return 5
+        elif quantity in ('+++', '+++ '):
+            return 50
+        elif quantity in ('++++', '++++ '):
+            return 100
+
+        try:
+            quantity = int(float(quantity))
+        except Exception:
+            return 0
+
+        return quantity
+
+
+    def fix_article(self, article):
+
+        # Гарантируем строковой тип
+        article = str(article)
+
+        # Проверяем на наличие стоп-сочетиний
+        if ' ' in article or'Уценка' in article or 'демо' in article or 'ДЕМО' in article or 'DEMO' in article or 'б.у.' in article:
+            return None
+
+        # Избавляемся от мусорных символов
+        translation_map = {
+            ord('(') : '', ord(')') : '', ord('[') : '',
+            ord(']') : '', ord('™') : '', ord('®') : ''}
+        article = article.translate(translation_map)
+        article = article.replace('\u00AD', '')
+        article = article.replace('\t', ' ')
+        article = article.replace('\n', ' ')
+
+        # Убираем двойные пробелы
+        while '  ' in article:
+            article = article.replace('  ', ' ')
+
+        # Убираем обрамляющие пробелы
+        article = str(article).strip()
+
+        return article
+
+
+    def fix_name(self, name):
+
+        # Гарантируем строковой тип
+        name = str(name)
+
+        # Проверяем на наличие стоп-сочетиний
+        if 'демо' in name or 'ДЕМО' in name or 'DEMO' in name or 'б.у.' in name or 'Б/У' in name:
+            return None
+
+        # Избавляемся от мусорных символов
+        translation_map = {
+            ord('(') : '', ord(')') : '', ord('[') : '',
+            ord(']') : '', ord('™') : '', ord('®') : ''}
+        name = name.translate(translation_map)
+        name = name.replace('\u00AD', '')
+        name = name.replace('\t', ' ')
+        name = name.replace('\n', ' ')
+
+        # Убираем двойные пробелы
+        while '  ' in name:
+            name = name.replace('  ', ' ')
+
+        # Убираем обрамляющие пробелы
+        name = name.strip()
+
+
+        return name
+
+
+
+    def log(self):
+
+        if len(self.products) and len(self.parties):
+            Log.objects.add(
+                subject     = "catalog.updater.{}".format(self.updater.alias),
+                channel     = "info",
+                title       = "Updated",
+                description = "Updated: products - {}; parties - {}.".format(
+                    '{:,}'.format(len(self.products)).replace(',', ' '),
+                    '{:,}'.format(len(self.parties)).replace(',', ' ')))
+
+        else:
+            Log.objects.add(
+                subject     = "catalog.updater.{}".format(self.updater.alias),
+                channel     = "error",
+                title       = "Error",
+                description = "Updated error: products - {}; parties - {}.".format(
+                    '{:,}'.format(len(self.products)).replace(',', ' '),
+                    '{:,}'.format(len(self.parties)).replace(',', ' ')))

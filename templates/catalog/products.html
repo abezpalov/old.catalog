@@ -52,10 +52,10 @@
 			<td class="text-right" style="white-space: nowrap;">
 				<a
 					data-do = "open-view-parties"
-					data-id = "{{ product.id }}">{% autoescape off %}{{ product.price.price_xml }}{% endautoescape %}</a></td>
-			<td class="text-center" style="white-space: nowrap;">{% if product.quantity %}{% autoescape off %}{{ product.quantity.on_stock_xml }}{% endautoescape %}{% endif %}</td>
-			<td class="text-center" style="white-space: nowrap;">{% if product.quantity %}{% autoescape off %}{{ product.quantity.on_transit_xml }}{% endautoescape %}{% endif %}</td>
-			<td class="text-center" style="white-space: nowrap;">{% if product.quantity %}{% autoescape off %}{{ product.quantity.on_factory_xml }}{% endautoescape %}{% endif %}</td>
+					data-id = "{{ product.id }}">{% autoescape off %}{{ product.price_xml }}{% endautoescape %}</a></td>
+			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_stock_xml }}{% endautoescape %}</td>
+			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_transit_xml }}{% endautoescape %}</td>
+			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_factory_xml }}{% endautoescape %}</td>
 			{% if perms.catalog.change_product %}
 			<td>
 				<div class = "switch small">

@@ -1,0 +1,148 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Catalog: Управление продуктами{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_product or perms.catalog.change_product or perms.catalog.delete_product %}
+
+<div class="row">
+    <ul class="menu">
+        <li><a href="/catalog/manage/categories/">Категории</a></li>
+        <li class="active"><a href="/catalog/manage/products/">Продукты</a></li>
+    </ul>
+</div>
+
+<hr/>
+
+<div class="row">
+	<div class="button-group">
+		{% if perms.catalog.add_product %}
+        <a class="button secondary" data-do="open-new-product"><i class="fal fal-lg"></i>&nbsp;Добавить продукт</a>
+        {% endif %}
+		{% if perms.catalog.add_category %}
+        <a class="button secondary" data-do="open-new-category"><i class="fal fal-lg"></i>&nbsp;Добавить категорию</a>
+        {% endif %}
+		{% if perms.catalog.add_vendor %}
+        <a class="button secondary" data-do="open-new-vendor"><i class="fal fal-lg"></i>&nbsp;Добавить производителя</a>
+        {% endif %}
+	</div>
+</div>
+
+<div class="row">
+	<table>
+        <thead>
+    		<tr>
+    			<th width="1%">#</th>
+                <th>Производитель</th>
+                <th>Артикул</th>
+    			<th>Наименование</th>
+                <th>Категория</th>
+    			<th width="1%">Edited</th>
+    			<th width="1%">Tested</th>
+    			<th width="1%">State</th>
+    		</tr>
+        </thead>
+        <tbody>
+    		{% for product in products %}
+    		<tr data-product = "{{ product.id }}">
+    			<td>{{ product.n }}</td>
+                <td>{{ product.vendor }}</td>
+                <td>{{ product.article }}</td>
+    			<td>
+    				<a
+    					data-do = "open-edit-product"
+    					data-product-id = "{{ product.id }}"
+    					data-product-name = "{{ product.id }}">{{ product.name }}</a>
+                </td>
+                <td>
+                    <a
+                        data-do="select-category"
+                        data-product-id = "{{ product.id }}"
+    					data-category-name = "{{ product.category.id }}">
+                            {% if product.category.name %}
+                            {{ product.category.name }}
+                            {% else %}...{% endif %}</a>
+                </td>
+    			<td>
+    				<div class="switch small">
+    					<input
+                            class="switch-input"
+    						id="product-{{ product.id }}-edited"
+    						data-do="switch-product-edited"
+    						data-product-id="{{ product.id }}"
+    						data-product-edited="{{ product.id }}"
+    						type = "checkbox"{% if product.edited %} checked{% endif %}>
+    					<label class="switch-paddle" for="product-{{ product.id }}-edited"></label>
+    				</div>
+    			</td>
+    			<td>
+    				<div class="switch small">
+    					<input
+                            class="switch-input"
+    						id="product-{{ product.id }}-tested"
+    						data-do="switch-product-tested"
+    						data-product-id="{{ pfroduct.id }}"
+    						data-product-tested="{{ product.id }}"
+    						type = "checkbox"{% if product.tested %} checked{% endif %}>
+    					<label class="switch-paddle" for="product-{{ product.id }}-tested"></label>
+    				</div>
+    			</td>
+    			<td>
+    				<div class="switch small">
+    					<input
+                            class="switch-input"
+    						id="product-{{ product.id }}-state"
+    						data-do="switch-product-state"
+    						data-product-id="{{ pfroduct.id }}"
+    						data-product-state="{{ product.id }}"
+    						type = "checkbox"{% if product.state %} checked{% endif %}>
+    					<label class="switch-paddle" for="product-{{ product.id }}-state"></label>
+    				</div>
+    			</td>
+    		</tr>
+    		{% endfor %}
+        </tbody>
+	</table>
+
+	<!-- Pagination -->
+	{% if pages %}
+	<div class="pagination-centered">
+		<ul class="pagination">
+			<li class="arrow{% if not page_prev %} unavailable{% endif %}"><a{% if page_prev %} href="{{ url }}{% if page_prev > 1 %}page/{{ page_prev }}/{% endif %}"{% endif %}>&laquo; Влево</a></li>
+			{% for n in pages %}
+				{% if n %}
+				<li{% if page == n %} class="current"{% endif %}><a href="{{ url }}page/{{ n }}/">{{ n }}</a></li>
+				{% else %}
+				<li class="unavailable"><a>&hellip;</a></li>
+				{% endif %}
+			{% endfor %}
+			<li class="arrow{% if not page_next %} unavailable{% endif %}"><a{% if page_next %} href="{{ url }}page/{{ page_next }}/"{% endif %}>Вправо &raquo;</a></li>
+		</ul>
+	</div>
+	{% endif %}
+
+    {% include "catalog/modal/product.html" %}
+</div>
+
+{% else %}
+
+<div class="row">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/product.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

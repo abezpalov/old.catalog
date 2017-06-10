@@ -12,7 +12,7 @@ $("body").delegate("[data-do='open-new-stock']", "click", function(){
 	$('#edit-' + model + '-alias').val('');
 	$('#edit-' + model + '-state').prop('checked', true);
 
-	$('#modal-edit-' + model).foundation('reveal', 'open');
+	$('#modal-edit-' + model).foundation('open');
 
 	return false;
 });
@@ -40,7 +40,7 @@ $("body").delegate("[data-do='open-edit-stock']", "click", function(){
 			$('#edit-' + model + '-alias').val(data[model]['alias']);
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
-			$('#modal-edit-' + model).foundation('reveal', 'open');
+			$('#modal-edit-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -79,7 +79,7 @@ $("body").delegate("[data-do='edit-stock-save']", "click", function(){
 			$('#edit-' + model + '-delivery-time-max').val('');
 			$('#edit-' + model + '-state').prop('checked', false);
 
-			$('#modal-edit-' + model).foundation('reveal', 'close');
+			$('#modal-edit-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -100,7 +100,7 @@ $("body").delegate("[data-do='edit-stock-cancel']", "click", function(){
 	$('#edit-' + model + '-alias').val('');
 	$('#edit-' + model + '-state').prop('checked', false);
 
-	$('#modal-edit-' + model).foundation('reveal', 'close');
+	$('#modal-edit-' + model).foundation('close');
 
 	return false;
 });
@@ -122,7 +122,7 @@ $("body").delegate("[data-do='open-delete-stock']", "click", function(){
 			$('#delete-' + model + '-id').val(data[model]['id']);
 			$('#delete-' + model + '-name').text(data[model]['name'])
 
-			$('#modal-delete-' + model).foundation('reveal', 'open');
+			$('#modal-delete-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -145,7 +145,7 @@ $("body").delegate("[data-do='delete-stock-apply']", "click", function(){
 
 			$('[data-' + model + '="' + data['id'] + '"]').empty();
 
-			$('#modal-delete-' + model).foundation('reveal', 'close');
+			$('#modal-delete-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -161,7 +161,7 @@ $("body").delegate("[data-do='delete-stock-cancel']", "click", function(){
 
 	$('#delete-' + model + '-id').val(0);
 
-	$('#modal-delete-' + model).foundation('reveal', 'close');
+	$('#modal-delete-' + model).foundation('close');
 
 	return false;
 });

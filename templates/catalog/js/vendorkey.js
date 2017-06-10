@@ -18,7 +18,7 @@ $("body").delegate("[data-do='open-new-vendorkey']", "click", function(){
 	$('#edit-' + model + '-updater').val('0');
 	$('#edit-' + model + '-vendor').val('0');
 
-	$('#modal-edit-' + model).foundation('reveal', 'open');
+	$('#modal-edit-' + model).foundation('open');
 
 	return false;
 });
@@ -52,7 +52,7 @@ $("body").delegate("[data-do='open-edit-vendorkey']", "click", function(){
 				$('#edit-' + model + '-vendor').val(0);
 			}
 
-			$('#modal-edit-' + model).foundation('reveal', 'open');
+			$('#modal-edit-' + model).foundation('open');
 		}
 	}, "json");
 	return false;
@@ -66,10 +66,10 @@ $("body").delegate("[data-do='edit-vendorkey-save']", "click", function(){
 	model = 'vendorkey';
 
 	$.post('/catalog/ajax/save/' + model + '/', {
-		id             : $('#edit-' + model + '-id').val(),
-		name           : $('#edit-' + model + '-name').val(),
-		updater_id     : $('#edit-' + model + '-updater').val(),
-		vendor_id      : $('#edit-' + model + '-vendor').val(),
+		id         : $('#edit-' + model + '-id').val(),
+		name       : $('#edit-' + model + '-name').val(),
+		updater_id : $('#edit-' + model + '-updater').val(),
+		vendor_id  : $('#edit-' + model + '-vendor').val(),
 		csrfmiddlewaretoken : '{{ csrf_token }}'
 	},
 	function(data) {
@@ -104,7 +104,7 @@ $("body").delegate("[data-do='edit-vendorkey-save']", "click", function(){
 			$('#edit-' + model + '-distributor').val('0');
 			$('#edit-' + model + '-vendor').val('0');
 
-			$('#modal-edit-' + model).foundation('reveal', 'close');
+			$('#modal-edit-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -169,7 +169,7 @@ $("body").delegate("[data-do='delete-vendorkey-apply']", "click", function(){
 
 			$('[data-' + model + '="' + data['id'] + '"]').empty();
 
-			$('#modal-delete-' + model).foundation('reveal', 'close');
+			$('#modal-delete-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -185,7 +185,7 @@ $("body").delegate("[data-do='delete-vendorkey-cancel']", "click", function(){
 
 	$('#delete-' + model + '-id').val(0);
 
-	$('#modal-delete-' + model).foundation('reveal', 'close');
+	$('#modal-delete-' + model).foundation('close');
 
 	return false;
 });

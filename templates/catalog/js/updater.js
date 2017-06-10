@@ -18,7 +18,7 @@ $("body").delegate("[data-do='open-edit-updater']", "click", function(){
 			$('#edit-' + model + '-password').val(data[model]['password']);
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
-			$('#modal-edit-' + model).foundation('reveal', 'open');
+			$('#modal-edit-' + model).foundation('open');
 		}
 	}, "json");
 	return false;
@@ -53,7 +53,7 @@ $("body").delegate("[data-do='edit-updater-save']", "click", function(){
 			$('#edit-' + model + '-password').val('');
 			$('#edit-' + model + '-state').prop('checked', false);
 
-			$('#modal-edit-' + model).foundation('reveal', 'close');
+			$('#modal-edit-' + model).foundation('close');
 		}
 	}, "json");
 	return false;
@@ -73,7 +73,7 @@ $("body").delegate("[data-do='edit-updater-cancel']", "click", function(){
 	$('#edit-' + model + '-password').val('');
 	$('#edit-' + model + '-state').prop('checked', false);
 
-	$('#modal-edit-' + model).foundation('reveal', 'close');
+	$('#modal-edit-' + model).foundation('close');
 
 	return false;
 });
@@ -87,7 +87,7 @@ $("body").delegate("[data-do='open-delete-updater']", "click", function(){
 
 	$('#delete-' + model + '-id').val($(this).data('id'));
 
-	$('#modal-delete-' + model).foundation('reveal', 'open');
+	$('#modal-delete-' + model).foundation('open');
 
 	return false;
 });
@@ -106,7 +106,7 @@ $("body").delegate("[data-do='trash-updater']", "click", function(){
 	function(data) {
 		if ('success' == data.status) {
 			$('[data-' + model + ']').empty()
-			$('#modal-delete-' + model).foundation('reveal', 'close');
+			$('#modal-delete-' + model).foundation('close');
 		}
 	}, "json");
 

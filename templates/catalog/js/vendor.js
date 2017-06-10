@@ -11,7 +11,7 @@ $("body").delegate("[data-do='open-new-vendor']", "click", function(){
 	$('#edit-' + model + '-description').val('');
 	$('#edit-' + model + '-state').prop('checked', true);
 
-	$('#modal-edit-' + model).foundation('reveal', 'open');
+	$('#modal-edit-' + model).foundation('open');
 
 	return false;
 });
@@ -38,7 +38,7 @@ $("body").delegate("[data-do='open-edit-vendor']", "click", function(){
 			$('#edit-' + model + '-description').val(data[model]['description']);
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
-			$('#modal-edit-' + model).foundation('reveal', 'open');
+			$('#modal-edit-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -74,7 +74,7 @@ $("body").delegate("[data-do='edit-vendor-save']", "click", function(){
 			$('#edit-' + model + '-description').val('');
 			$('#edit-' + model + '-state').prop('checked', false);
 
-			$('#modal-edit-' + model).foundation('reveal', 'close');
+			$('#modal-edit-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -94,7 +94,7 @@ $("body").delegate("[data-do='edit-vendor-cancel']", "click", function(){
 	$('#edit-' + model + '-description').val('');
 	$('#edit-' + model + '-state').prop('checked', false);
 
-	$('#modal-edit-' + model).foundation('reveal', 'close');
+	$('#modal-edit-' + model).foundation('close');
 
 	return false;
 });
@@ -116,7 +116,7 @@ $("body").delegate("[data-do='open-delete-vendor']", "click", function(){
 			$('#delete-' + model + '-id').val(data[model]['id']);
 			$('#delete-' + model + '-name').text(data[model]['name'])
 
-			$('#modal-delete-' + model).foundation('reveal', 'open');
+			$('#modal-delete-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -139,7 +139,7 @@ $("body").delegate("[data-do='delete-vendor-apply']", "click", function(){
 
 			$('[data-' + model + '="' + data['id'] + '"]').empty();
 
-			$('#modal-delete-' + model).foundation('reveal', 'close');
+			$('#modal-delete-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -155,7 +155,7 @@ $("body").delegate("[data-do='delete-vendor-cancel']", "click", function(){
 
 	$('#delete-' + model + '-id').val(0);
 
-	$('#modal-delete-' + model).foundation('reveal', 'close');
+	$('#modal-delete-' + model).foundation('close');
 
 	return false;
 });

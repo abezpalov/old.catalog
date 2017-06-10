@@ -1,11 +1,2 @@
-<li class="divider"></li>
-<li class="has-form">
-	<div class="row collapse">
-		<div class="large-10 small-9 columns">
-			<input id="top-search-input" type="text" placeholder="Поиск по складам..." value="{% if search %}{{ search }}{% endif %}">
-		</div>
-		<div class="large-2 small-3 columns">
-			<button id="top-search-button" class="secondary expand"><i class="fa fa-search"></i></button>
-		</div>
-	</div>
-</li>
+<li><input id="top-search-input" type="text" placeholder="Найти на складах..." value="{% if search %}{{ search }}{% endif %}"/></li>
+<li><button id="top-search-button" type="button" class="button">Найти</button></li>

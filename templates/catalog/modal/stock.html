@@ -1,35 +1,49 @@
 {% if perms.catalog.change_stock or perms.catalog.add_stock %}
-<div id="modal-edit-stock" class="reveal-modal large" data-reveal>
+<div id="modal-edit-stock" class="reveal" data-reveal>
 
-	<h2 id="modal-edit-stock-header"> </h2>
+    <h2 id="modal-edit-stock-header"> </h2>
 
-	<input id="edit-stock-id" type="hidden" value="0">
+    <form>
 
-	<label>Наименование
-		<input id="edit-stock-name" type="text">
-	</label>
+        <input id="edit-stock-id" type="hidden" value="0">
 
-	<label>Псевдоним
-		<input id="edit-stock-alias" type="text">
-	</label>
+        <label>Наименование
+            <input id="edit-stock-name" type="text">
+        </label>
 
-	<label>Минимальный срок поставки
-		<input id="edit-stock-delivery-time-min" type="text">
-	</label>
+        <label>Псевдоним (служебное поле)
+            <input id="edit-stock-alias" type="text">
+        </label>
 
-	<label>Максимальный срок поставки
-		<input id="edit-stock-delivery-time-max" type="text">
-	</label>
+        <label>Минимальный срок поставки
+            <input id="edit-stock-delivery-time-min" type="text">
+        </label>
 
-	<label>Статус
-		<div class="switch small">
-			<input id="edit-stock-state" type="checkbox">
-			<label for="edit-stock-state"></label>
-		</div>
-	</label>
+        <label>Максимальный срок поставки
+            <input id="edit-stock-delivery-time-max" type="text">
+        </label>
 
-	<button data-do="edit-stock-save" class="primary"><i class="fa fa-save"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-stock-cancel" class="secondary"><i class="fa fa-close"></i>&nbsp;Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
+        <label>Статус
+            <div class="switch small">
+                <input class="switch-input" id="edit-stock-state" type="checkbox">
+                <label class="switch-paddle" for="edit-stock-state">
+                    <span class="show-for-sr">Статус</span>
+                </label>
+            </div>
+        </label>
+
+        <hr/>
+
+        <div class="button-group">
+            <a class="button" data-do="edit-stock-save">Сохранить</a>
+            <a class="button secondary" data-do="edit-stock-cancel">Отменить</a>
+        </div>
+
+        </form>
+
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
 </div>
 {% endif %}

@@ -1,0 +1,83 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Catalog: Категории{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_category or perms.catalog.change_category or perms.catalog.delete_category %}
+
+<div class="row">
+    <ul class="menu">
+        <li class="active"><a href="/catalog/manage/categories/">Категории</a></li>
+        <li><a href="/catalog/manage/products/">Продукты</a></li>
+    </ul>
+</div>
+
+<hr/>
+
+<div class="row">
+	<div class="button-group">
+        {% if perms.catalog.add_category %}
+	    <a class="button secondary" data-do="open-new-category">Добавить категорию</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+	<table>
+        <thead>
+    		<tr>
+	    		<th width="1%">#</th>
+	    		<th>Наименование</th>
+	    		<th width="1%">Статус</th>
+	    	</tr>
+        </thead>
+        <tbody>
+    		{% for category in categories %}
+	    	<tr data-category = "{{ category.id }}">
+	    		<td>{{ forloop.counter }}</td>
+	    		<td>
+	    			<a
+	    				data-do = "open-edit-category"
+	    				data-category-id = "{{ category.id }}"
+	    				data-category-name = "{{ category.id }}">{{ category.name }}</a></td>
+	    		<td>
+	    			<div class="switch small">
+	    				<input
+                            class="switch-input"
+	    					id = "category-{{ category.id }}-state"
+	    					data-do = "switch-category-state"
+	    					data-category-id = "{{ category.id }}"
+	    					data-category-state = "{{ category.id }}"
+	    					type = "checkbox"{% if category.state %} checked{% endif %}>
+	    				<label class="switch-paddle" for="category-{{ category.id }}-state"></label>
+	    			</div>
+	    		</td>
+	    	</tr>
+	    	{% endfor %}
+        </tbody>
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/category.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/category.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

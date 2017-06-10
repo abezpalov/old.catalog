@@ -4,258 +4,232 @@ from catalog.models import *
 
 class Runner(catalog.runner.Runner):
 
+    name  = 'Axoft'
+    alias = 'axoft'
+    test  = False
+    url   = {'start'   : 'http://axoft.ru/',
+             'login'   : 'http://axoft.ru/',
+             'vendors' : 'http://axoft.ru/vendors/',
+             'prefix'  : 'http://axoft.ru'}
+    word  = {'vendor' : '/vendors/',
+             'price'  : '/pricelists/download.php?'}
 
-	name  = 'Axsoft'
-	alias = 'axoft'
+    def __init__(self):
 
-	url = {
-		'start'   : 'http://axoft.ru/',
-		'login'   : 'http://axoft.ru/',
-		'vendors' : 'http://axoft.ru/vendors/',
-		'prefix'  : 'http://axoft.ru'}
+        super().__init__()
 
-	word = {
-		'vendor' : '/vendors/',
-		'price'  : '/pricelists/download.php?'}
+        self.stock = self.take_stock('on-order', 'на заказ', 5, 40)
+        self.count = {'product' : 0, 'party' : 0}
 
+    def run(self):
 
-	def __init__(self):
+        # Авторизуемся
+        self.login({
+            'backurl'       : '/',
+            'AUTH_FORM'     : 'Y',
+            'TYPE'          : 'AUTH',
+            'IS_POPUP'      : '1',
+            'USER_LOGIN'    : self.updater.login,
+            'USER_PASSWORD' : self.updater.password,
+            'Login'         : 'Вход для партнеров'})
 
-		super().__init__()
+        # Получаем список производителей
+        prices = self.get_prices_urls()
 
-		self.stock = self.take_stock('on-order', 'на заказ', 5, 40)
+        # Проходим по каждому прайс-листу
+        for n, price in enumerate(prices):
 
-		self.count = {
-			'product' : 0,
-			'party'   : 0}
+            print("Прайс-лист {} из {}: {}".format(
+                n + 1,
+                len(prices),
+                price[0]))
 
+            # Синоним производителя
+            vendor = Vendor.objects.get_by_key(self.updater, price[0])
 
-	def run(self):
+            if vendor:
 
-		# Авторизуемся
-		payload = {
-			'backurl'       : '/',
-			'AUTH_FORM'     : 'Y',
-			'TYPE'          : 'AUTH',
-			'IS_POPUP'      : '1',
-			'USER_LOGIN'    : self.updater.login,
-			'USER_PASSWORD' : self.updater.password,
-			'Login'         : 'Вход для партнеров'}
-		if not self.login(payload):
-			return False
+                # Скачиваем архив с прайс-листом
+                data = self.load_data(price[1])
 
-		# Получаем список производителей
-		prices = self.get_prices_urls()
+                # Распаковываем и парсим
+                data = self.unpack(data)
 
-		# Проходим по каждому прайс-листу
-		for n, price in enumerate(prices):
+                if data is not None:
+                    self.parse(data, vendor)
 
-			print("Прайс-лист {} из {}: {}".format(
-				n + 1,
-				len(prices),
-				price[0]))
+        # Чистим устаревшие партии
+        Party.objects.clear(stock = self.stock, time = self.start_time)
 
-			# Синоним производителя
-			vendor_synonym = self.take_vendorsynonym(price[0])
-
-			if vendor_synonym.vendor:
-
-				# Скачиваем архив с прайс-листом
-				data = self.load_data(price[1])
-
-				# Распаковываем и парсим
-				data = self.unpack(data)
-
-				if data is not None:
-					self.parse(data, vendor_synonym.vendor)
-
-		# Чистим устаревшие партии
-		Party.objects.clear(stock = self.stock, time = self.start_time)
-
-		# Пишем в лог
-		self.log()
+        # Пишем в лог
+        self.log()
 
 
-	def get_prices_urls(self):
+    def get_prices_urls(self):
 
-		prices  = set()
+        prices  = set()
 
-		tree = self.load_html(self.url['vendors'])
+        tree = self.load_html(self.url['vendors'])
 
-		links = tree.xpath('//a')
+        links = tree.xpath('//a')
 
-		# Выбираем ссылкки на страницы производителей
-		for n, link in enumerate(links):
+        # Выбираем ссылкки на страницы производителей
+        for n, link in enumerate(links):
 
-			vendor_name = link.text
-			vendor_url  = '{}{}'.format(self.url['prefix'], link.get('href'))
+            vendor_name = link.text
+            vendor_url  = '{}{}'.format(self.url['prefix'], link.get('href'))
 
-			if self.word['vendor'] in vendor_url:
+            if self.word['vendor'] in vendor_url:
 
-				tree = self.load_html(vendor_url)
+                tree = self.load_html(vendor_url)
 
-				if tree is not None:
+                # Добавляем в список ссылок на прайс-листы соответсвующие
+                for url in tree.xpath('//a/@href'):
 
-					# Добавляем в список ссылок на прайс-листы соответсвующие
-					for url in tree.xpath('//a/@href'):
+                    if self.word['price'] in url:
 
-						if self.word['price'] in url:
+                        if not self.url['prefix'] in url:
+                            url  = '{}{}'.format(self.url['prefix'], url)
 
-							if not self.url['prefix'] in url:
-								url  = '{}{}'.format(self.url['prefix'], url)
+                        price = (vendor_name, url,)
+                        prices.add(price)
+                        print('Ссылка {} из {}: {} [{}].'.format(n + 1, len(links), price[1], price[0]))
 
-							price = (vendor_name, url,)
-							prices.add(price)
-
-							print('Ссылка {} из {}: {} [{}].'.format(
-									n + 1,
-									len(links),
-									price[1],
-									price[0]))
-
-		return prices
+        return prices
 
 
-	def parse(self, data, vendor):
+    def parse(self, data, vendor):
 
-		import xlrd
+        import xlrd
 
-		# Номера строк и столбцов
-		num = {
-			'header_line' : 3,
-			'first_line'  : 5}
+        # Номера строк и столбцов
+        num = {
+            'header_line' : 3,
+            'first_line'  : 5}
 
-		# Распознаваемые слова
-		word = {
-			'party_article'   : 'AxoftSKU',
-			'product_article' : 'VendorSKU',
-			'product_name'    : 'ProductDescription',
-			'product_version' : 'Version',
-			'price_in'        : 'Partner',
-			'price_out'       : 'Retail',
-			'product_vat'     : 'NDS'}
+        # Распознаваемые слова
+        word = {
+            'party_article'   : 'AxoftSKU',
+            'product_article' : 'VendorSKU',
+            'product_name'    : 'ProductDescription',
+            'product_version' : 'Version',
+            'price_in'        : 'Partner',
+            'price_out'       : 'Retail',
+            'product_vat'     : 'NDS'}
 
-		# Сопоставление валют
-		currencies = {
-			'General'           : None,
-			'#,##0.00[$р.-419]' : self.rub,
-			'[$$-409]#,##0.00'  : self.usd,
-			'[$€-2]\\ #,##0.00' : self.eur}
+        # Сопоставление валют
+        currencies = {
+            'General'           : None,
+            '#,##0.00[$р.-419]' : self.rub,
+            '[$$-409]#,##0.00'  : self.usd,
+            '[$€-2]\\ #,##0.00' : self.eur}
 
-		# Имя категории поставщика
-		category_synonym_name = None
+        # Имя категории поставщика
+        category = None
 
-		# Парсим
-		try:
-			book = xlrd.open_workbook(
-				file_contents   = data.read(),
-				formatting_info = True)
-		except NotImplementedError:
-			print("Ошибка: непонятная ошибка при открытии файла.")
-			return False
-		sheet = book.sheet_by_index(0)
+        # Парсим
+        try:
+            book = xlrd.open_workbook(
+                file_contents   = data.read(),
+                formatting_info = True)
+        except NotImplementedError:
+            raise(NotImplementedError('Ошибка: непонятная ошибка при открытии файла.'))
+        sheet = book.sheet_by_index(0)
 
-		# Получаем словарь форматов (потребуется при получении валюты)
-		formats = book.format_map
+        # Получаем словарь форматов (потребуется при получении валюты)
+        formats = book.format_map
 
-		# Проходим по всем строкам
-		for row_num in range(sheet.nrows):
-			row = sheet.row_values(row_num)
+        # Проходим по всем строкам
+        for row_num in range(sheet.nrows):
+            row = sheet.row_values(row_num)
 
-			# Заголовок
-			if row_num == num['header_line']:
+            # Заголовок
+            if row_num == num['header_line']:
 
-				# Разбираем заголовок
-				for cel_num, cel in enumerate(row):
-					if   str(cel).strip() == word['party_article']:
-						num['party_article'] = cel_num
-					elif str(cel).strip() == word['product_article']:
-						num['product_article'] = cel_num
-					elif str(cel).strip() == word['product_name']:
-						num['product_name'] = cel_num
-					elif str(cel).strip() == word['product_version']:
-						num['product_version'] = cel_num
-					elif str(cel).strip() == word['price_in']:
-						num['price_in'] = cel_num
-					elif str(cel).strip() == word['price_out']:
-						num['price_out'] = cel_num
-					elif str(cel).strip() == word['product_vat']:
-						num['product_vat'] = cel_num
+                # Разбираем заголовок
+                for cel_num, cel in enumerate(row):
+                    if   str(cel).strip() == word['party_article']:
+                        num['party_article'] = cel_num
+                    elif str(cel).strip() == word['product_article']:
+                        num['product_article'] = cel_num
+                    elif str(cel).strip() == word['product_name']:
+                        num['product_name'] = cel_num
+                    elif str(cel).strip() == word['product_version']:
+                        num['product_version'] = cel_num
+                    elif str(cel).strip() == word['price_in']:
+                        num['price_in'] = cel_num
+                    elif str(cel).strip() == word['price_out']:
+                        num['price_out'] = cel_num
+                    elif str(cel).strip() == word['product_vat']:
+                        num['product_vat'] = cel_num
 
-				# Проверяем, все ли столбцы распознались
-				if len(num) < 9:
-					print(len(num))
-					for n in num:
-						print(n)
-					print("Ошибка структуры данных: не все столбцы опознаны.")
-					return False
-				else: print("Структура данных без изменений.")
+                # Проверяем, все ли столбцы распознались
+                if len(num) < 9:
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
-			# Строка с данными
-			elif row_num >= num['first_line']:
+            # Строка с данными
+            elif row_num >= num['first_line']:
 
-				# Определяем значение переменных
-				if row[num['product_article']]:
-					product_article = row[num['product_article']]
-				else:
-					product_article = row[num['party_article']]
-				party_article       = row[num['party_article']]
-				product_name        = row[num['product_name']]
-				product_version     = row[num['product_version']]
-				price_in            = self.fix_price(row[num['price_in']])
-				price_out           = self.fix_price(row[num['price_out']])
-				product_vat         = row[num['product_vat']]
+                # Временные значения
+                product_ = {}
+                party_   = {}
 
-				# Валюта входной цены
-				xfx = sheet.cell_xf_index(row_num, num['price_in'])
-				xf = book.xf_list[xfx]
-				format_str = formats[xf.format_key].format_str
-				price_currency_in = currencies[format_str]
+                # Данные о продукте
+                if row[num['product_article']]:
+                    product_['article'] = self.fix_article(row[num['product_article']])
+                else:
+                    product_['article'] = self.fix_article(row[num['party_article']])
+                product_['name']     = self.fix_name(row[num['product_name']])
+                product_['version']  = self.fix_string(row[num['product_version']])
+                product_['vat']      = self.fix_string(row[num['product_vat']])
 
-				# Валюта выходной цены
-				xfx = sheet.cell_xf_index(row_num, num['price_out'])
-				xf = book.xf_list[xfx]
-				format_str = formats[xf.format_key].format_str
-				price_currency_out = currencies[format_str]
+                # Данные о партии
+                party_['article']   = self.fix_article(row[num['party_article']])
+                party_['price']     = self.fix_price(row[num['price_in']])
+                party_['price_out'] = self.fix_price(row[num['price_out']])
 
-				# Имя синонима категории
-				if product_name and not product_article:
-					category_synonym_name = "{}: {}".format(
-						vendor.name,
-						row[num['product_name']])
+                # Валюта входной цены
+                xfx = sheet.cell_xf_index(row_num, num['price_in'])
+                xf = book.xf_list[xfx]
+                format_str = formats[xf.format_key].format_str
+                party_['currency'] = currencies[format_str]
 
-				# Продукт
-				elif product_article and product_name:
+                # Валюта выходной цены
+                xfx = sheet.cell_xf_index(row_num, num['price_out'])
+                xf = book.xf_list[xfx]
+                format_str = formats[xf.format_key].format_str
+                party_['currency_out'] = currencies[format_str]
 
-					# Получаем объект категории
-					if category_synonym_name:
-						category_synonym = self.take_categorysynonym(category_synonym_name)
-						category = category_synonym.category
-					else:
-						category = None
+                # Если всё-таки это категория
+                if product_['name'] and not product_['article']:
+                    category = self.fix_name(row[num['product_name']])
 
-					# Получаем объект товара
-					product = Product.objects.take(
-						article  = product_article,
-						vendor   = vendor,
-						name     = product_name,
-						category = category,
-						unit     = self.default_unit)
-					self.count['product'] += 1
+                # Или же продукт
+                elif product_['name'] and product_['article']:
+                    try:
+                        product = Product.objects.take(article  = product_['article'],
+                                                       vendor   = vendor,
+                                                       name     = product_['name'],
+                                                       category = category)
+                        self.products.append(product)
+                    except ValueError as error:
+                        if self.test:
+                            print(error)
+                            exit()
 
-					# Добавляем партии
-					party = Party.objects.make(
-						product        = product,
-						stock          = self.stock,
-						price          = price_in,
-						price_type     = self.dp,
-						currency       = price_currency_in,
-						price_out      = price_out,
-						price_type_out = self.rp,
-						currency_out   = price_currency_out,
-						quantity       = -1,
-						unit           = self.default_unit,
-						time           = self.start_time)
-					self.count['party'] += 1
+                    try:
+                        party = Party.objects.make(product = product,
+                                                   stock          = self.stock,
+                                                   price          = party_['price'],
+                                                   currency       = party_['currency'],
+                                                   price_out      = party_['price_out'],
+                                                   currency_out   = party_['currency_out'],
+                                                   quantity       = None,
+                                                   time           = self.start_time)
+                        self.parties.append(party)
+                    except ValueError as error:
+                        if self.test:
+                            print(error)
+                            exit()
 
-		return True
+        return True

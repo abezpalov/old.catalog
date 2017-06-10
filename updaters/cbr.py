@@ -8,97 +8,97 @@ from anodos.models import Log
 class Runner(catalog.runner.Runner):
 
 
-	name  = 'Центральный банк России'
-	alias = 'cbr'
+    name  = 'Центральный банк России'
+    alias = 'cbr'
 
 
-	def __init__(self):
+    def __init__(self):
 
-		super().__init__()
+        super().__init__()
 
-		self.url = {
-			'start' : 'http://cbr.ru/',
-			'data'  : 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'\
-					.format(date.today().strftime("%d.%m.%Y"))}
+        self.url = {
+            'start' : 'http://cbr.ru/',
+            'data'  : 'http://cbr.ru/eng/currency_base/D_print.aspx?date_req={}'\
+                    .format(date.today().strftime("%d.%m.%Y"))}
 
-		self.count = 0
-
-
-	def run(self):
-
-		# Получаем HTML-данные
-		r = self.load_cookie()
-		tree = self.load_html(self.url['data'])
-
-		if tree is None:
-			return False
-
-		self.parse(tree)
-
-		Log.objects.add(
-			subject     = "catalog.updater.{}".format(self.updater.alias),
-			channel     = "info",
-			title       = "Updated",
-			description = "Обновлены курсы валют: {} шт.".format(self.count))
+        self.currencies = []
 
 
-	def parse(self, tree):
+    def run(self):
 
-		# Номера строк и столбцов
-		num = {'header': 0}
+        # Получаем HTML-данные
+        r = self.load_cookie()
+        tree = self.load_html(self.url['data'])
 
-		# Распознаваемые слова
-		word = {
-			'alias':    'Char code',
-			'quantity': 'Unit',
-			'name':     'Currency',
-			'rate':     'Rate'}
+        if tree is None:
+            return False
 
-		table = tree.xpath("//table[@class='CBRTBL']/tr")
-		for trn, tr in enumerate(table):
+        self.parse(tree)
 
-			# Заголовок таблицы
-			if trn == num['header']:
-				for tdn, td in enumerate(tr):
+        Log.objects.add(
+            subject     = "catalog.updater.{}".format(self.updater.alias),
+            channel     = "info",
+            title       = "Updated",
+            description = "Обновлены курсы валют: {} шт.".format(len(self.currencies)))
 
-					if td[0].text == word['alias']:
-						num['alias'] = tdn
 
-					elif td[0].text == word['quantity']:
-						num['quantity'] = tdn
+    def parse(self, tree):
 
-					elif td[0].text == word['name']:
-						num['name'] = tdn
+        # Номера столбцов
+        num = {}
 
-					elif td[0].text == word['rate']:
-						num['rate'] = tdn
+        # Распознаваемые слова
+        word = {
+            'alias':    'Char code',
+            'quantity': 'Unit',
+            'name':     'Currency',
+            'rate':     'Rate'}
 
-			# Валюта
-			else:
+        table = tree.xpath("//table[@class='CBRTBL']/tr")
+        for trn, tr in enumerate(table):
 
-				# Определяем значения переменных
-				alias    = tr[num['alias']].text.strip()
-				quantity = tr[num['quantity']].text.strip()
-				name     = tr[num['name']].text.strip()
-				rate     = tr[num['rate']].text.strip()
+            # Заголовок таблицы
+            if trn == 0:
+                for tdn, td in enumerate(tr):
 
-				# Записываем информацию в базу
-				currency = Currency.objects.take(
-					alias     = alias,
-					name      = name,
-					full_name = name,
-					rate      = rate,
-					quantity  = quantity)
-				currency.rate     = rate
-				currency.quantity = quantity
-				currency.modified = timezone.now()
-				currency.save()
+                    if td[0].text == word['alias']:
+                        num['alias'] = tdn
 
-				print('{} = {} / {}'.format(
-						currency.alias,
-						currency.rate,
-						currency.quantity))
+                    elif td[0].text == word['quantity']:
+                        num['quantity'] = tdn
 
-				self.count += 1
+                    elif td[0].text == word['name']:
+                        num['name'] = tdn
 
-		return True
+                    elif td[0].text == word['rate']:
+                        num['rate'] = tdn
+
+            # Валюта
+            else:
+
+                # Определяем значения переменных
+                alias    = tr[num['alias']].text.strip()
+                quantity = tr[num['quantity']].text.strip()
+                name     = tr[num['name']].text.strip()
+                rate     = tr[num['rate']].text.strip()
+
+                # Записываем информацию в базу
+                currency = Currency.objects.take(
+                    alias     = alias,
+                    name      = name,
+                    full_name = name,
+                    rate      = rate,
+                    quantity  = quantity)
+                currency.rate     = rate
+                currency.quantity = quantity
+                currency.modified = timezone.now()
+                currency.save()
+
+                print('{} = {} / {}'.format(
+                        currency.alias,
+                        currency.rate,
+                        currency.quantity))
+
+                self.currencies.append(currency)
+
+        return True

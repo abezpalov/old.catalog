@@ -1,3 +1,4 @@
+from anodos.models import Log
 from catalog.models import *
 
 

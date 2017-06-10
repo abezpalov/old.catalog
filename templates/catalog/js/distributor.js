@@ -1,4 +1,3 @@
-// Open New
 {% if perms.catalog.add_distributor %}
 $("body").delegate("[data-do='open-new-distributor']", "click", function(){
 
@@ -12,14 +11,13 @@ $("body").delegate("[data-do='open-new-distributor']", "click", function(){
 	$('#edit-' + model + '-description').val('');
 	$('#edit-' + model + '-state').prop('checked', true);
 
-	$('#modal-edit-' + model).foundation('reveal', 'open');
+	$('#modal-edit-' + model).foundation('open');
 
 	return false;
 });
 {% endif %}
 
 
-// Open Edit
 {% if perms.catalog.change_distributor %}
 $("body").delegate("[data-do='open-edit-distributor']", "click", function(){
 
@@ -40,7 +38,7 @@ $("body").delegate("[data-do='open-edit-distributor']", "click", function(){
 			$('#edit-' + model + '-description').val(data[model]['description']);
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
-			$('#modal-edit-' + model).foundation('reveal', 'open');
+			$('#modal-edit-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -49,7 +47,6 @@ $("body").delegate("[data-do='open-edit-distributor']", "click", function(){
 {% endif %}
 
 
-// Save
 {% if perms.catalog.change_distributor %}
 $("body").delegate("[data-do='edit-distributor-save']", "click", function(){
 
@@ -76,7 +73,7 @@ $("body").delegate("[data-do='edit-distributor-save']", "click", function(){
 			$('#edit-' + model + '-description').val('');
 			$('#edit-' + model + '-state').prop('checked', false);
 
-			$('#modal-edit-' + model).foundation('reveal', 'close');
+			$('#modal-edit-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -85,7 +82,6 @@ $("body").delegate("[data-do='edit-distributor-save']", "click", function(){
 {% endif %}
 
 
-// Cancel Edit
 {% if perms.catalog.change_distributor %}
 $("body").delegate("[data-do='edit-distributor-cancel']", "click", function(){
 
@@ -97,14 +93,13 @@ $("body").delegate("[data-do='edit-distributor-cancel']", "click", function(){
 	$('#edit-' + model + '-description').val('');
 	$('#edit-' + model + '-state').prop('checked', false);
 
-	$('#modal-edit-' + model).foundation('reveal', 'close');
+	$('#modal-edit-' + model).foundation('close');
 
 	return false;
 });
 {% endif %}
 
 
-// Open Delete
 {% if perms.catalog.delete_distributor %}
 $("body").delegate("[data-do='open-delete-distributor']", "click", function(){
 
@@ -120,7 +115,7 @@ $("body").delegate("[data-do='open-delete-distributor']", "click", function(){
 			$('#delete-' + model + '-id').val(data[model]['id']);
 			$('#delete-' + model + '-name').text(data[model]['name'])
 
-			$('#modal-delete-' + model).foundation('reveal', 'open');
+			$('#modal-delete-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -129,7 +124,6 @@ $("body").delegate("[data-do='open-delete-distributor']", "click", function(){
 {% endif %}
 
 
-// Delete
 {% if perms.catalog.delete_distributor %}
 $("body").delegate("[data-do='delete-distributor-apply']", "click", function(){
 
@@ -144,7 +138,7 @@ $("body").delegate("[data-do='delete-distributor-apply']", "click", function(){
 
 			$('[data-' + model + '="' + data['id'] + '"]').empty();
 
-			$('#modal-delete-' + model).foundation('reveal', 'close');
+			$('#modal-delete-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -153,7 +147,6 @@ $("body").delegate("[data-do='delete-distributor-apply']", "click", function(){
 {% endif %}
 
 
-// Cancel Delete
 {% if perms.catalog.delete_distributor %}
 $("body").delegate("[data-do='delete-distributor-cancel']", "click", function(){
 
@@ -161,14 +154,13 @@ $("body").delegate("[data-do='delete-distributor-cancel']", "click", function(){
 
 	$('#delete-' + model + '-id').val(0);
 
-	$('#modal-delete-' + model).foundation('reveal', 'close');
+	$('#modal-delete-' + model).foundation('close');
 
 	return false;
 });
 {% endif %}
 
 
-// Switch State
 {% if perms.catalog.change_distributor %}
 $("body").delegate("[data-do='switch-distributor-state']", "click", function(){
 

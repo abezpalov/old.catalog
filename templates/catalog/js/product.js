@@ -6,7 +6,7 @@ $("body").delegate("[data-do*='open-filter-products-category']", "click", functi
 	$('#panel-category').addClass('active');
 	$('#panel-vendor').removeClass('active');
 	$('#panel-search').removeClass('active');
-	$('#modal-filter-products').foundation('reveal', 'open');
+	$('#modal-filter-products').foundation('open');
 	return false;
 });
 
@@ -19,7 +19,7 @@ $("body").delegate("[data-do='open-filter-products-vendor']", "click", function(
 	$('#panel-category').removeClass('active');
 	$('#panel-vendor').addClass('active');
 	$('#panel-search').removeClass('active');
-	$('#modal-filter-products').foundation('reveal', 'open');
+	$('#modal-filter-products').foundation('open');
 	return false;
 });
 
@@ -32,7 +32,7 @@ $("body").delegate("[data-do='open-filter-products-search']", "click", function(
 	$('#panel-category').removeClass('active');
 	$('#panel-vendor').removeClass('active');
 	$('#panel-search').addClass('active');
-	$('#modal-filter-products').foundation('reveal', 'open');
+	$('#modal-filter-products').foundation('open');
 	return false;
 });
 
@@ -150,7 +150,7 @@ $("body").delegate("[data-do='filter-products-apply']", "click", function(){
 	if (ct == '' && vn == '' && sr == '') {
 		alert ('Определите хотя бы одно условие выборки.');
 	} else {
-		$('#modal-filter-products').foundation('reveal', 'close');
+		$('#modal-filter-products').foundation('close');
 		location.href = url;
 	}
 });
@@ -158,7 +158,7 @@ $("body").delegate("[data-do='filter-products-apply']", "click", function(){
 
 // Отмена применения параметров фильтра
 $("body").delegate("[data-do='filter-products-cancel']", "click", function(){
-	$('#modal-filter-products').foundation('reveal', 'close');
+	$('#modal-filter-products').foundation('close');
 	return false;
 });
 
@@ -234,7 +234,7 @@ $("body").delegate("[data-do='open-view-parties']", "click", function(){
 	}, "json");
 
 	// Открываем модальное окно
-	$('#modal-view-parties').foundation('reveal', 'open');
+	$('#modal-view-parties').foundation('open');
 	return false;
 });
 
@@ -275,7 +275,7 @@ $("body").delegate("[data-do='open-edit-product']", "click", function(){
 			}
 			$('#edit-' + model + '-state').prop('checked', data[model]['state']);
 
-			$('#modal-edit-' + model).foundation('reveal', 'open');
+			$('#modal-edit-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -322,7 +322,7 @@ $("body").delegate("[data-do='edit-product-save']", "click", function(){
 				setTimeout(function () {location.reload();}, 3000);
 			}
 
-			$('#modal-edit-' + model).foundation('reveal', 'close');
+			$('#modal-edit-' + model).foundation('close');
 
 		}
 	}, "json");
@@ -347,7 +347,7 @@ $("body").delegate("[data-do='edit-product-cancel']", "click", function(){
 	$('#edit-' + model + '-double').val('')
 	$('#edit-' + model + '-state').prop('checked', false)
 
-	$('#modal-edit-' + model).foundation('reveal', 'close');
+	$('#modal-edit-' + model).foundation('close');
 
 	return false;
 });
@@ -370,7 +370,7 @@ $("body").delegate("[data-do='open-delete-product']", "click", function(){
 			$('#delete-' + model + '-id').val(data[model]['id']);
 			$('#delete-' + model + '-name').text(data[model]['name'])
 
-			$('#modal-delete-' + model).foundation('reveal', 'open');
+			$('#modal-delete-' + model).foundation('open');
 		}
 	}, "json");
 
@@ -394,7 +394,7 @@ $("body").delegate("[data-do='delete-product-apply']", "click", function(){
 
 			$('[data-' + model + '="' + data['id'] + '"]').empty();
 
-			$('#modal-delete-' + model).foundation('reveal', 'close');
+			$('#modal-delete-' + model).foundation('close');
 		}
 	}, "json");
 
@@ -411,7 +411,7 @@ $("body").delegate("[data-do='delete-product-cancel']", "click", function(){
 
 	$('#delete-' + model + '-id').val(0);
 
-	$('#modal-delete-' + model).foundation('reveal', 'close');
+	$('#modal-delete-' + model).foundation('close');
 
 	return false;
 });

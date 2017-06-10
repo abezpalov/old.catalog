@@ -1,0 +1,88 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Catalog: Загрузчики{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_updater or perms.catalog.change_updater or perms.catalog.delete_updater %}
+
+<div class="row">
+    <ul class="menu">
+        <li class="active"><a href="/catalog/manage/updaters/">Загрузчики</a></li>
+        <li><a href="/catalog/manage/distributors/">Поставщики</a></li>
+        <li><a href="/catalog/manage/stocks/">Склады</a></li>
+    </ul>
+</div>
+
+<hr/>
+
+<div class="row">
+	<table>
+        <thead>
+    		<tr>
+    			<th width="1%">#</th>
+    			<th>Наименование</th>
+    			<th>Поставщик</th>
+    			<th width="1%">Статус</th>
+    			<th>Последнее обновление</th>
+    		</tr>
+        </thead>
+        <tbody>
+    		{% for updater in updaters %}
+	    	<tr>
+	    		<td>{{ forloop.counter }}</td>
+	    		<td>
+	    			<a
+	    				data-do="open-edit-updater"
+	    				data-updater-id = "{{ updater.id }}"
+	    				data-updater-name = "{{ updater.id }}">{{ updater.name }}</a></td>
+	    		<td>
+	    			<a
+	    				data-do = "open-edit-distributor"
+	    				data-distributor-id = "{{ updater.distributor.id }}"
+	    				data-distributor-name = "{{ updater.distributor.id }}"
+	    				data-updater-distributor-name = "{{ updater.id }}">{{ updater.distributor.name }}</a></td>
+	    		<td>
+	    			<div class="switch small">
+	    				<input
+                            class="switch-input"
+                            id="updater-{{ updater.id }}-state"
+                            data-do="switch-state-updater"
+                            data-id="{{ updater.id }}"
+                            data-updater-state="{{ updater.id }}"
+                            type="checkbox"{% if updater.state %} checked{% endif %}>
+	    				<label class="switch-paddle" for="updater-{{ updater.id }}-state"></label>
+	    			</div>
+	    		</td>
+	    		<td>{{ updater.updated|date:"d.m.Y H.i" }}</td>
+	    	</tr>
+    		{% endfor %}
+        </tbody>
+	</table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+	<div class="small-12 columns">
+		<p class="panel">Недостаточно прав для данной функциональности.</p>
+	</div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/updater.html" %}
+{% include "catalog/modal/distributor.html" %}
+
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/updater.js" %}
+{% include "catalog/js/distributor.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Каталог: Производители{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_vendor or perms.catalog.change_vendor or perms.catalog.delete_vendor %}
+
+<div class="row">
+    <ul class="menu">
+        <li class="active"><a href="/catalog/manage/vendors/">Производители</a></li>
+        <li><a href="/catalog/manage/vendorkeys/">Написания производителей</a></li>
+    </ul>
+</div>
+
+<hr/>
+
+<div class="row">
+    <div class="button-group">
+        {% if perms.catalog.add_vendor %}
+        <a class="button secondary" data-do="open-new-vendor">Добавить производителя</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <table>
+        <thead>
+            <tr>
+               <th width="1%">#</th>
+               <th>Наименование</th>
+               <th width="1%">Статус</th>
+           </tr>
+        </thead>
+        <tbody>
+            {% for vendor in vendors %}
+            <tr data-vendor="{{ vendor.id }}">
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <a
+                        data-do="open-edit-vendor"
+                        data-vendor-id="{{ vendor.id }}"
+                        data-vendor-name="{{ vendor.id }}">{{ vendor.name }}</a></td>
+                <td>
+                    <div class="switch small">
+                        <input
+                            class="switch-input"
+                            id="vendor-{{ vendor.id }}-state"
+                            data-do="switch-vendor-state"
+                            data-vendor-id="{{ vendor.id }}"
+                            data-vendor-state="{{vendor.id }}"
+                            type="checkbox"{% if vendor.state %} checked{% endif %}>
+                        <label class="switch-paddle" for="vendor-{{ vendor.id }}-state"></label>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+
+<div class="row collapse">
+    <div class="small-12 columns">
+        <p class="panel">Недостаточно прав для данной функциональности.</p>
+    </div>
+</div>
+
+{% endif %}
+
+{% include "catalog/modal/vendor.html" %}
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/vendor.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

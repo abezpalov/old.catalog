@@ -1,0 +1,98 @@
+{% extends "main.html" %}
+{% block title %}Anodos.Catalog: Склады{% endblock %}
+
+{% block search %}
+{% include "catalog/search-on-stocks.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% if perms.catalog.add_stock or perms.catalog.change_stock or perms.catalog.delete_stock %}
+
+<div class="row">
+    <ul class="menu">
+        <li><a href="/catalog/manage/updaters/">Загрузчики</a></li>
+        <li><a href="/catalog/manage/distributors/">Поставщики</a></li>
+        <li class="active"><a href="/catalog/manage/stocks/">Склады</a></li>
+    </ul>
+</div>
+
+<hr/>
+
+<div class="row">
+    <div class="button-group">
+    {% if perms.catalog.add_stock %}<a class="button secondary" data-do="open-new-stock">Добавить склад</a>{% endif %}
+    {% if perms.catalog.add_distributor %}<a class="button secondary" data-do="open-new-distributor">Добавить поставщика</a>{% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <table>
+        <thead>
+            <tr>
+                <th width="1%">#</th>
+                <th>Наименование</th>
+                <th>Поставщик</th>
+                <th>Сроки поставки (дни)</th>
+                <th width="1%">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+            <tr data-stock="{{ stock.id }}">
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <a data-do = "open-edit-stock"
+                       data-stock-id = "{{ stock.id }}"
+                       data-stock-name = "{{ stock.id }}">{{ stock.name }}</a></td>
+                <td>
+                    <a
+                       data-do = "open-edit-distributor"
+                       data-distributor-id = "{{ stock.distributor.id }}"
+                        data-distributor-name = "{{ stock.distributor.id }}"
+                        data-stock-distributor-name = "{{ stock.id }}">{{ stock.distributor.name }}</a></td>
+                <td>
+                    <span data-stock-delivery-time-min = "{{ stock.id }}">{{ stock.delivery_time_min }}</span>
+                    <span>&ndash;</span>
+                    <span data-stock-delivery-time-max = "{{ stock.id }}">{{ stock.delivery_time_max }}</span>
+                </td>
+                <td>
+                    <div class="switch small">
+                        <input
+                            class="switch-input"
+                            id="stock-{{ stock.id }}-state"
+                            data-do="switch-stock-state"
+                            data-stock-id="{{ stock.id }}"
+                            data-stock-state="{{ stock.id }}"
+                            type="checkbox"{% if stock.state %} checked{% endif %}>
+                        <label class="switch-paddle" for="stock-{{ stock.id }}-state"></label>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "catalog/modal/stock.html" %}
+{% include "catalog/modal/distributor.html" %}
+
+{% else %}
+
+<div class="row collapse">
+    <div class="small-12 columns">
+        <p class="panel">Недостаточно прав для данной функциональности.</p>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block js-content %}
+<script>
+{% include "catalog/js/stock.js" %}
+{% include "catalog/js/distributor.js" %}
+{% include "catalog/js/search-on-stocks.js" %}
+</script>
+{% endblock %}

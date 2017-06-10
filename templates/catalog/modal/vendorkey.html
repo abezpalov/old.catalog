@@ -1,49 +1,45 @@
 {% if perms.catalog.add_vendorkey or perms.catalog.change_vendorkey %}
-<div id="modal-edit-vendorkey" class="reveal-modal large" data-reveal>
+<div id="modal-edit-vendorkey" class="reveal" data-reveal>
 
 	<h2 id="modal-edit-vendorkey-header"> </h2>
 
-	<input id="edit-vendorkey-id" type="hidden" value="0">
+    <form>
 
-	<label>Наименование
-		<input id="edit-vendorkey-name" type="text" value="">
-	</label>
+    	<input id="edit-vendorkey-id" type="hidden" value="0">
 
-	<label>Загрузчик
-		<select id="edit-vendorkey-updater">
-			<option value="0" selected> - Не определён (None) - </option>
-			{% for updater in updaters %}
-			<option value="{{ updater.id }}">{{ updater.name }}</option>
-			{% endfor %}
-		</select>
-	</label>
+    	<label>Вариант написания
+    		<input id="edit-vendorkey-name" type="text" value="">
+    	</label>
 
-	<label>Производитель
-		<select id="edit-vendorkey-vendor">
-			<option value="0" selected> - Не определён (None) - </option>
-			{% for vendor in vendors %}
-			<option value="{{ vendor.id }}">{{ vendor.name }}</option>
-			{% endfor %}
-		</select>
-	</label>
+    	<label>Загрузчик
+    		<select id="edit-vendorkey-updater">
+    			{% for updater in updaters %}
+    			<option value="{{ updater.id }}">{{ updater.name }}</option>
+    			{% endfor %}
+    		</select>
+    	</label>
 
-	<button data-do="edit-vendorkey-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-vendorkey-cancel" class="secondary">Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
-</div>
-{% endif %}
+    	<label>Производитель
+    		<select id="edit-vendorkey-vendor">
+    			<option value="0" selected> - Не определён (None) - </option>
+    			{% for vendor in vendors %}
+    			<option value="{{ vendor.id }}">{{ vendor.name }}</option>
+    			{% endfor %}
+    		</select>
+    	</label>
 
-{% if perms.catalog.delete_vendorkey %}
-<div id="modal-delete-vendorkey" class="reveal-modal" data-reveal>
+        <hr/>
 
-	<h2>Удалить синоним категории?</h2>
+        <div class="button-group">
+            <a class="button" data-do="edit-vendorkey-save">Сохранить</a>
+            <a class="button secondary" data-do="edit-vendorkey-cancel">Отменить</a>
+        </div>
 
-	<input id="delete-vendorkey-id" type="hidden" value="0">
+    </form>
 
-	<p id="delete-vendorkey-name"></p>
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
 
-	<button data-do="delete-vendorkey-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
-	<button data-do="delete-vendorkey-cancel" class="secondary">Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
 </div>
 {% endif %}
