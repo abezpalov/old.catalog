@@ -4,45 +4,36 @@ from catalog.models import *
 
 class Runner(catalog.runner.Runner):
 
-
     name  = 'Digis'
     alias = 'digis'
-
-    url = {
-        'start' : 'http://digis.ru/distribution/',
-        'login' : 'http://digis.ru/distribution/?login=yes',
-        'files' : 'http://digis.ru/personal/profile/price/',
-        'base'  : 'http://digis.ru',
-        'price' : '/bitrix/redirect.php?event1=news_out&event2=/personal/profile/price/p14u/daily_price_cs_pdl.xlsx'}
-
+    test = False
+    url = {'start' : 'http://digis.ru/distribution/',
+           'login' : 'http://digis.ru/distribution/?login=yes',
+           'files' : 'http://digis.ru/personal/profile/price/',
+           'base'  : 'http://digis.ru',
+           'price' : '/bitrix/redirect.php?event1=news_out&event2=/personal/profile/price/p14u/daily_price_cs_pdl.xlsx'}
 
     def __init__(self):
 
         super().__init__()
 
-        self.stock   = self.take_stock('stock',   'склад',     3, 10)
-        self.transit = self.take_stock('transit', 'транзит',  10, 40)
+        self.stock   = self.take_stock('stock', 'склад', 3, 10)
+        self.transit = self.take_stock('transit', 'транзит', 10, 40)
         self.factory = self.take_stock('factory', 'на заказ', 20, 60)
 
-        self.count = {
-            'product' : 0,
-            'party'   : 0}
-
+        self.count = {'product' : 0, 'party'   : 0}
 
     def run(self):
 
         # Авторизуемся
-        payload = {
-            'AUTH_FORM'     : 'Y',
-            'TYPE'          : 'AUTH',
-            'backurl'       : '/distribution/',
-            'href'          : self.url['start'],
-            'USER_LOGIN'    : self.updater.login,
-            'USER_PASSWORD' : self.updater.password,
-            'USER_REMEMBER' : 'Y',
-            'Login'         : 'Войти'}
-        self.login(payload)
-
+        self.login({'AUTH_FORM'     : 'Y',
+                    'TYPE'          : 'AUTH',
+                    'backurl'       : '/distribution/',
+                    'href'          : self.url['start'],
+                    'USER_LOGIN'    : self.updater.login,
+                    'USER_PASSWORD' : self.updater.password,
+                    'USER_REMEMBER' : 'Y',
+                    'Login'         : 'Войти'})
 
         # Заходим на страницу загрузки
         tree = self.load_html(self.url['files'])
@@ -84,30 +75,28 @@ class Runner(catalog.runner.Runner):
         num = {'header': 10}
 
         # Распознаваемые слова
-        word = {
-            'category'           : 'Категория',
-            'category_sub'       : 'Подкатегория',
-            'product_vendor'     : 'Бренд',
-            'party_article'      : 'Код',
-            'product_article'    : 'Артикул',
-            'product_name'       : 'Наименование',
-            'quantity_factory'   : 'На складе',
-            'quantity_stock'     : 'Доступно к заказу',
-            'quantity_transit'   : 'Транзит',
-            'party_price_in'     : 'Цена (партн)',
-            'party_currency_in'  : None,
-            'party_price_out'    : 'Цена (розн)',
-            'party_currency_out' : None,
-            'product_warranty'   : 'Гарантия'}
+        word = {'category'           : 'Категория',
+                'category_sub'       : 'Подкатегория',
+                'product_vendor'     : 'Бренд',
+                'party_article'      : 'Код',
+                'product_article'    : 'Артикул',
+                'product_name'       : 'Наименование',
+                'quantity_factory'   : 'На складе',
+                'quantity_stock'     : 'Доступно к заказу',
+                'quantity_transit'   : 'Транзит',
+                'party_price_in'     : 'Цена (партн)',
+                'party_currency_in'  : None,
+                'party_price_out'    : 'Цена (розн)',
+                'party_currency_out' : None,
+                'product_warranty'   : 'Гарантия'}
 
-        currency = {
-            'RUB' : self.rub,
-            'RUR' : self.rub,
-            'руб' : self.rub,
-            'руб.': self.rub,
-            'USD' : self.usd,
-            'EUR' : self.eur,
-            ''    : None}
+        currency = {'RUB' : self.rub,
+                    'RUR' : self.rub,
+                    'руб' : self.rub,
+                    'руб.': self.rub,
+                    'USD' : self.usd,
+                    'EUR' : self.eur,
+                    ''    : None}
 
         book = xlrd.open_workbook(file_contents = data.read())
         sheet = book.sheet_by_index(1)
@@ -159,99 +148,91 @@ class Runner(catalog.runner.Runner):
             # Товар
             elif row[num['product_article']] and row[num['product_vendor']]:
 
-                product = {}
-                party = {}
+                product_ = {}
+                party_ = {}
 
                 # Категория
-                category = "{} | {}".format(row[num['category']], row[num['category_sub']]))
+                category = "{} | {}".format(row[num['category']], row[num['category_sub']])
 
                 # Синоним производителя
-                product['vendor'] = Vendor.objects.get_by_key(row[num['product_vendor']])
+                product_['vendor'] = self.fix_name(row[num['product_vendor']])
+                product_['vendor'] = Vendor.objects.get_by_key(updater = self.updater, key = product_['vendor'])
 
                 # Продукт
-                product['article'] = self.fix_article(row[num['product_article']])
-                product_name       = self.fix_name(row[num['product_name']])
+                product_['article'] = self.fix_article(row[num['product_article']])
+                product_['name']    = self.fix_name(row[num['product_name']])
 
                 # Гарантия
-                product['warranty'] = self.fix_string(row[num['product_warranty']])
+                product_['warranty'] = self.fix_string(row[num['product_warranty']])
 
-                product = Product.objects.take(
-                    article  = product['article'],
-                    vendor   = product['vendor'],
-                    name     = product['name'],
-                    category = category)
-                if product:
-                    self.count['product'] += 1
+                try:
+                    product = Product.objects.take(article  = product_['article'],
+                                                   vendor   = product_['vendor'],
+                                                   name     = product_['name'])
+                    self.products.append(product)
+                except ValueError as error:
+                    if self.test:
+                        print(error)
+                        exit()
+                    continue
 
-                # TODO
-#                   product.set_parameter_value('warranty', product['warranty'])
+                party_['article'] = self.fix_string(row[num['party_article']])
 
-                    # Партии
-                    party['article'] = self.fix_string(row[num['party_article']])
+                party_['quantity_stock']   = self.fix_quantity(row[num['quantity_stock']])
+                party_['quantity_transit'] = self.fix_quantity_transit(row[num['quantity_transit']])
+                party_['quantity_factory'] = self.fix_quantity(row[num['quantity_factory']])
 
-                    party['quantity_stock']   = self.fix_quantity(row[num['quantity_stock']])
-                    party['quantity_transit'] = self.fix_quantity_transit(row[num['quantity_transit']])
-                    party['quantity_factory'] = self.fix_quantity(row[num['quantity_factory']])
+                party_['price']        = self.fix_price(row[num['party_price']])
+                party_['currency']     = currency[row[num['party_currency']]]
+                party_['price_out']    = self.fix_price(row[num['party_price_out']])
+                party_['currency_out'] = currency[row[num['party_currency_out']]]
 
-                    party['price']        = self.fix_price(row[num['party_price']])
-                    party['currency']     = currency[row[num['party_currency']]]
-                    party['price_out']    = self.fix_price(row[num['party_price_out']])
-                    party['currency_out'] = currency[row[num['party_currency_out']]]
+                try:
+                    party = Party.objects.make(product        = product,
+                                               stock          = self.stock,
+                                               article        = party_['article'],
+                                               price          = party_['price'],
+                                               currency       = party_['currency'],
+                                               price_out      = party_['price_out'],
+                                               currency_out   = party_['currency_out'],
+                                               quantity       = party_['quantity_stock'],
+                                               time           = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    if self.test:
+                        print(error)
+                        exit()
 
-                    # Партии на складе
-                    if quantity['stock']:
-                        party = Party.objects.make(
-                            product        = product,
-                            stock          = self.stock,
-                            article        = party_article,
-                            price          = party_price,
-                            price_type     = self.dp,
-                            currency       = party_currency,
-                            price_out      = party_price,
-                            price_type_out = self.rp,
-                            currency_out   = party_currency,
-                            quantity       = quantity['stock'],
-                            unit           = self.default_unit,
-                            time           = self.start_time)
-                        self.count['party'] += 1
+                try:
+                    party = Party.objects.make(product        = product,
+                                               stock          = self.transit,
+                                               article        = party_['article'],
+                                               price          = party_['price'],
+                                               currency       = party_['currency'],
+                                               price_out      = party_['price_out'],
+                                               currency_out   = party_['currency_out'],
+                                               quantity       = party_['quantity_transit'],
+                                               time           = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    if self.test:
+                        print(error)
+                        exit()
 
-                    # Партии в транзите
-                    if quantity['transit']:
-                        party = Party.objects.make(
-                            product        = product,
-                            stock          = self.transit,
-                            article        = party_article,
-                            price          = party_price,
-                            price_type     = self.dp,
-                            currency       = party_currency,
-                            price_out      = party_price,
-                            price_type_out = self.rp,
-                            currency_out   = party_currency,
-                            quantity       = quantity['transit'],
-                            unit           = self.default_unit,
-                            time           = self.start_time)
-                        self.count['party'] += 1
-
-                    # Партии на заказ
-                    if quantity['factory'] is None:
-                        party = Party.objects.make(
-                            product        = product,
-                            stock          = self.factory,
-                            article        = party_article,
-                            price          = party_price,
-                            price_type     = self.dp,
-                            currency       = party_currency,
-                            price_out      = party_price,
-                            price_type_out = self.rp,
-                            currency_out   = party_currency,
-                            quantity       = quantity['factory'],
-                            unit           = self.default_unit,
-                            time           = self.start_time)
-                        self.count['party'] += 1
-
-
-
-
+                try:
+                    party = Party.objects.make(product        = product,
+                                               stock          = self.factory,
+                                               article        = party_['article'],
+                                               price          = party_['price'],
+                                               currency       = party_['currency'],
+                                               price_out      = party_['price_out'],
+                                               currency_out   = party_['currency_out'],
+                                               quantity       = party_['quantity_factory'],
+                                               time           = self.start_time)
+                except ValueError as error:
+                    if self.test:
+                        print(error)
+                        exit()
 
     def fix_quantity_transit(self, quantity):
 

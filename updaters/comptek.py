@@ -1,3 +1,5 @@
+import time
+
 import catalog.runner
 from catalog.models import *
 
@@ -22,18 +24,13 @@ class Runner(catalog.runner.Runner):
         self.transit  = self.take_stock('transit', 'транзит', 10, 60)
         self.on_order = self.take_stock('on-order', 'на заказ', 40, 80)
 
-        self.count = {'product' : 0, 'party'   : 0}
-
-
     def run(self):
-
-        import time
 
         # Авторизуемся
         self.login({'login'    : self.updater.login,
                     'password' : self.updater.password})
 
-        # Заходим на начальную страницу каталога
+        # Заходим на начальную страницу
         tree = self.load_html(self.url['price'])
 
         # Проходим по всем ссылкам
@@ -53,7 +50,7 @@ class Runner(catalog.runner.Runner):
             if self.url['filter'] in urls[i] and self.url['unfilter'] not in urls[i]:
 
                 # Определяем производителя
-                vendor = Vendor.objects.get_by_key(updater = self.updater, key = urls[i].split('/')[4])
+                vendor = Vendor.objects.get_by_key(updater = self.updater, key = self.fix_string(urls[i].split('/')[4]))
                 print('Vendor: {}.'.format(vendor))
 
                 # Загружаем страницу
@@ -132,6 +129,7 @@ class Runner(catalog.runner.Runner):
                                                currency   = party_['currency'],
                                                quantity   = party_['on_stock'],
                                                time       = self.start_time)
+                    self.parties.append(party)
                 except ValueError as error:
                     if self.test:
                         print(error)
@@ -144,6 +142,7 @@ class Runner(catalog.runner.Runner):
                                                currency   = party_['currency'],
                                                quantity   = party_['on_transit'],
                                                time       = self.start_time)
+                    self.parties.append(party)
                 except ValueError as error:
                     if self.test:
                         print(error)
@@ -156,6 +155,7 @@ class Runner(catalog.runner.Runner):
                                                currency   = party_['currency'],
                                                quantity   = None,
                                                time       = self.start_time)
+                    self.parties.append(party)
                 except ValueError as error:
                     if self.test:
                         print(error)
@@ -215,3 +215,15 @@ class Runner(catalog.runner.Runner):
                     exit()
 
         return i
+
+
+    def fix_string(self, string):
+
+        super().fix_string(string)
+
+        blacklist = ['files', ]
+
+        if string in blacklist:
+            string = ''
+
+        return string
