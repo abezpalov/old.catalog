@@ -6,7 +6,7 @@ class Runner(catalog.runner.Runner):
 
     name  = 'Digis'
     alias = 'digis'
-    test = False
+
     url = {'start' : 'http://digis.ru/distribution/',
            'login' : 'http://digis.ru/distribution/?login=yes',
            'files' : 'http://digis.ru/personal/profile/price/',
@@ -154,7 +154,7 @@ class Runner(catalog.runner.Runner):
                 # Категория
                 category = "{} | {}".format(row[num['category']], row[num['category_sub']])
 
-                # Синоним производителя
+                # Производитель
                 product_['vendor'] = self.fix_name(row[num['product_vendor']])
                 product_['vendor'] = Vendor.objects.get_by_key(updater = self.updater, key = product_['vendor'])
 
@@ -171,9 +171,6 @@ class Runner(catalog.runner.Runner):
                                                    name     = product_['name'])
                     self.products.append(product)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
                     continue
 
                 party_['article'] = self.fix_string(row[num['party_article']])
@@ -199,9 +196,7 @@ class Runner(catalog.runner.Runner):
                                                time           = self.start_time)
                     self.parties.append(party)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass
 
                 try:
                     party = Party.objects.make(product        = product,
@@ -215,9 +210,7 @@ class Runner(catalog.runner.Runner):
                                                time           = self.start_time)
                     self.parties.append(party)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass
 
                 try:
                     party = Party.objects.make(product        = product,
@@ -230,9 +223,7 @@ class Runner(catalog.runner.Runner):
                                                quantity       = party_['quantity_factory'],
                                                time           = self.start_time)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass
 
     def fix_quantity_transit(self, quantity):
 

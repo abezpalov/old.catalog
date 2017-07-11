@@ -58,7 +58,7 @@ class Runner(catalog.runner.Runner):
 
             self.reg = re.compile('\[(?P<article>[0-9A-Za-z\.\-\_ ]+)\]')
 
-            category = self.get_string(group, './Наименование')
+            category = self.xpath_string(group, './Наименование')
 
             for element in group.xpath('./Товары/Товар'):
 
@@ -67,13 +67,15 @@ class Runner(catalog.runner.Runner):
                 party_ = {}
 
                 # Производитель
-                product_['vendor'] = Vendor.objects.get_by_key(self.updater, self.get_string(element, './Производитель'))
+                product_['vendor'] = self.xpath_string(element, './Производитель')
+                product_['vendor'] = Vendor.objects.get_by_key(self.updater, product_['vendor'])
 
                 # Продукт
-                product_['name'] = self.fix_name(self.get_string(element, './Наименование'))
+                product_['name'] = self.xpath_string(element, './Наименование')
+                product_['name'] = self.fix_name(product_['name'])
 
-                product_['article'] = self.get_string(element, './Модель')
-                product_['article_alt'] = re.search(self.reg, self.get_string(element, './Наименование'))
+                product_['article'] = self.xpath_string(element, './Модель')
+                product_['article_alt'] = re.search(self.reg, self.xpath_string(element, './Наименование'))
                 if product_['article_alt']:
                     product_['article'] = product_['article_alt'].group('article')
                 product_['article'] = self.fix_article(product_['article'])
@@ -91,18 +93,23 @@ class Runner(catalog.runner.Runner):
                     continue
 
                 # Партии
-                party_['article'] = self.get_string(element, './Артикул')
+                party_['article'] = self.xpath_string(element, './Артикул')
+                party_['article'] = self.fix_article(party_['article'])
 
-                party_['quantity'] = self.fix_quantity(self.get_string(element, './Количество'))
+                party_['quantity'] = self.xpath_string(element, './Количество')
+                party_['quantity'] = self.fix_quantity(party_['quantity'])
 
-                party_['currency'] = self.get_string(element, './Валюта')
+                party_['currency'] = self.xpath_string(element, './Валюта')
                 if party_['currency']:
                     party_['currency'] = currency[party_['currency']]
                 else:
                     party_['currency'] = None
 
-                party_['price_in'] = self.fix_price(self.get_string(element, './Цена_3'))
-                party_['price_out'] = self.fix_price(self.get_string(element, './Цена_1'))
+                party_['price_in'] = self.xpath_string(element, './Цена_3')
+                party_['price_in'] = self.fix_price(party_['price_in'])
+
+                party_['price_out'] = self.xpath_string(element, './Цена_1')
+                party_['price_out'] = self.fix_price(party_['price_out'])
 
                 try:
                     party = Party.objects.make(product    = product,

@@ -102,14 +102,20 @@ class Runner(catalog.runner.Runner):
                 product_ = {}
                 party_ = {}
 
-                product_['article']  = self.fix_article(self.get_string(tr, './td[@class="art"]'))
-                product_['name']     = self.fix_name(self.get_text(tr, './td[@class="prod-name"]/a'))
-                product_['url']      = self.get_href(tr, './td[@class="prod-name"]/a/@href')
-                party_['on_stock']   = self.get_int(tr, ('./td', './span/@class'), index = 2) # TODO
-                party_['on_transit'] = self.get_int(tr, ('./td', './span/@class'), index = 3) # TODO
+                product_['article'] = self.xpath_string(tr, './td[@class="art"]')
+                product_['article'] = self.fix_article(product_['article'])
+
+                product_['name'] = self.xpath_string(tr, './td[@class="prod-name"]/a')
+                product_['name'] = self.fix_name(product_['name'])
+
+                product_['url'] = self.xpath_string(tr, './td[@class="prod-name"]/a/@href')
+                product_['url'] = self.fix_url(product_['url'])
+
+                party_['on_stock']   = self.xpath_int(tr, ('./td', './span/@class'), index = 2) # TODO
+                party_['on_transit'] = self.xpath_int(tr, ('./td', './span/@class'), index = 3) # TODO
 #                party_['on_order']   = self.get_int(tr, ('./td', './span/@class'), index = 4) # TODO
-                party_['price']      = self.get_float(tr, './td', index = 5)
-                party_['currency']   = self.get_currency(tr, ('./td', './span/@class'), index = 5)
+                party_['price']      = self.xpath_float(tr, './td', index = 5)
+                party_['currency']   = self.xpath_currency(tr, ('./td', './span/@class'), index = 5)
 
                 try:
                     product = Product.objects.take(article = product_['article'],
@@ -161,7 +167,7 @@ class Runner(catalog.runner.Runner):
                         print(error)
                         exit()
 
-    def get_currency(self, element, query, index = 0):
+    def xpath_currency(self, element, query, index = 0):
 
         result = None
 
@@ -190,9 +196,9 @@ class Runner(catalog.runner.Runner):
 
         return result
 
-    def get_int(self, element, query, index = 0):
+    def xpath_int(self, element, query, index = 0):
 
-        i = super().get_int(element, query[0], index)
+        i = super().xpath_int(element, query[0], index)
 
         if i == 0:
 

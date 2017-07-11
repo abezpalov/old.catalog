@@ -246,11 +246,27 @@ class Runner:
 
         return string
 
-    def get_string(self, element, query):
-        try:
-            string = element.xpath(query)[0].text
-        except Exception:
-            string = ''
+    def xpath_string(self, element, query, index = 0):
+
+        targets = element.xpath(query)
+        if targets:
+            target = targets[index]
+        else:
+            return ''
+
+        if str(type(target)) in ["<class 'lxml.html.HtmlElement'>", "<class 'lxml.etree._Element'>"]:
+            try:
+                string = target.text
+            except Exception:
+                string = ''
+        elif str(type(target)) in ["<class 'lxml.etree._ElementUnicodeResult'>"]:
+            try:
+                string = target
+            except Exception:
+                string = None
+        else:
+            raise(ValueError('Некорректный тип данных:', str(type(target))))
+
         string = self.fix_string(string)
         return string
 
@@ -272,7 +288,7 @@ class Runner:
         return text
 
 
-    def get_text(self, element, query):
+    def xpath_text(self, element, query):
 
         try:
             text = element.xpath(query)[0].text
@@ -284,7 +300,7 @@ class Runner:
         return text
 
 
-    def get_int(self, element, query, index = 0):
+    def xpath_int(self, element, query, index = 0):
 
         try:
             i = int(element.xpath(query)[index].text.strip())
@@ -294,8 +310,7 @@ class Runner:
 
         return i
 
-
-    def get_float(self, element, query, index = 0):
+    def xpath_float(self, element, query, index = 0):
 
         try:
             text = element.xpath(query)[index].text.strip()
@@ -313,19 +328,11 @@ class Runner:
         return result
 
 
-    def get_href(self, element, query, index = 0):
-
-        try:
-            result = element.xpath(query)[index].strip()
-
-            if self.url.get('base', None):
-                if self.url['base'] not in result:
-                    result = self.url['base'] + result
-
-        except Exception:
-            result = ''
-
-        return result
+    def fix_url(self, url):
+        if self.url.get('base', None):
+             if self.url['base'] not in url:
+                 url = self.url['base'] + url
+        return url
 
 
     def fix_price(self, price):
@@ -361,11 +368,12 @@ class Runner:
         quantity = str(quantity).strip()
 
         quantity = quantity.replace('>', '')
-        quantity = quantity.replace('более ', '')
+        quantity = quantity.replace('более', '')
+        quantity = quantity.replace(' ', '')
 
-        if quantity in ('', '0*', 'call', 'Нет'):
+        if quantity in ('', '0*', 'call', 'Нет', 'в транзите'):
             return 0
-        elif quantity in ('Звоните', 'под заказ'):
+        elif quantity in ('Звоните', 'под заказ', 'звонить'):
             return None
         elif quantity in ('Есть'):
             return 1
