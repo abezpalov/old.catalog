@@ -126,7 +126,7 @@ class Runner(catalog.runner.Runner):
                 # Производитель
                 product_['vendor'] = self.fix_name(row[num['product_vendor']])
                 product_['vendor'] = Vendor.objects.get_by_key(updater = self.updater, key = product_['vendor'])
-        
+
                 # Продукт
                 product_['article'] = self.fix_article(row[num['product_vendor']])
                 product_['article'] = self.fix_article(row[num['product_article']])
@@ -139,6 +139,9 @@ class Runner(catalog.runner.Runner):
                     product = Product.objects.take(article = product_['article'],
                                                    vendor = product_['vendor'],
                                                    name = product_['name'])
+                    product = Product.objects.take(article = product_['article'],
+                                                   vendor = product_['vendor'],
+                                                   name = product_['description'])
                     self.products.append(product)
                 except ValueError as error:
                     continue

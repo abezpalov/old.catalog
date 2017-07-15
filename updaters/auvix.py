@@ -1,3 +1,6 @@
+# TODO Описсание товара с b2b
+# TODO Фотографии товара с b2b
+
 import catalog.runner
 from catalog.models import *
 
@@ -6,7 +9,6 @@ class Runner(catalog.runner.Runner):
 
     name  = 'Auvix'
     alias = 'auvix'
-    test  = False
     url   = {'start'  : 'https://b2b.auvix.ru/',
              'login'  : 'https://b2b.auvix.ru/?login=yes',
              'price'  : 'https://b2b.auvix.ru/prices/Price_AUVIX_dealer_xml.zip'}
@@ -87,9 +89,6 @@ class Runner(catalog.runner.Runner):
                                                    category = category)
                     self.products.append(product)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
                     continue
 
                 # Партии
@@ -120,9 +119,7 @@ class Runner(catalog.runner.Runner):
                                                time       = self.start_time)
                     self.parties.append(party)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass
 
                 try:
                     party = Party.objects.make(product    = product,
@@ -133,6 +130,4 @@ class Runner(catalog.runner.Runner):
                                                time       = self.start_time)
                     self.parties.append(party)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass

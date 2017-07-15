@@ -29,6 +29,7 @@ class Runner:
 		'mics',
 		'europarts',
 		'comptek',
+        'elko',
 
 		'recalculate']
 

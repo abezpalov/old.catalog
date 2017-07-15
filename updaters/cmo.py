@@ -1,3 +1,5 @@
+# TODO Описание и фото товара с сайта
+
 import catalog.runner
 from catalog.models import *
 
@@ -7,7 +9,6 @@ class Runner(catalog.runner.Runner):
 
     name  = 'ЦМО'
     alias = 'cmo'
-    test  = False
     url   = {'start' : 'http://cmo.ru/',
              'price' : 'http://cmo.ru/price/',
              'base'  : 'http://cmo.ru'}
@@ -55,7 +56,7 @@ class Runner(catalog.runner.Runner):
             for group in table.xpath(".//li[@id]"):
 
                 # Определяем синоним категории
-                category = self.get_string(group, './/div[@class="item-text-root"]')
+                category = self.xpath_string(group, './/div[@class="item-text-root"]')
 
                 # Проходим по элементам
                 for element in group.xpath(".//div[@class='item-text']"):
@@ -65,15 +66,15 @@ class Runner(catalog.runner.Runner):
                     party_ = {}
 
                     # Артикулы
-                    party_['article']   = self.fix_article(self.get_string(element, './/div[@class="service-num"]'))
-                    product_['article'] = self.fix_article(self.get_string(element, './/div[@class="service-code"]'))
+                    party_['article']   = self.fix_article(self.xpath_string(element, './/div[@class="service-num"]'))
+                    product_['article'] = self.fix_article(self.xpath_string(element, './/div[@class="service-code"]'))
 
                     # Наименование
-                    product_['name'] = self.get_string(element, './/div[@class="name-text"]/a')
-                    product_['link'] = self.get_href(element, './/div[@class="name-text"]/a/@href')
+                    product_['name'] = self.xpath_string(element, './/div[@class="name-text"]/a')
+                    product_['link'] = self.xpath_string(element, './/div[@class="name-text"]/a/@href')
 
                     # Цена
-                    party_['price'] = self.fix_price(self.get_string(element, './/div[@class="price"]'))
+                    party_['price'] = self.fix_price(self.xpath_string(element, './/div[@class="price"]'))
 
                     # Получаем объект товара
                     try:
@@ -83,9 +84,6 @@ class Runner(catalog.runner.Runner):
                                                        category = category)
                         self.products.append(product)
                     except ValueError as error:
-                        if self.test:
-                            print(error)
-                            exit()
                         continue
 
                     try:
@@ -99,6 +97,4 @@ class Runner(catalog.runner.Runner):
                                                    time       = self.start_time)
                         self.parties.append(party)
                     except ValueError as error:
-                        if self.test:
-                            print(error)
-                            exit()
+                        pass

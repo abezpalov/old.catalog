@@ -1,341 +1,329 @@
+# TODO Фотографии и описание товаров с портала
+
 import catalog.runner
 from catalog.models import *
 
 
 class Runner(catalog.runner.Runner):
 
+    name  = 'Fujitsu'
+    alias = 'fujitsu'
+    url = {'start': 'https://login.ts.fujitsu.com/vpn/tmindex.html',
+           'login': 'https://login.ts.fujitsu.com/cgi/login',
+           'links': 'https://partners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
+           'search': '2017.zip',
+           'prefix': 'https://partners.ts.fujitsu.com'}
 
-	name  = 'Fujitsu'
-	alias = 'fujitsu'
-	url = {
-		'start'  : 'https://login.ts.fujitsu.com/vpn/tmindex.html',
-		'login'  : 'https://login.ts.fujitsu.com/cgi/login',
-		'links'  : 'https://partners.ts.fujitsu.com/sites/CPP/ru/config-tools/Pages/default.aspx',
-		'search' : '2017.zip',
-		'prefix' : 'https://partners.ts.fujitsu.com'}
+    def __init__(self):
 
+        super().__init__()
 
-	def __init__(self):
+        self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
 
-		super().__init__()
+        self.stock = self.take_stock('factory', 'на заказ', 40, 60)
 
-		self.vendor = Vendor.objects.take(
-			alias = self.alias,
-			name  = self.name)
+        self.rdp = PriceType.objects.take(
+            alias = 'RDP-Fujitsu',
+            name  = 'Рекомендованная диллерская цена Fujitsu')
 
-		self.stock = self.take_stock('factory', 'на заказ', 40, 60)
+    def run(self):
 
-		self.count = {
-			'product' : 0,
-			'party'   : 0}
+        # Авторизуемся
+        self.login({'login':  self.updater.login,
+                   'passwd': self.updater.password})
 
-		self.rdp = PriceType.objects.take(
-			alias = 'RDP-Fujitsu',
-			name  = 'Рекомендованная диллерская цена Fujitsu')
+        # Заходим на страницу загрузки
+        tree = self.load_html(self.url['links'])
 
+        # Получаем ссылки со страницы
+        result = False
+        urls = tree.xpath('//a/@href')
+        for url in urls:
+            if self.url['search'] in url:
 
-	def run(self):
+                # Скачиваем архив
+                url = self.url['prefix'] + url
 
-		payload = {
-			'login':  self.updater.login,
-			'passwd': self.updater.password}
-		self.login(payload)
+                data = self.load_data(url)
 
-		# Заходим на страницу загрузки
-		tree = self.load_html(self.url['links'])
+                # Парсим sys_arc.mdb
+                mdb = self.unpack(data, 'sys_arc.mdb')
+                self.parse_categories(mdb)
+                self.parse_products(mdb)
 
-		# Получаем ссылки со страницы
-		result = False
-		urls = tree.xpath('//a/@href')
-		for url in urls:
-			if self.url['search'] in url:
+                # Парсим prices.mdb
+                mdb = self.unpack(data, 'prices.mdb')
+                self.parse_prices(mdb)
 
-				# Скачиваем архив
-				url = self.url['prefix'] + url
+                result = True
+                break
 
-				data = self.load_data(url)
+        if result:
+            Party.objects.clear(stock = self.stock, time = self.start_time)
+            self.log()
 
-				# Парсим sys_arc.mdb
-				mdb = self.unpack(data, 'sys_arc.mdb')
-				self.parse_categories(mdb)
-				self.parse_products(mdb)
+        else:
+            Log.objects.add(
+                subject     = "catalog.updater.{}".format(self.updater.alias),
+                channel     = "error",
+                title       = "return False",
+                description = "Не найден прайс-лист.")
 
-				# Парсим prices.mdb
-				mdb = self.unpack(data, 'prices.mdb')
-				self.parse_prices(mdb)
 
-				result = True
-				break
+    def unpack(self, data, mdb_name):
 
-		if result:
+        from zipfile import ZipFile
 
-			Party.objects.clear(stock = self.stock, time = self.start_time)
+        zip_data = ZipFile(data)
 
-			self.log()
+        zip_data.extract(mdb_name, '/tmp')
+        print("Получены данные: {}".format(mdb_name))
 
-		else:
+        return "/tmp/{}".format(mdb_name)
 
-			Log.objects.add(
-				subject     = "catalog.updater.{}".format(self.updater.alias),
-				channel     = "error",
-				title       = "return False",
-				description = "Не найден прайс-лист.")
 
+    def parse_categories(self, mdb):
 
-	def unpack(self, data, mdb_name):
+        import sys, subprocess, os
 
-		from zipfile import ZipFile
+        # Синонимы категорий
+        self.category_synonyms = {}
 
-		zip_data = ZipFile(data)
+        # Номера строк и столбцов
+        num = {}
 
-		zip_data.extract(mdb_name, '/tmp')
-		print("Получены данные: {}".format(mdb_name))
+        # Распознаваемые слова
+        word = {
+            'numb' : 'PraesKategLfdNr',
+            'name' : 'PraesKateg'}
 
-		return "/tmp/{}".format(mdb_name)
+        # Загружаем таблицу категорий
+        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'], stdout = subprocess.PIPE).communicate()[0]
+        rows = rows.decode("utf-8").split("{%row%}")
 
+        for rown, row in enumerate(rows):
 
-	def parse_categories(self, mdb):
+            row = row.split("{%col%}")
 
-		import sys, subprocess, os
+            # Заголовок
+            if not rown:
 
-		# Синонимы категорий
-		self.category_synonyms = {}
+                for celn, cel in enumerate(row):
 
-		# Номера строк и столбцов
-		num = {}
+                    cel = cel.strip().replace('"', '')
+                    if   cel.strip() == word['numb']: num['numb'] = celn
+                    elif cel.strip() == word['name']: num['name'] = celn
+
+                if len(num) == 2:
+                    print("Все столбцы распознаны")
+                else:
+                    print("Error: Не опознаны необходимые столбцы.")
+                    return False
+
+            # Строка с данными
+            elif rown + 1 < len(rows):
+
+                # Получаем объект синонима
+                category_synonym = self.take_categorysynonym("{} | {}".format(
+                        row[num['numb']],
+                        row[num['name']].strip().replace('"', '')))
+                self.category_synonyms[row[num['numb']]] = category_synonym
+
+                #print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))
+
+        return True
+
+
+    def parse_products(self, mdb):
+
+        import sys, subprocess, os
 
-		# Распознаваемые слова
-		word = {
-			'numb' : 'PraesKategLfdNr',
-			'name' : 'PraesKateg'}
+        # Номера строк и столбцов
+        num = {}
+
+        # Распознаваемые слова
+        word = {
+            'article'       : 'SachNr',
+            'name'          : 'Benennung',
+            'status'        : 'VertStat',
+            'category_numb' : 'PraesKategNr',
+            'description-1' : 'Beschreibung',
+            'description-2' : 'CfgHint'}
 
-		# Загружаем таблицу категорий
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'], stdout = subprocess.PIPE).communicate()[0]
-		rows = rows.decode("utf-8").split("{%row%}")
+        # Статусы продуктов
+        self.quantity = {}
 
-		for rown, row in enumerate(rows):
+        # Загружаем таблицу продуктов
+        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Komp'], stdout = subprocess.PIPE).communicate()[0]
+        rows = rows.decode("utf-8").split("{%row%}")
 
-			row = row.split("{%col%}")
+        for rown, row in enumerate(rows):
 
-			# Заголовок
-			if not rown:
+            row = row.split("{%col%}")
 
-				for celn, cel in enumerate(row):
+            # Заголовок
+            if not rown:
 
-					cel = cel.strip().replace('"', '')
-					if   cel.strip() == word['numb']: num['numb'] = celn
-					elif cel.strip() == word['name']: num['name'] = celn
-
-				if len(num) == 2:
-					print("Все столбцы распознаны")
-				else:
-					print("Error: Не опознаны необходимые столбцы.")
-					return False
-
-			# Строка с данными
-			elif rown + 1 < len(rows):
-
-				# Получаем объект синонима
-				category_synonym = self.take_categorysynonym("{} | {}".format(
-						row[num['numb']],
-						row[num['name']].strip().replace('"', '')))
-				self.category_synonyms[row[num['numb']]] = category_synonym
-
-				#print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))
-
-		return True
+                for celn, cel in enumerate(row):
+                    print("{}. {}".format(celn, cel))
 
-
-	def parse_products(self, mdb):
+                    cel = cel.strip().replace('"', '')
+                    if   cel.strip() == word['article']:       num['article']       = celn
+                    elif cel.strip() == word['name']:          num['name']          = celn
+                    elif cel.strip() == word['status']:        num['status']        = celn
+                    elif cel.strip() == word['category_numb']: num['category_numb'] = celn
+                    elif cel.strip() == word['description-1']: num['description-1'] = celn
+                    elif cel.strip() == word['description-2']: num['description-2'] = celn
 
-		import sys, subprocess, os
+                if len(num) == 6:
+                    print("Все столбцы распознаны")
+                else:
+                    Log.objects.add(
+                        subject     = "catalog.updater.{}".format(self.updater.alias),
+                        channel     = "error",
+                        title       = "error",
+                        description = "Не опознаны необходимые столбцы.")
+                    return False
 
-		# Номера строк и столбцов
-		num = {}
+            # Строка с данными
+            elif rown + 1 < len(rows):
 
-		# Распознаваемые слова
-		word = {
-			'article'       : 'SachNr',
-			'name'          : 'Benennung',
-			'status'        : 'VertStat',
-			'category_numb' : 'PraesKategNr',
-			'description-1' : 'Beschreibung',
-			'description-2' : 'CfgHint'}
+                # Артикул
+                article = row[num['article']].strip().replace('"', '')
 
-		# Статусы продуктов
-		self.quantity = {}
+                # Имя
+                name = row[num['name']].strip().replace('"', '')
 
-		# Загружаем таблицу продуктов
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Komp'], stdout = subprocess.PIPE).communicate()[0]
-		rows = rows.decode("utf-8").split("{%row%}")
+                # Статус
+                if '50' == row[num['status']].strip().replace('"', ''):
+                    self.quantity[article] = -1
+                else:
+                    self.quantity[article] = None
 
-		for rown, row in enumerate(rows):
+                # Категория
+                try:
+                    category = self.category_synonyms[row[num['category_numb']].strip().replace('"', '')].category
+                except KeyError:
+                    category = None
 
-			row = row.split("{%col%}")
+                # Описание
+                if len(row[num['description-1']].strip().replace('"', '')) > len(row[num['description-2']].strip().replace('"', '')):
+                    description = row[num['description-1']].strip().replace('"', '')
+                elif len(row[num['description-2']].strip().replace('"', '')):
+                    description = row[num['description-1']].strip().replace('"', '')
+                else:
+                    description = None
 
-			# Заголовок
-			if not rown:
+                # Добавляем продукт в базу
+                if article and name:
+                    product = Product.objects.take(
+                        article     = article,
+                        vendor      = self.vendor,
+                        name        = name,
+                        category    = category,
+                        unit        = self.default_unit,
+                        description = description)
+                    self.count['product'] += 1
 
-				for celn, cel in enumerate(row):
-					print("{}. {}".format(celn, cel))
+                    if 'Warranty group: ' in product.name:
+                        product.state = False
+                        product.save()
 
-					cel = cel.strip().replace('"', '')
-					if   cel.strip() == word['article']:       num['article']       = celn
-					elif cel.strip() == word['name']:          num['name']          = celn
-					elif cel.strip() == word['status']:        num['status']        = celn
-					elif cel.strip() == word['category_numb']: num['category_numb'] = celn
-					elif cel.strip() == word['description-1']: num['description-1'] = celn
-					elif cel.strip() == word['description-2']: num['description-2'] = celn
 
-				if len(num) == 6:
-					print("Все столбцы распознаны")
-				else:
-					Log.objects.add(
-						subject     = "catalog.updater.{}".format(self.updater.alias),
-						channel     = "error",
-						title       = "error",
-						description = "Не опознаны необходимые столбцы.")
-					return False
+    def parse_prices(self, mdb):
 
-			# Строка с данными
-			elif rown + 1 < len(rows):
+        import sys, subprocess, os
 
-				# Артикул
-				article = row[num['article']].strip().replace('"', '')
+        # Номера строк и столбцов
+        num = {}
 
-				# Имя
-				name = row[num['name']].strip().replace('"', '')
+        # Распознаваемые слова
+        word = {
+            'price_n' : 'SPNr',
+            'price_a' : 'SPName',
+            'article' : 'SachNr'}
 
-				# Статус
-				if '50' == row[num['status']].strip().replace('"', ''):
-					self.quantity[article] = -1
-				else:
-					self.quantity[article] = None
+        price_types = {}
 
-				# Категория
-				try:
-					category = self.category_synonyms[row[num['category_numb']].strip().replace('"', '')].category
-				except KeyError:
-					category = None
+        # Загружаем таблицу типов цен
+        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PriceSpec'], stdout = subprocess.PIPE).communicate()[0]
+        rows = rows.decode("utf-8").split("{%row%}")
 
-				# Описание
-				if len(row[num['description-1']].strip().replace('"', '')) > len(row[num['description-2']].strip().replace('"', '')):
-					description = row[num['description-1']].strip().replace('"', '')
-				elif len(row[num['description-2']].strip().replace('"', '')):
-					description = row[num['description-1']].strip().replace('"', '')
-				else:
-					description = None
+        for rown, row in enumerate(rows):
 
-				# Добавляем продукт в базу
-				if article and name:
-					product = Product.objects.take(
-						article     = article,
-						vendor      = self.vendor,
-						name        = name,
-						category    = category,
-						unit        = self.default_unit,
-						description = description)
-					self.count['product'] += 1
+            row = row.split("{%col%}")
 
-					if 'Warranty group: ' in product.name:
-						product.state = False
-						product.save()
+            # Заголовок
+            if not rown:
 
+                for celn, cel in enumerate(row):
+                    print("{}. {}".format(celn, cel))
 
-	def parse_prices(self, mdb):
+                    cel = cel.strip().replace('"', '')
+                    if   cel.strip() == word['price_n']: num['price_n'] = celn
+                    elif cel.strip() == word['price_a']: num['price_a'] = celn
 
-		import sys, subprocess, os
+                if len(num) == 2:
+                    print("Все столбцы распознаны")
+                else:
+                    print("Error: Не опознаны необходимые столбцы.")
+                    return False
 
-		# Номера строк и столбцов
-		num = {}
+            # Строка с данными
+            elif rown + 1 < len(rows):
+                price_types[row[num['price_a']].strip().replace('"', '')] = row[num['price_n']].strip().replace('"', '')
 
-		# Распознаваемые слова
-		word = {
-			'price_n' : 'SPNr',
-			'price_a' : 'SPName',
-			'article' : 'SachNr'}
+        word['price'] = "SP" + price_types["RDP"]
 
-		price_types = {}
+        # Загружаем таблицу цен
+        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Prices'], stdout = subprocess.PIPE).communicate()[0]
+        rows = rows.decode("utf-8").split("%row%}")
 
-		# Загружаем таблицу типов цен
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PriceSpec'], stdout = subprocess.PIPE).communicate()[0]
-		rows = rows.decode("utf-8").split("{%row%}")
+        for rown, row in enumerate(rows):
 
-		for rown, row in enumerate(rows):
+            row = row.split("{%col%}")
 
-			row = row.split("{%col%}")
+            # Заголовок
+            if not rown:
 
-			# Заголовок
-			if not rown:
+                for celn, cel in enumerate(row):
+                    print("{}. {}".format(celn, cel))
 
-				for celn, cel in enumerate(row):
-					print("{}. {}".format(celn, cel))
+                    cel = cel.strip().replace('"', '')
+                    if   cel.strip() == word['article']: num['article'] = celn
+                    elif cel.strip() == word['price']:   num['price']   = celn
 
-					cel = cel.strip().replace('"', '')
-					if   cel.strip() == word['price_n']: num['price_n'] = celn
-					elif cel.strip() == word['price_a']: num['price_a'] = celn
+                if len(num) == 4:
+                    print("Все столбцы распознаны")
+                else:
+                    print("Error: Не опознаны необходимые столбцы.")
+                    return False
 
-				if len(num) == 2:
-					print("Все столбцы распознаны")
-				else:
-					print("Error: Не опознаны необходимые столбцы.")
-					return False
+            # Строка с данными
+            elif rown + 1 < len(rows):
 
-			# Строка с данными
-			elif rown + 1 < len(rows):
-				price_types[row[num['price_a']].strip().replace('"', '')] = row[num['price_n']].strip().replace('"', '')
+                article = row[num['article']].strip().replace('"', '')
+                price = float(row[num['price']].strip().replace('"', '') or 0)
 
-		word['price'] = "SP" + price_types["RDP"]
+                try:
+                    # Получаем объект товара
+                    product = Product.objects.get(article = article, vendor = self.vendor)
 
-		# Загружаем таблицу цен
-		rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'Prices'], stdout = subprocess.PIPE).communicate()[0]
-		rows = rows.decode("utf-8").split("%row%}")
+                    quantity = self.quantity[article]
 
-		for rown, row in enumerate(rows):
+                    # Добавляем партии
+                    party = Party.objects.make(
+                        product    = product,
+                        stock      = self.stock,
+                        price      = price,
+                        price_type = self.rdp,
+                        currency   = self.usd,
+                        quantity   = quantity,
+                        unit       = self.default_unit,
+                        time       = self.start_time)
+                    self.count['party'] += 1
 
-			row = row.split("{%col%}")
+                except KeyError: continue
+                except Product.DoesNotExist: continue
 
-			# Заголовок
-			if not rown:
-
-				for celn, cel in enumerate(row):
-					print("{}. {}".format(celn, cel))
-
-					cel = cel.strip().replace('"', '')
-					if   cel.strip() == word['article']: num['article'] = celn
-					elif cel.strip() == word['price']:   num['price']   = celn
-
-				if len(num) == 4:
-					print("Все столбцы распознаны")
-				else:
-					print("Error: Не опознаны необходимые столбцы.")
-					return False
-
-			# Строка с данными
-			elif rown + 1 < len(rows):
-
-				article = row[num['article']].strip().replace('"', '')
-				price = float(row[num['price']].strip().replace('"', '') or 0)
-
-				try:
-					# Получаем объект товара
-					product = Product.objects.get(article = article, vendor = self.vendor)
-
-					quantity = self.quantity[article]
-
-					# Добавляем партии
-					party = Party.objects.make(
-						product    = product,
-						stock      = self.stock,
-						price      = price,
-						price_type = self.rdp,
-						currency   = self.usd,
-						quantity   = quantity,
-						unit       = self.default_unit,
-						time       = self.start_time)
-					self.count['party'] += 1
-
-				except KeyError: continue
-				except Product.DoesNotExist: continue
-
-		return True
+        return True

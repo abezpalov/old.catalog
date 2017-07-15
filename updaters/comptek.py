@@ -1,3 +1,5 @@
+# TODO Описание и фотографии товара с сайте
+
 import time
 
 import catalog.runner
@@ -8,7 +10,6 @@ class Runner(catalog.runner.Runner):
 
     name = 'Comptek'
     alias = 'comptek'
-    test = False
     url = {'start'    : 'http://comptek.ru/',
            'login'    : 'http://comptek.ru/personal/auth.xhtml',
            'price'    : 'http://comptek.ru/',
@@ -123,9 +124,6 @@ class Runner(catalog.runner.Runner):
                                                    name = product_['name'])
                     self.products.append(product)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
                     continue
 
                 try:
@@ -137,9 +135,7 @@ class Runner(catalog.runner.Runner):
                                                time       = self.start_time)
                     self.parties.append(party)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass
 
                 try:
                     party = Party.objects.make(product    = product,
@@ -150,9 +146,7 @@ class Runner(catalog.runner.Runner):
                                                time       = self.start_time)
                     self.parties.append(party)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass
 
                 try:
                     party = Party.objects.make(product    = product,
@@ -163,9 +157,7 @@ class Runner(catalog.runner.Runner):
                                                time       = self.start_time)
                     self.parties.append(party)
                 except ValueError as error:
-                    if self.test:
-                        print(error)
-                        exit()
+                    pass
 
     def xpath_currency(self, element, query, index = 0):
 
@@ -214,11 +206,10 @@ class Runner(catalog.runner.Runner):
                 i = 5
             elif 'big-qty' in text:
                 i = 10
+            elif 'all-reserv' in text:
+                i = None
             else:
-                print(text)
-                if self.test:
-                    print(error)
-                    exit()
+                i = 0
 
         return i
 
