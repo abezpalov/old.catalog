@@ -22,15 +22,14 @@ class Runner(catalog.runner.Runner):
 
         self.stock = self.take_stock('factory', 'на заказ', 40, 60)
 
-        self.rdp = PriceType.objects.take(
-            alias = 'RDP-Fujitsu',
-            name  = 'Рекомендованная диллерская цена Fujitsu')
+        self.rdp = PriceType.objects.take(alias = 'RDP-Fujitsu',
+                                          name  = 'Рекомендованная диллерская цена Fujitsu')
 
     def run(self):
 
         # Авторизуемся
         self.login({'login':  self.updater.login,
-                   'passwd': self.updater.password})
+                    'passwd': self.updater.password})
 
         # Заходим на страницу загрузки
         tree = self.load_html(self.url['links'])
@@ -43,7 +42,6 @@ class Runner(catalog.runner.Runner):
 
                 # Скачиваем архив
                 url = self.url['prefix'] + url
-
                 data = self.load_data(url)
 
                 # Парсим sys_arc.mdb
@@ -63,42 +61,38 @@ class Runner(catalog.runner.Runner):
             self.log()
 
         else:
-            Log.objects.add(
-                subject     = "catalog.updater.{}".format(self.updater.alias),
-                channel     = "error",
-                title       = "return False",
-                description = "Не найден прайс-лист.")
-
+            Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
+                            channel = "error",
+                            title = "return False",
+                            description = "Не найден прайс-лист.")
 
     def unpack(self, data, mdb_name):
 
         from zipfile import ZipFile
 
         zip_data = ZipFile(data)
-
         zip_data.extract(mdb_name, '/tmp')
         print("Получены данные: {}".format(mdb_name))
 
         return "/tmp/{}".format(mdb_name)
-
 
     def parse_categories(self, mdb):
 
         import sys, subprocess, os
 
         # Синонимы категорий
-        self.category_synonyms = {}
+        self.categories = {}
 
         # Номера строк и столбцов
         num = {}
 
         # Распознаваемые слова
-        word = {
-            'numb' : 'PraesKategLfdNr',
-            'name' : 'PraesKateg'}
+        word = {'numb': 'PraesKategLfdNr',
+                'name': 'PraesKateg'}
 
         # Загружаем таблицу категорий
-        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'], stdout = subprocess.PIPE).communicate()[0]
+        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PraesentationsKategorien'],
+                                stdout = subprocess.PIPE).communicate()[0]
         rows = rows.decode("utf-8").split("{%row%}")
 
         for rown, row in enumerate(rows):
@@ -124,15 +118,12 @@ class Runner(catalog.runner.Runner):
             elif rown + 1 < len(rows):
 
                 # Получаем объект синонима
-                category_synonym = self.take_categorysynonym("{} | {}".format(
-                        row[num['numb']],
-                        row[num['name']].strip().replace('"', '')))
-                self.category_synonyms[row[num['numb']]] = category_synonym
+                category = self.fix_string("{} | {}".format(row[num['numb']], row[num['name']]))
+                self.categories[row[num['numb']]] = category
 
                 #print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))
 
         return True
-
 
     def parse_products(self, mdb):
 
@@ -188,47 +179,57 @@ class Runner(catalog.runner.Runner):
             # Строка с данными
             elif rown + 1 < len(rows):
 
-                # Артикул
-                article = row[num['article']].strip().replace('"', '')
+                product_ = {}
 
-                # Имя
-                name = row[num['name']].strip().replace('"', '')
+                # Продукт
+                product_['article'] = self.fix_string(row[num['article']])
+                product_['name'] = self.fix_string(row[num['name']])
 
-                # Статус
-                if '50' == row[num['status']].strip().replace('"', ''):
-                    self.quantity[article] = -1
+                if self.fix_string(row[num['status']]) == '50':
+                    self.quantity[product_['article']] = -1
                 else:
-                    self.quantity[article] = None
+                    self.quantity[product_['article']] = None
 
                 # Категория
                 try:
-                    category = self.category_synonyms[row[num['category_numb']].strip().replace('"', '')].category
+                    product_['category'] = self.categories[row[num['category_numb']]]
                 except KeyError:
-                    category = None
+                    product_['category'] = None
 
                 # Описание
-                if len(row[num['description-1']].strip().replace('"', '')) > len(row[num['description-2']].strip().replace('"', '')):
-                    description = row[num['description-1']].strip().replace('"', '')
-                elif len(row[num['description-2']].strip().replace('"', '')):
-                    description = row[num['description-1']].strip().replace('"', '')
+                product_['description-1'] = self.fix_string(row[num['description-1']])
+                product_['description-2'] = self.fix_string(row[num['description-2']])
+
+                if len(product_['description-1']) > len(product_['description-2']):
+                    product_['description'] = product_['description-1']
+                elif len(product_['description-2']):
+                    product_['description'] = product_['description-2']
                 else:
-                    description = None
+                    product_['description'] = None
 
-                # Добавляем продукт в базу
-                if article and name:
-                    product = Product.objects.take(
-                        article     = article,
-                        vendor      = self.vendor,
-                        name        = name,
-                        category    = category,
-                        unit        = self.default_unit,
-                        description = description)
-                    self.count['product'] += 1
+#                if product_['description']:
+#                    product_['name'] = '{} ({})'.format(product_['name'], product_['description'])
 
-                    if 'Warranty group: ' in product.name:
-                        product.state = False
-                        product.save()
+                try:
+                    print(product_['name'])
+                    print(product_['description'])
 
+                    product = Product.objects.take(article = product_['article'],
+                                                   vendor = self.vendor,
+                                                   name = product_['name'],
+                                                   category = product_['category'])
+                    self.products.append(product)
+                    #TODO
+                    product.name = product_['name']
+                    product.save()
+
+
+                except ValueError as error:
+                    continue
+
+                if 'Warranty group: ' in product.name:
+                    product.state = False
+                    product.save()
 
     def parse_prices(self, mdb):
 
@@ -238,15 +239,15 @@ class Runner(catalog.runner.Runner):
         num = {}
 
         # Распознаваемые слова
-        word = {
-            'price_n' : 'SPNr',
-            'price_a' : 'SPName',
-            'article' : 'SachNr'}
+        word = {'price_n': 'SPNr',
+                'price_a': 'SPName',
+                'article': 'SachNr'}
 
         price_types = {}
 
         # Загружаем таблицу типов цен
-        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PriceSpec'], stdout = subprocess.PIPE).communicate()[0]
+        rows = subprocess.Popen(["mdb-export", "-R", "{%row%}", "-d", "{%col%}", mdb, 'PriceSpec'],
+                                stdout = subprocess.PIPE).communicate()[0]
         rows = rows.decode("utf-8").split("{%row%}")
 
         for rown, row in enumerate(rows):
@@ -259,9 +260,11 @@ class Runner(catalog.runner.Runner):
                 for celn, cel in enumerate(row):
                     print("{}. {}".format(celn, cel))
 
-                    cel = cel.strip().replace('"', '')
-                    if   cel.strip() == word['price_n']: num['price_n'] = celn
-                    elif cel.strip() == word['price_a']: num['price_a'] = celn
+                    cel = self.fix_string(cel)
+                    if cel.strip() == word['price_n']:
+                        num['price_n'] = celn
+                    elif cel.strip() == word['price_a']:
+                        num['price_a'] = celn
 
                 if len(num) == 2:
                     print("Все столбцы распознаны")
@@ -309,21 +312,33 @@ class Runner(catalog.runner.Runner):
                     # Получаем объект товара
                     product = Product.objects.get(article = article, vendor = self.vendor)
 
+                    # Определяем количество (из свойств товара)
                     quantity = self.quantity[article]
 
                     # Добавляем партии
-                    party = Party.objects.make(
-                        product    = product,
-                        stock      = self.stock,
-                        price      = price,
-                        price_type = self.rdp,
-                        currency   = self.usd,
-                        quantity   = quantity,
-                        unit       = self.default_unit,
-                        time       = self.start_time)
-                    self.count['party'] += 1
+                    party = Party.objects.make(product = product,
+                                               stock = self.stock,
+                                               price = price,
+                                               price_type = self.rdp,
+                                               currency = self.usd,
+                                               quantity = quantity,
+                                               time = self.start_time)
+                    self.parties.append(party)
 
-                except KeyError: continue
-                except Product.DoesNotExist: continue
+                except ValueError as error:
+                    pass
+                except Exception:
+                    pass
+                except Product.DoesNotExist:
+                    pass
 
         return True
+
+
+    def fix_string(self, string):
+
+        super().fix_string(string)
+
+        string = string.replace('"', '')
+
+        return string
