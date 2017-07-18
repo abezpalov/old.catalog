@@ -4,220 +4,215 @@ from catalog.models import *
 
 class Runner(catalog.runner.Runner):
 
-	name = 'Landata'
-	alias = 'landata'
-	url = {
-		'start'  : 'http://www.landata.ru/forpartners/',
-		'login'  : 'http://www.landata.ru/forpartners/',
-		'price'  : 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
-		'filter' : '?vendor_code='}
+    name = 'Landata'
+    alias = 'landata'
+    url = {'start'  : 'http://www.landata.ru/forpartners/',
+           'login'  : 'http://www.landata.ru/forpartners/',
+           'price'  : 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
+           'filter' : '?vendor_code='}
 
+    def __init__(self):
 
-	def __init__(self):
+        super().__init__()
 
-		super().__init__()
+        self.s1 = self.take_stock('stock-1', 'склад № 1', 3, 10)
+        self.s2 = self.take_stock('stock-2', 'склад № 2', 3, 10)
+        self.bt = self.take_stock('b-transit', 'ближний транзит', 10, 30)
+        self.dt = self.take_stock('d-transit', 'дальний транзит', 20, 60)
+        self.on_order = self.take_stock('on-order', 'на заказ', 60, 80)
 
-		self.s1 = self.take_stock('stock-1', 'склад № 1', 3, 10)
-		self.s2 = self.take_stock('stock-2', 'склад № 2', 3, 10)
-		self.bt = self.take_stock('b-transit', 'ближний транзит', 10, 30)
-		self.dt = self.take_stock('d-transit', 'дальний транзит', 20, 60)
+    def run(self):
 
-		self.count = {
-			'product' : 0,
-			'party'   : 0}
+        import time
 
+        self.login({'AUTH_FORM': 'Y',
+                    'TYPE': 'AUTH',
+                    'backurl': '/index.php',
+                    'USER_LOGIN': self.updater.login,
+                    'USER_PASSWORD': self.updater.password,
+                    'Login': '%C2%EE%E9%F2%E8'})
 
-	def run(self):
+        # Заходим на начальную страницу каталога
+        tree = self.load_html(self.url['price'])
 
-		import time
+        # Проходим по всем ссылкам
+        urls = tree.xpath('//a/@href')
+        done = []
+        for url in urls:
+            if self.url['filter'] in url:
 
-		payload = {
-			'AUTH_FORM'     : 'Y',
-			'TYPE'          : 'AUTH',
-			'backurl'       : '/index.php',
-			'USER_LOGIN'    : self.updater.login,
-			'USER_PASSWORD' : self.updater.password,
-			'Login'         : '%C2%EE%E9%F2%E8'}
-		self.login(payload)
+                # Проверяем ссылку
+                url = self.url['price'] + url
+                if url in done:
+                    continue
 
-		# Заходим на начальную страницу каталога
-		tree = self.load_html(self.url['price'])
+                # Загружаем и парсим страницу
+                tree = self.load_html(url)
+                vendor = Vendor.objects.get_by_key(updater = self.updater, key = url.split(self.url['filter'])[1])
 
-		# Проходим по всем ссылкам
-		urls = tree.xpath('//a/@href')
-		done = []
-		for url in urls:
-			if self.url['filter'] in url:
+                if vendor:
+                    self.parse(tree, vendor)
+                    done.append(url)
 
-				# Проверяем ссылку
-				url = self.url['price'] + url
-				if url in done:
-					continue
+                # Ждем, чтобы не получить отбой сервера
+                time.sleep(1)
 
-				# Загружаем и парсим страницу
-				tree = self.load_html(url)
-				self.parse(tree, url.split(self.url['filter'])[1])
-				done.append(url)
+        # Чистим партии
+        Party.objects.clear(stock = self.s1, time = self.start_time)
+        Party.objects.clear(stock = self.s2, time = self.start_time)
+        Party.objects.clear(stock = self.bt, time = self.start_time)
+        Party.objects.clear(stock = self.dt, time = self.start_time)
+        Party.objects.clear(stock = self.on_order, time = self.start_time)
 
-				# Ждем, чтобы не получить отбой сервера
-				time.sleep(1)
+        self.log()
 
-		# Чистим партии
-		Party.objects.clear(stock = self.s1, time = self.start_time)
-		Party.objects.clear(stock = self.s2, time = self.start_time)
-		Party.objects.clear(stock = self.bt, time = self.start_time)
-		Party.objects.clear(stock = self.dt, time = self.start_time)
+    def parse(self, tree, vendor):
 
-		self.log()
+        # Номера строк и столбцов
+        num = {}
 
+        # Распознаваемые слова
+        word = {'party_article': 'Н/н',
+                'product_article': 'Код',
+                'product_name': 'Наименование',
+                's1': 'Р',
+                's2': 'C',
+                'bt': '<th>БТ</th>',
+                'dt': '<th>ДТ</th>',
+                'price': 'Цена Dealer',
+                'currency_alias': 'Валюта'}
 
-	def parse(self, tree, vendor_synonym_name):
+        # Валюты
+        currencies = {'RUB': self.rub,
+                      'USD': self.usd,
+                      'EUR': self.eur}
 
-		# Номера строк и столбцов
-		num = {'headers': 9}
+        table = tree.xpath('//table[@class="table  table-striped tablevendor"]//tr')
 
-		# Распознаваемые слова
-		word = {
-			'party_article'   : 'Н/н',
-			'product_article' : 'Код',
-			'product_name'    : 'Наименование',
-#			's1'              : 'Р',
-			's2'              : 'C',
-			'bt'              : 'БТ',
-			'dt'              : 'ДТ',
-			'price'           : 'Цена Dealer',
-			'currency_alias'  : 'Валюта'}
+        # Проходим по строкам таблицы
+        for trn, tr in enumerate(table):
 
-		# Валюты
-		currencies = {
-			'RUB' : self.rub,
-			'USD' : self.usd,
-			'EUR' : self.eur}
+            # Заголовок таблицы
+            if not trn:
+                for thn, th in enumerate(tr):
+                    text = self.fix_string(th.text)
+                    if text == word['party_article']:
+                        num['party_article'] = thn
+                    elif text == word['product_article']:
+                        num['product_article'] = thn
+                    elif text == word['product_name']:
+                        num['product_name'] = thn
+                    elif th.text == word['s1']:
+                        num['s1'] = thn
+                    elif text == word['s2']:
+                        num['s2'] = thn
+                    elif text == word['bt']:
+                        num['bt'] = thn
+                    elif text == word['dt']:
+                        num['dt'] = thn
+                    elif text == word['price']:
+                        num['price'] = thn
+                    elif text == word['currency_alias']:
+                        num['currency_alias'] = thn
 
-		# Обрабатываем синоним производителя
-		if vendor_synonym_name:
-			vendor_synonym = self.take_vendorsynonym(vendor_synonym_name)
-			vendor = vendor_synonym.vendor
-		else:
-			vendor = None
+                # Проверяем, все ли столбцы распознались
+                if len(num) < len(word):
+                    print("Ошибка структуры данных: не все столбцы опознаны.")
+                    return False
+                else:
+                    pass
 
-		# Получаем объект производителя
-		if vendor is None:
-			return False
+            # Строка товара
+            else:
 
-		table = tree.xpath('//table[@class="table  table-striped tablevendor"]//tr')
+                product_ = {}
+                party_ = {}
 
-		# Проходим по строкам таблицы
-		for trn, tr in enumerate(table):
+                try:
+                    product_['article'] = tr[num['product_article']].text.strip().split('//')[0]
+                    product_['article'] = self.fix_article(product_['article'])
 
-			# Заголовок таблицы
-			if not trn:
-				for thn, th in enumerate(tr):
-					if   th.text == word['party_article']:
-						num['party_article'] = thn
-					elif th.text == word['product_article']:
-						num['product_article'] = thn
-					elif th.text == word['product_name']:
-						num['product_name'] = thn
-#					elif th.text == word['s1']:
-#						num['s1'] = thn
-					elif th.text == word['s2']:
-						num['s2'] = thn
-					elif th.text == word['bt']:
-						num['bt'] = thn
-					elif th.text == word['dt']:
-						num['dt'] = thn
-					elif th.text == word['price']:
-						num['price'] = thn
-					elif th.text == word['currency_alias']:
-						num['currency_alias'] = thn
+                    product_['name'] = tr[num['product_name']].text.strip()
+                    product_['name'] = self.fix_name(product_['name'])
+                except Exception:
+                    continue
 
-				# Проверяем, все ли столбцы распознались
-				if len(num) < num['headers']:
-					print("Ошибка структуры данных: не все столбцы опознаны.")
-					return False
-				else:
-					pass
+                try:
+                    product = Product.objects.take(article = product_['article'],
+                                                   vendor = vendor,
+                                                   name = product_['name'])
+                    self.products.append(product)
+                except ValueError as error:
+                    continue
 
-			# Строка товара
-			else:
+                party_['article'] = tr[num['party_article']].text.strip()
+                party_['article'] = self.fix_article(party_['article'])
 
-				try:
-					# Обрабатываем информацию о товаре
-					product_article = tr[num['product_article']].text.strip().split('//')[0]
-					product_name    = tr[num['product_name']].text.strip()
-					if product_article and product_name:
-						product = Product.objects.take(
-							article = product_article,
-							vendor = vendor,
-							name = product_name,
-							category = None,
-							unit = self.default_unit)
-						self.count['product'] += 1
-					else: continue
+                party_['price'] = tr[num['price']].text
+                party_['price'] = self.fix_price(party_['price'])
 
-					# Обрабатываем информацию о партиях
-					party_article = tr[num['party_article']].text.strip()
+                party_['currency_alias'] = tr[num['currency_alias']].text
+                party_['currency_alias'] = self.fix_string(party_['currency_alias'])
+                if party_['currency_alias']:
+                    party_['currency'] = currencies[party_['currency_alias']]
+                else:
+                    party_['currency'] =  None
 
-					price = self.fix_price(tr[num['price']].text)
+                party_['quantity_s1'] = self.fix_quantity(tr[num['s1']].text)
+                party_['quantity_s2'] = self.fix_quantity(tr[num['s2']].text)
+                party_['quantity_bt'] = self.fix_quantity(tr[num['bt']].text)
+                party_['quantity_dt'] = self.fix_quantity(tr[num['dt']].text)
 
-					currency_alias = tr[num['currency_alias']].text.strip()
-					if currency_alias: currency = currencies[currency_alias]
-					else: currency =  None
+                try:
+                    party = Party.objects.make(product = product,
+                                               stock = self.s1,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = party_['quantity_s1'],
+                                               time = self.start_time)
+                except ValueError as error:
+                    pass
 
-#					s1 = self.fixQuantity(tr[num['s1']].text)
-					s2 = self.fix_quantity(tr[num['s2']].text)
-					bt = self.fix_quantity(tr[num['bt']].text)
-					dt = self.fix_quantity(tr[num['dt']].text)
+                try:
+                    party = Party.objects.make(product = product,
+                                               stock = self.s2,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = party_['quantity_s2'],
+                                               time = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    pass
 
-					# Записываем партии
-#					if s1:
-#						party = Party.objects.make(
-#							product    = product,
-#							stock      = self.s1,
-#							price      = price,
-#							price_type = self.dp,
-#							currency   = currency,
-#							quantity   = s1,
-#							unit       = self.default_unit)
-#						print("{} {} = {} {}".format(product.vendor, product.article, party.price, party.currency))
+                try:
+                    party = Party.objects.make(product = product,
+                                               stock = self.bt,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = party_['quantity_bt'],
+                                               time = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    pass
 
-					if s2:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.s2,
-							price      = price,
-							price_type = self.dp,
-							currency   = currency,
-							quantity   = s2,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
+                try:
+                    party = Party.objects.make(product = product,
+                                               stock = self.dt,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = party_['quantity_dt'],
+                                               time = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    pass
 
-					if bt:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.bt,
-							price      = price,
-							price_type = self.dp,
-							currency   = currency,
-							quantity   = bt,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
-
-					if dt:
-						party = Party.objects.make(
-							product    = product,
-							stock      = self.dt,
-							price      = price,
-							price_type = self.dp,
-							currency   = currency,
-							quantity   = dt,
-							unit       = self.default_unit,
-							time       = self.start_time)
-						self.count['party'] += 1
-				except:
-					continue
-
-		return True
+                try:
+                    party = Party.objects.make(product = product,
+                                               stock = self.on_order,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = None,
+                                               time = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    pass
