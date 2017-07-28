@@ -94,11 +94,6 @@ class Runner(catalog.runner.Runner):
                 currency.modified = timezone.now()
                 currency.save()
 
-                print('{} = {} / {}'.format(
-                        currency.alias,
-                        currency.rate,
-                        currency.quantity))
-
                 self.currencies.append(currency)
 
         return True

@@ -109,9 +109,7 @@ class Runner(catalog.runner.Runner):
                         num['product_url'] = cel_num
 
                 # Проверяем, все ли столбцы распознались
-                if len(num) > len(word):
-                    print("Структура данных без изменений.")
-                else:
+                if len(num) < len(word):
                     raise(ValueError("Ошибка структуры данных: не все столбцы опознаны."))
 
             # Товар
@@ -125,7 +123,7 @@ class Runner(catalog.runner.Runner):
 
                 # Производитель
                 product_['vendor'] = self.fix_name(row[num['product_vendor']])
-                product_['vendor'] = Vendor.objects.get_by_key(updater = self.updater, key = product_['vendor'])
+                product_['vendor'] = Vendor.objects.take(product_['vendor'])
 
                 # Продукт
                 product_['article'] = self.fix_article(row[num['product_vendor']])

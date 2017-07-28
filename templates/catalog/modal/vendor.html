@@ -40,4 +40,31 @@
     </button>
 
 </div>
+
+<div id="modal-link-vendor" class="reveal" data-reveal>
+
+	<h2 id="modal-link-vendor-header">Переименовать или связать</h2>
+
+    <form>
+
+    	<input id="link-vendor-id" type="hidden" value="0">
+
+    	<label>Целевое имя
+    		<input id="link-vendor-name" type="text" value="">
+    	</label>
+
+        <hr/>
+
+        <div class="button-group">
+            <a class="button" data-do="save-link-vendor">Сохранить</a>
+            <a class="button secondary" data-do="cancel-link-vendor">Отменить</a>
+        </div>
+
+    </form>
+
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
+</div>
 {% endif %}

@@ -135,6 +135,58 @@ class Runner:
         return r
 
 
+    def post(self, url, data = {}, result_type = None, timeout = 100.0, try_quantity = 10):
+
+        import time
+
+        try:
+            self.cookies
+        except AttributeError:
+            self.cookies = None
+
+        for i in range(try_quantity):
+
+            try:
+                if self.cookies is None:
+                    r = self.s.post(url, data = data, allow_redirects = True,
+                                    verify = False, timeout = timeout)
+                    self.cookies = r.cookies
+                else:
+                    r = self.s.post(url, cookies = self.cookies, data = data,
+                                    allow_redirects = True, verify = False, timeout = timeout)
+                    self.cookies = r.cookies
+
+            except requests.exceptions.Timeout:
+                print("Ошибка: превышен интервал ожидания [{}].".format(url))
+                if i + 1 == try_quantity:
+                    return None
+                else:
+                    time.sleep(10)
+                    print("Пробую ещё раз.")
+
+            except Exception:
+                print("Ошибка: нет соединения [{}].".format(url))
+                if i + 1 == try_quantity:
+                    return None
+                else:
+                    time.sleep(10)
+                    print("Пробую ещё раз.")
+            else:
+                break
+
+        if result_type == 'cookie':
+            return r.cookie
+        elif result_type == 'text':
+            return r.text
+        elif result_type == 'content':
+            return r.content
+        elif result_type == 'request':
+            return r
+
+        return r
+
+
+
     def load_cookie(self, timeout = 100.0):
 
         self.load(self.url['start'], timeout = 100.0)
@@ -171,11 +223,14 @@ class Runner:
         return self.load(url, result_type = 'text', timeout = 100.0)
 
 
-    def load_html(self, url, timeout = 100.0):
+    def load_html(self, url, post = False, data = {}, timeout = 100.0):
 
         import lxml.html
 
-        text = self.load(url, result_type = 'text', timeout = 100.0)
+        if post:
+            text = self.post(url, result_type = 'text', data = data, timeout = 100.0)
+        else:
+            text = self.load(url, result_type = 'text', timeout = 100.0)
 
         try:
             tree = lxml.html.fromstring(text)
@@ -270,6 +325,30 @@ class Runner:
         string = self.fix_string(string)
         return string
 
+    def xpath_strings(self, element, query):
+
+        strings = []
+
+        for target in element.xpath(query):
+
+            if str(type(target)) in ["<class 'lxml.html.HtmlElement'>", "<class 'lxml.etree._Element'>"]:
+                try:
+                    string = target.text
+                except Exception:
+                    string = ''
+            elif str(type(target)) in ["<class 'lxml.etree._ElementUnicodeResult'>"]:
+                try:
+                    string = target
+                except Exception:
+                    string = None
+            else:
+                raise(ValueError('Некорректный тип данных:', str(type(target))))
+
+            string = self.fix_string(string)
+            strings.append(string)
+
+        return strings
+
     def fix_text(self, text):
 
         # Избавляемся от исключений
@@ -319,7 +398,6 @@ class Runner:
             text = text.replace(' ', '')
             text = text.replace('&nbsp;', '')
             text = text.replace(' ', '') # Хитрый пробел
-            print(text)
             result = float(text)
 
         except Exception:
@@ -397,11 +475,13 @@ class Runner:
     def fix_article(self, article):
 
         # Гарантируем строковой тип
-        article = str(article)
+        article = str(article).strip()
 
         # Проверяем на наличие стоп-сочетиний
-        if ' ' in article or'Уценка' in article or 'демо' in article or 'ДЕМО' in article or 'DEMO' in article or 'б.у.' in article:
-            return None
+        blacklist = [' ', 'Уценка', 'демо', 'ДЕМО', 'DEMO', 'б.у.', 'REPAIR']
+        for black in blacklist:
+            if black in article:
+                return None
 
         # Избавляемся от мусорных символов
         translation_map = {
@@ -425,11 +505,13 @@ class Runner:
     def fix_name(self, name):
 
         # Гарантируем строковой тип
-        name = str(name)
+        name = str(name).strip()
 
         # Проверяем на наличие стоп-сочетиний
-        if 'демо' in name or 'ДЕМО' in name or 'DEMO' in name or 'б.у.' in name or 'Б/У' in name:
-            return None
+        blacklist = ['Уценка', 'демо', 'ДЕМО', 'DEMO', 'б.у.', 'REPAIR', 'плохая упаковка']
+        for black in blacklist:
+            if black in name:
+                return None
 
         # Избавляемся от мусорных символов
         translation_map = {

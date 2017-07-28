@@ -32,6 +32,7 @@
             <tr>
                <th width="1%">#</th>
                <th>Наименование</th>
+                <th colspan="2">Соответствие</th>
                <th width="1%">Статус</th>
            </tr>
         </thead>
@@ -43,7 +44,19 @@
                     <a
                         data-do="open-edit-vendor"
                         data-vendor-id="{{ vendor.id }}"
-                        data-vendor-name="{{ vendor.id }}">{{ vendor.name }}</a></td>
+                        data-vendor-name="{{ vendor.id }}">{{ vendor.name }}</a>
+                </td>
+                <td align="center">
+                    <a
+                        data-do="open-link-vendor"
+                        data-vendor-id="{{vendor.id}}"><i class="fal fa-angle-double-right"></i></a>
+                </td>
+                <td data-vendor-id="{{ vendor.double.id }}"
+                    data-vendor-name = "{{ vendor.double.id }}"
+
+                    data-vendor-double-id = "{{ vendor.id }}"
+                    data-vendor-double-name = "{{ vendor.id }}">{{ vendor.double.name }}</a>
+                </td>
                 <td>
                     <div class="switch small">
                         <input

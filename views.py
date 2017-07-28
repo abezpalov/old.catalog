@@ -143,8 +143,6 @@ def manage_products(request, **kwargs):
     for n, product in enumerate(products):
         product.n = (page - 1) * items_on_page + n + 1
 
-
-
     return render(request, 'catalog/manage_products.html', locals())
 
 
@@ -753,6 +751,63 @@ def ajax_delete(request, *args, **kwargs):
     return HttpResponse(json.dumps(result), 'application/javascript')
 
 
+def ajax_link(request, *args, **kwargs):
+    "AJAX-представление: Link Model."
+
+    import json
+    from django.utils import timezone
+    import catalog.models
+
+    if (not request.is_ajax()) or (request.method != 'POST'):
+        return HttpResponse(status=400)
+
+    if not request.user.has_perm('catalog.change_{}'.format(kwargs['model_name']))\
+    or not request.user.has_perm('catalog.add_{}'.format(kwargs['model_name'])):
+        return HttpResponse(status = 403)
+
+    model = catalog.models.models[kwargs['model_name']]
+
+    # Получаем исходный объект
+    try:
+        o = model.objects.get(id = request.POST.get('id'))
+    except Exception:
+        result = {'status': 'alert',
+                  'message': 'Ошибка: объект отсутствует в базе.'}
+        return HttpResponse(json.dumps(result), 'application/javascript')
+
+    # Определяем имя
+    name = request.POST.get('name', '')
+
+    # Получаем объект ссылки
+    double = model.objects.take(name, get_doubles = False)
+
+    # Переименовываем или,
+    # при необходимости, привязываем объект
+    if o.id == double.id:
+        o.double = None
+        o.state = True
+        o.name = name
+        o.save()
+    else:
+        o.double = double
+        o.state = False
+        o.save()
+        double.name = name
+        double.save()
+
+    # TODO Прописать алгоритм, что делать с товаром
+
+    result = {
+        'status'               : 'success',
+        kwargs['model_name']   : o.get_dicted()
+    }
+
+    return HttpResponse(json.dumps(result), 'application/javascript')
+
+
+
+
+
 def ajax_link_same_foreign(request, *args, **kwargs):
     "AJAX-представление: Link Model to Same Foreign."
 
@@ -919,6 +974,7 @@ def fix_alias(alias, model_name = None):
     alias = alias.replace('\'', '')
     alias = alias.replace('(', '')
     alias = alias.replace(')', '')
+    alias = alias.replace('.', '')
 
     alias = alias.strip()[:100]
 

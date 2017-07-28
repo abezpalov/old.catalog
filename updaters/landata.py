@@ -6,10 +6,10 @@ class Runner(catalog.runner.Runner):
 
     name = 'Landata'
     alias = 'landata'
-    url = {'start'  : 'http://www.landata.ru/forpartners/',
-           'login'  : 'http://www.landata.ru/forpartners/',
-           'price'  : 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
-           'filter' : '?vendor_code='}
+    url = {'start': 'http://www.landata.ru/forpartners/',
+           'login': 'http://www.landata.ru/forpartners/',
+           'price': 'http://www.landata.ru/forpartners/sklad/sklad_tranzit_online/',
+           'filter': '?vendor_code='}
 
     def __init__(self):
 
@@ -48,11 +48,13 @@ class Runner(catalog.runner.Runner):
 
                 # Загружаем и парсим страницу
                 tree = self.load_html(url)
-                vendor = Vendor.objects.get_by_key(updater = self.updater, key = url.split(self.url['filter'])[1])
+                vendor = Vendor.objects.take(url.split(self.url['filter'])[1])
 
-                if vendor:
+                try:
                     self.parse(tree, vendor)
                     done.append(url)
+                except ValueError:
+                    pass
 
                 # Ждем, чтобы не получить отбой сервера
                 time.sleep(1)
@@ -117,8 +119,7 @@ class Runner(catalog.runner.Runner):
 
                 # Проверяем, все ли столбцы распознались
                 if len(num) < len(word):
-                    print("Ошибка структуры данных: не все столбцы опознаны.")
-                    return False
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
                 else:
                     pass
 

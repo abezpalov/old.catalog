@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^ajax/switch-state/(?P<model_name>[a-zA-Z0-9_-]+)/$', catalog.views.ajax_switch_state),
     url(r'^ajax/delete/(?P<model_name>[a-zA-Z0-9_-]+)/$', catalog.views.ajax_delete),
     url(r'^ajax/link/(?P<model_name>[a-zA-Z0-9_-]+)/same/(?P<foreign_name>[a-zA-Z0-9_-]+)/$', catalog.views.ajax_link_same_foreign),
+    url(r'^ajax/link/(?P<model_name>[a-zA-Z0-9_-]+)/$', catalog.views.ajax_link),
 
     url(r'^ajax/get-parties/$', catalog.views.ajax_get_parties)
 ]

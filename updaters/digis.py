@@ -136,11 +136,8 @@ class Runner(catalog.runner.Runner):
                         num['product_warranty'] = cel_num
 
                 # Проверяем, все ли столбцы распознались
-                if not len(num) == 15:
-                    print("Ошибка структуры данных: не все столбцы опознаны.")
-                    return False
-                else:
-                    print("Структура данных без изменений.")
+                if len(num) < len(word) + 1:
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
             # Товар
             elif row[num['product_article']] and row[num['product_vendor']]:
@@ -152,8 +149,7 @@ class Runner(catalog.runner.Runner):
                 category = "{} | {}".format(row[num['category']], row[num['category_sub']])
 
                 # Производитель
-                product_['vendor'] = self.fix_name(row[num['product_vendor']])
-                product_['vendor'] = Vendor.objects.get_by_key(updater = self.updater, key = product_['vendor'])
+                product_['vendor'] = Vendor.objects.take(self.fix_name(row[num['product_vendor']]))
 
                 # Продукт
                 product_['article'] = self.fix_article(row[num['product_article']])

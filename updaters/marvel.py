@@ -45,18 +45,11 @@ class Runner(catalog.runner.Runner):
 
         # Проверяем наличие параметров авторизации
         if not self.updater.login or not self.updater.password:
-            print('Ошибка: Проверьте параметры авторизации. Кажется их нет.')
-            return False
+            raise(ValueError('Ошибка: Проверьте параметры авторизации. Кажется их нет.'))
 
         # Загружаем и парсим категирии
         data = self.get_data('categories', 'json')
         self.parse_categories(data)
-
-        print('Ждем 10 минут.')
-        m = 10*60
-        for i in range(m):
-            print("Осталось {} секунд.".format(m-i))
-            time.sleep(1)
 
         # Загружаем и парсим каталог
         data = self.get_data('catalog', 'json')
@@ -138,8 +131,6 @@ class Runner(catalog.runner.Runner):
                 if data['Header']['Key']: self.key = data['Header']['Key']
                 if data['Header']['Code'] != 0:
 
-                    print(data['Header']['Message'])
-
                     if data['Header']['Message']:
                         Log.objects.add(
                         subject     = "catalog.updater.{}".format(self.updater.alias),
@@ -152,12 +143,14 @@ class Runner(catalog.runner.Runner):
                         channel     = "error",
                         title       = "?",
                         description = "Невнятный ответ сервера")
+
+                    raise(ValueError('Ошибка! Данные не получены.'))
+
                     return False
                 else:
                     return data['Body']
             else:
-                print('Ошибка: используется неподдерживаемый формат.')
-                return False
+                raise(ValueError('Ошибка: используется неподдерживаемый формат.'))
 
     def parse_categories(self, data):
 
@@ -177,7 +170,6 @@ class Runner(catalog.runner.Runner):
 
         # Добавляем в словарь
         self.categories[category_id] = category_name
-        print(category_name)
 
         # Проходим рекурсивно по подкатегориям
         for sub_category in category['SubCategories']:
@@ -202,7 +194,7 @@ class Runner(catalog.runner.Runner):
 
             product_['vendor'] = item['WareVendor']
             product_['vendor'] = self.fix_name(product_['vendor'])
-            product_['vendor'] = Vendor.objects.get_by_key(updater = self.updater, key = product_['vendor'])
+            product_['vendor'] = Vendor.objects.take(product_['vendor'])
 
             try:
                 product = Product.objects.take(article = product_['article'],
@@ -212,6 +204,8 @@ class Runner(catalog.runner.Runner):
                 self.products.append(product)
             except ValueError as error:
                 continue
+            except TypeError:
+                print(product_)
 
             party_['price'] = item['WarePrice']
             party_['price'] = self.fix_price(party_['price'])
@@ -224,34 +218,31 @@ class Runner(catalog.runner.Runner):
             party_['quantity_spb'] = item['AvailableForShippingInSPBCount']
             party_['quantity_spb'] = self.fix_quantity(party_['quantity_spb'])
 
-#            try:
-            party = Party.objects.make(product = product,
+            try:
+                party = Party.objects.make(product = product,
                                            stock = self.stock_msk,
                                            price = party_['price'],
                                            currency = party_['currency'],
                                            quantity = party_['quantity_msk'],
                                            time = self.start_time)
-            self.parties.append(party)
-#            except ValueError as error:
-#                pass
+                self.parties.append(party)
+            except ValueError as error:
+                pass
 
-#            try:
-            party = Party.objects.make(product = product,
+            try:
+                party = Party.objects.make(product = product,
                                            stock = self.stock_spb,
                                            price = party_['price'],
                                            currency = party_['currency'],
                                            quantity = party_['quantity_spb'],
                                            time = self.start_time)
-            self.parties.append(party)
-#            except ValueError as error:
-#                pass
+                self.parties.append(party)
+            except ValueError as error:
+                pass
 
     def parse_parameters(self, data, products):
 
-        print('parseParameters')
-
         for pr in data['CategoryItem']:
-            print(pr['WareArticle'])
 
             try:
                 product = products[pr['WareArticle']]
@@ -286,8 +277,6 @@ class Runner(catalog.runner.Runner):
 
 
     def parse_photos(self, data, products):
-
-        print('parsePhotos')
 
         for pr in data['Photo']:
 

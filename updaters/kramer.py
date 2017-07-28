@@ -6,18 +6,18 @@ class Runner(catalog.runner.Runner):
 
     name  = 'Kramer'
     alias = 'kramer'
-    url = {'start' : 'http://kramer.ru/',
-        'login' : 'http://kramer.ru/?login=yes',
-        'links' : 'http://kramer.ru/partners/prices/',
-        'base'  : 'http://kramer.ru',
-        'price' : 'http://kramer.ru/filedownload.php?id='}
+    url = {'start': 'http://kramer.ru/',
+           'login': 'http://kramer.ru/?login=yes',
+           'links': 'http://kramer.ru/partners/prices/',
+           'base': 'http://kramer.ru',
+           'price': 'http://kramer.ru/filedownload.php?id='}
 
 
     def __init__(self):
 
         super().__init__()
 
-        self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
+        self.vendor = Vendor.objects.take(name = self.name)
         self.stock = self.take_stock('factory', 'на заказ', 40, 60)
 
     def run(self):
@@ -64,7 +64,6 @@ class Runner(catalog.runner.Runner):
         words = {'cable': 'Cable', 'device': 'device'}
 
         filename = request.headers.get('content-disposition')
-        print(filename)
 
         xls_data = BytesIO(request.content)
 
@@ -89,12 +88,15 @@ class Runner(catalog.runner.Runner):
                 'size': 'Размер',
                 'name': 'Описание',
                 'price': 'Цена, $',
-                'dop': 'Примечание',
-                'group_name': '',
-                'category_name': ''}
+                'dop': 'Примечание'}
 
         book = xlrd.open_workbook(file_contents = xls_data.read())
         sheet = book.sheet_by_index(0)
+
+        group_name = ''
+        category_name = ''
+        category = ''
+
         for row_num in range(sheet.nrows):
             row = sheet.row_values(row_num)
 
@@ -119,18 +121,16 @@ class Runner(catalog.runner.Runner):
                         num['dop'] = cel_num
 
                 # Проверяем, все ли столбцы распознались
-                if not num['article'] == 0 or not num['model'] or not num['size'] or not num['name'] or not num['price'] or not num['dop']:
-                    print("Ошибка структуры данных: не все столбцы опознаны.")
-                    return False
-                else: print("Структура данных без изменений.")
+                if len(num) < len(word):
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
             # Категория
             elif row[num['name']] and not row[num['article']] and not row[num['price']]:
                 if word['group'] in row[num['name']]:
-                    word['group_name'] = row[num['name']]
+                    group_name = row[num['name']]
                 else:
-                    word['category_name'] = row[num['name']]
-                category = "Devices: {} {}".format(word['group_name'], word['category_name'])
+                    category_name = row[num['name']]
+                category = "Devices: {} {}".format(group_name, category_name)
 
             # Товар
             elif row[num['name']] and row[num['article']] and row[num['price']]:
@@ -151,6 +151,7 @@ class Runner(catalog.runner.Runner):
                                                    vendor = self.vendor,
                                                    name = product_['name'],
                                                    category = category)
+                    self.products.append(product)
                 except ValueError as error:
                     continue
 
@@ -184,11 +185,11 @@ class Runner(catalog.runner.Runner):
                 'name': 'Описание',
                 'size': 'Метры',
                 'price': 'Цена,     $',
-                'dop': 'Примечание',
-                'category_name': ''}
+                'dop': 'Примечание'}
 
         book = xlrd.open_workbook(file_contents = xls_data.read())
         sheet = book.sheet_by_index(0)
+        category = ''
         for row_num in range(sheet.nrows):
             row = sheet.row_values(row_num)
 
@@ -213,16 +214,12 @@ class Runner(catalog.runner.Runner):
                         num['dop'] = cel_num
 
                 # Проверяем, все ли столбцы распознались
-                if not num['article'] or not num['model'] or not num['name'] or not num['size'] or not num['price'] or not num['dop']:
-                    print("Ошибка структуры данных: не все столбцы опознаны.")
-                    return False
-                else:
-                    print("Структура данных без изменений.")
+                if len(num) < len(word) + 1:
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
             # Категория
             elif row[num['name']] and not row[num['article']] and not row[num['price']]:
-                word['category_name'] = row[num['name']]
-                category = 'Cables: {}'.format(word['category_name'])
+                category = 'Cables: {}'.format(row[num['name']])
 
             # Товар
             elif row[num['name']] and row[num['article']] and row[num['price']]:
@@ -242,6 +239,7 @@ class Runner(catalog.runner.Runner):
                                                    vendor = self.vendor,
                                                    name = product_['name'],
                                                    category = category)
+                    self.products.append(product)
                 except ValueError as error:
                     continue
 

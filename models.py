@@ -354,35 +354,52 @@ class VendorManager(models.Manager):
         return result
 
 
-    def take(self, alias, name):
+    def take(self, name, alias = None, get_doubles = True):
+
+        import unidecode
+
+        if not name:
+            name = 'None'
+
+        name = str(name)
+
+        if alias:
+            alias = str(alias)
+        else:
+            alias = name
+
+        alias = unidecode.unidecode(alias)
+        alias = alias.lower()
+
+        translation_map = {
+            ord(' ') : '-', ord('&') : 'and', ord('\'') : '',
+            ord('(') : '', ord(')') : '', ord('[') : '',
+            ord(']') : '', ord('.') : '', ord(',') : '',
+            ord('+') : '', ord('/') : ''}
+
+        alias = alias.translate(translation_map)
+
+        alias = alias.strip()[:100]
+
         try:
             vendor = self.get(alias=alias)
         except Vendor.DoesNotExist:
-            vendor = Vendor(
-                alias = alias,
-                name  = name)
-            vendor.save()
+            try:
+                vendor = self.get(name=name)
+            except Vendor.DoesNotExist:
+                vendor = Vendor(alias = alias, name  = name)
+                vendor.save()
+
+        if vendor.double and get_doubles:
+            vendor = vendor.double
+
         return vendor
-
-
-    def get_by_key(self, updater, key):
-
-        key = str(key).strip()
-
-        if not updater or not key:
-            return None
-
-        key = VendorKey.objects.take(updater = updater, name = key)
-
-        if key:
-            return key.vendor
-        else:
-            return None
 
 
 class Vendor(models.Model):
 
     id          = models.BigAutoField(primary_key = True, editable = False)
+    double      = models.ForeignKey('self', related_name = '+', null = True, default = None)
 
     name        = models.TextField(unique = True)
     alias       = models.TextField(unique = True)
@@ -399,94 +416,26 @@ class Vendor(models.Model):
 
         result = {}
 
-        result['id']          = str(self.id)
-        result['name']        = self.name
-        result['alias']       = self.alias
+        result['id'] = str(self.id)
+        result['name'] = self.name
+        result['alias'] = self.alias
         result['description'] = self.description
-        result['state']       = self.state
-        result['created']     = str(self.created)
-        result['modified']    = str(self.modified)
+        result['state'] = self.state
+        result['created'] = str(self.created)
+        result['modified'] = str(self.modified)
+
+        try:
+            result['double'] = self.double.get_dicted()
+        except Exception:
+            result['double'] = None
 
         return result
-
 
     def __str__(self):
         return self.name
 
-
     class Meta:
         ordering = ['name']
-
-
-class VendorKeyManager(models.Manager):
-
-
-    def take(self, updater, name):
-
-        if not updater or not name:
-            return None
-
-        try:
-            o = self.select_related().get(updater = updater, name = name)
-
-        except VendorKey.DoesNotExist:
-
-            o = VendorKey()
-            o.updater = updater
-            o.name = name
-            o.save()
-
-        return o
-
-
-
-class VendorKey(models.Model):
-
-    id       = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-    updater  = models.ForeignKey(Updater, related_name='+', on_delete = models.CASCADE)
-    vendor   = models.ForeignKey(Vendor,  related_name='+', on_delete = models.CASCADE, null = True, default = None)
-
-    name = models.CharField(max_length = 50, db_index = True)
-
-    state    = models.BooleanField(default = True, db_index = True)
-    created  = models.DateTimeField(default = timezone.now, db_index = True)
-    modified = models.DateTimeField(default = timezone.now, db_index = True)
-
-    objects  = VendorKeyManager()
-
-    def __str__(self):
-        return "{}".format(self.name)
-
-    def get_dicted(self):
-
-        result = {}
-
-        result['id'] = str(self.id)
-
-        if self.updater:
-            result['updater'] = self.updater.get_dicted()
-        else:
-            result['updater'] = None
-
-        if self.vendor:
-            result['vendor'] = self.vendor.get_dicted()
-        else:
-            result['vendor'] = None
-
-        result['name'] = self.name
-
-        result['state']       = self.state
-        result['created']     = str(self.created)
-        result['modified']    = str(self.modified)
-
-        return result
-
-
-    class Meta:
-        db_table        = 'catalog_vendor_key'
-        ordering        = ['name']
-        unique_together = ('updater', 'name')
-
 
 
 class UnitManager(models.Manager):
@@ -710,14 +659,15 @@ class ProductManager(models.Manager):
             product.save()
 
         if product.double:
-            product = self.get(id = product.double)
+            product = product.double
 
         if not product.description and kwargs.get('description', ''):
             product.description = kwargs.get('description', '')
             product.modified    = timezone.now()
             product.save()
 
-        print('{} {}'.format(product.vendor, product.article))
+        if kwargs.get('test', False):
+            print('{} {}'.format(product.vendor, product.article))
 
         ProductInputName.objects.take(product = product, name = name)
         ProductInputCategory.objects.take(product = product, category = kwargs.get('category', ''))
@@ -1088,13 +1038,13 @@ class PartyManager(models.Manager):
         if quantity == 0:
             raise(ValueError('Внимание: нулевое количество! {} {}'.format(product, quantity)))
         if price and not currency:
-            raise(ValueError('Внимание: входная цена без валюты! {} {} {}'.format(product, price, currency)))
+            price = None
         if currency and not price:
-            raise(ValueError('Внимание: валюта без входной цены!'.format(product, price, currency)))
+            curency = None
         if price_out and not currency_out:
-            raise(ValueError('Внимание: выходная цена без валюты!'.format(product, price_out, currency_out)))
+            price_out = None
         if currency_out and not price_out:
-            raise(ValueError('Внимание: валюта без выходной цены!'.format(product, price_out, currency_out)))
+            curency_out = None
 
         party = Party(
             product        = product,
@@ -1111,12 +1061,12 @@ class PartyManager(models.Manager):
             product_name   = product_name)
         party.save()
 
-        print('{} {} = {}; {} on {}'.format(
-            party.product.vendor.name,
-            party.product.article,
-            party.price_str,
-            party.quantity,
-            party.stock.alias))
+        if kwargs.get('test', False):
+            print('{} {} = {}; {} on {}'.format(party.product.vendor.name,
+                                                party.product.article,
+                                                party.price_str,
+                                                party.quantity,
+                                                party.stock.alias))
 
         party.product.recalculate()
 
@@ -1840,8 +1790,8 @@ class ParameterKey(models.Model):
 
     class Meta:
         db_table        = 'catalog_parameter_key'
-        ordering        = ['key']
-        unique_together = ('updater', 'key')
+        ordering        = ['name']
+        unique_together = ('updater', 'name')
 
 
 class ProductPhotoManager(models.Manager):
@@ -1937,7 +1887,6 @@ models = {
     'stock'                 : Stock,
     'category'              : Category,
     'vendor'                : Vendor,
-    'vendorkey'             : VendorKey,
     'unit'                  : Unit,
     'pricetype'             : PriceType,
     'currency'              : Currency,

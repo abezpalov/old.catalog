@@ -6,7 +6,6 @@ class Runner(catalog.runner.Runner):
 
     name  = 'Axoft'
     alias = 'axoft'
-    test  = False
     url   = {'start'   : 'http://axoft.ru/',
              'login'   : 'http://axoft.ru/',
              'vendors' : 'http://axoft.ru/vendors/',
@@ -39,13 +38,8 @@ class Runner(catalog.runner.Runner):
         # Проходим по каждому прайс-листу
         for n, price in enumerate(prices):
 
-            print("Прайс-лист {} из {}: {}".format(
-                n + 1,
-                len(prices),
-                price[0]))
-
             # Синоним производителя
-            vendor = Vendor.objects.get_by_key(self.updater, price[0])
+            vendor = Vendor.objects.take(price[0])
 
             if vendor:
 
@@ -93,7 +87,6 @@ class Runner(catalog.runner.Runner):
 
                         price = (vendor_name, url,)
                         prices.add(price)
-                        print('Ссылка {} из {}: {} [{}].'.format(n + 1, len(links), price[1], price[0]))
 
         return prices
 
@@ -213,9 +206,7 @@ class Runner(catalog.runner.Runner):
                                                        category = category)
                         self.products.append(product)
                     except ValueError as error:
-                        if self.test:
-                            print(error)
-                            exit()
+                        continue
 
                     try:
                         party = Party.objects.make(product = product,
@@ -228,8 +219,6 @@ class Runner(catalog.runner.Runner):
                                                    time           = self.start_time)
                         self.parties.append(party)
                     except ValueError as error:
-                        if self.test:
-                            print(error)
-                            exit()
+                        pass
 
         return True

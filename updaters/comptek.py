@@ -51,12 +51,10 @@ class Runner(catalog.runner.Runner):
             if self.url['filter'] in urls[i] and self.url['unfilter'] not in urls[i]:
 
                 # Определяем производителя
-                vendor = Vendor.objects.get_by_key(updater = self.updater, key = self.fix_string(urls[i].split('/')[4]))
-                print('Vendor: {}.'.format(vendor))
+                vendor = Vendor.objects.take(self.fix_name(urls[i].split('/')[4]))
 
                 # Загружаем страницу
                 tree = self.load_html(urls[i])
-                print("Загружена: {}.".format(urls[i]))
 
                 # Добавляем ссылки в очередь
                 for url in tree.xpath('//a/@href'):
@@ -198,7 +196,6 @@ class Runner(catalog.runner.Runner):
                 text = element.xpath(query[0])[index].xpath(query[1])[0]
             except Exception:
                 return i
-
 
             if 'small-qty' in text:
                 i = 2

@@ -18,7 +18,7 @@ class Runner(catalog.runner.Runner):
 
         super().__init__()
 
-        self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
+        self.vendor = Vendor.objects.take(name = self.name)
 
         self.stock = self.take_stock('factory', 'на заказ', 40, 60)
 
@@ -72,7 +72,6 @@ class Runner(catalog.runner.Runner):
 
         zip_data = ZipFile(data)
         zip_data.extract(mdb_name, '/tmp')
-        print("Получены данные: {}".format(mdb_name))
 
         return "/tmp/{}".format(mdb_name)
 
@@ -108,11 +107,8 @@ class Runner(catalog.runner.Runner):
                     if   cel.strip() == word['numb']: num['numb'] = celn
                     elif cel.strip() == word['name']: num['name'] = celn
 
-                if len(num) == 2:
-                    print("Все столбцы распознаны")
-                else:
-                    print("Error: Не опознаны необходимые столбцы.")
-                    return False
+                if len(num) < 2:
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
             # Строка с данными
             elif rown + 1 < len(rows):
@@ -120,8 +116,6 @@ class Runner(catalog.runner.Runner):
                 # Получаем объект синонима
                 category = self.fix_string("{} | {}".format(row[num['numb']], row[num['name']]))
                 self.categories[row[num['numb']]] = category
-
-                #print("{} из {}: {}".format(rown + 1, len(rows), category_synonym.name))
 
         return True
 
@@ -156,7 +150,6 @@ class Runner(catalog.runner.Runner):
             if not rown:
 
                 for celn, cel in enumerate(row):
-                    print("{}. {}".format(celn, cel))
 
                     cel = cel.strip().replace('"', '')
                     if   cel.strip() == word['article']:       num['article']       = celn
@@ -166,9 +159,7 @@ class Runner(catalog.runner.Runner):
                     elif cel.strip() == word['description-1']: num['description-1'] = celn
                     elif cel.strip() == word['description-2']: num['description-2'] = celn
 
-                if len(num) == 6:
-                    print("Все столбцы распознаны")
-                else:
+                if len(num) < 6:
                     Log.objects.add(
                         subject     = "catalog.updater.{}".format(self.updater.alias),
                         channel     = "error",
@@ -207,13 +198,7 @@ class Runner(catalog.runner.Runner):
                 else:
                     product_['description'] = None
 
-#                if product_['description']:
-#                    product_['name'] = '{} ({})'.format(product_['name'], product_['description'])
-
                 try:
-                    print(product_['name'])
-                    print(product_['description'])
-
                     product = Product.objects.take(article = product_['article'],
                                                    vendor = self.vendor,
                                                    name = product_['name'],
@@ -222,7 +207,6 @@ class Runner(catalog.runner.Runner):
                     #TODO
                     product.name = product_['name']
                     product.save()
-
 
                 except ValueError as error:
                     continue
@@ -258,7 +242,6 @@ class Runner(catalog.runner.Runner):
             if not rown:
 
                 for celn, cel in enumerate(row):
-                    print("{}. {}".format(celn, cel))
 
                     cel = self.fix_string(cel)
                     if cel.strip() == word['price_n']:
@@ -266,11 +249,8 @@ class Runner(catalog.runner.Runner):
                     elif cel.strip() == word['price_a']:
                         num['price_a'] = celn
 
-                if len(num) == 2:
-                    print("Все столбцы распознаны")
-                else:
-                    print("Error: Не опознаны необходимые столбцы.")
-                    return False
+                if len(num) < 2:
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
             # Строка с данными
             elif rown + 1 < len(rows):
@@ -290,17 +270,13 @@ class Runner(catalog.runner.Runner):
             if not rown:
 
                 for celn, cel in enumerate(row):
-                    print("{}. {}".format(celn, cel))
 
                     cel = cel.strip().replace('"', '')
                     if   cel.strip() == word['article']: num['article'] = celn
                     elif cel.strip() == word['price']:   num['price']   = celn
 
-                if len(num) == 4:
-                    print("Все столбцы распознаны")
-                else:
-                    print("Error: Не опознаны необходимые столбцы.")
-                    return False
+                if len(num) < 4:
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
             # Строка с данными
             elif rown + 1 < len(rows):

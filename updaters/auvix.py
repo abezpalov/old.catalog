@@ -9,9 +9,9 @@ class Runner(catalog.runner.Runner):
 
     name  = 'Auvix'
     alias = 'auvix'
-    url   = {'start'  : 'https://b2b.auvix.ru/',
-             'login'  : 'https://b2b.auvix.ru/?login=yes',
-             'price'  : 'https://b2b.auvix.ru/prices/Price_AUVIX_dealer_xml.zip'}
+    url   = {'start': 'https://b2b.auvix.ru/',
+             'login': 'https://b2b.auvix.ru/?login=yes',
+             'price': 'https://b2b.auvix.ru/prices/Price_AUVIX_dealer_xml.zip'}
 
     def __init__(self):
 
@@ -70,7 +70,7 @@ class Runner(catalog.runner.Runner):
 
                 # Производитель
                 product_['vendor'] = self.xpath_string(element, './Производитель')
-                product_['vendor'] = Vendor.objects.get_by_key(self.updater, product_['vendor'])
+                product_['vendor'] = Vendor.objects.take(product_['vendor'])
 
                 # Продукт
                 product_['name'] = self.xpath_string(element, './Наименование')

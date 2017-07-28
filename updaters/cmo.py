@@ -19,8 +19,7 @@ class Runner(catalog.runner.Runner):
 
         self.stock   = self.take_stock('factory', 'завод', 10, 20)
 
-        self.vendor = Vendor.objects.take(alias = self.alias, name = self.name)
-        
+        self.vendor = Vendor.objects.take(self.name)
         self.rp = PriceType.objects.take(alias = 'RP', name = 'Розничная цена')
 
     def run(self):

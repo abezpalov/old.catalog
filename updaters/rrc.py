@@ -4,198 +4,165 @@ import time
 import catalog.runner
 from catalog.models import *
 
-
 class Runner(catalog.runner.Runner):
 
+    name  = 'RRC'
+    alias = 'rrc'
+    url = {'start': 'http://rrc.ru/catalog/',
+           'login': 'http://rrc.ru/catalog/?login=yes',
+           'links': 'http://rrc.ru/catalog/',
+           'base': 'http://rrc.ru',
+           'sub_menu': 'http://rrc.ru/local/templates/rrc_common/js/api/Catalog/getCatalogSubMenu.php'}
+    p = re.compile('^\/catalog\/[0-9]{4}_[0-9]_[0-9]{4}\/(\?PAGEN_[0-9]+=[0-9]+)?$')
 
-	name  = 'RRC'
-	alias = 'rrc'
+    def __init__(self):
 
-	url = {
-		'start' : 'http://rrc.ru/catalog/?login=yes',
-		'login' : 'http://rrc.ru/catalog/?login=yes',
-		'links' : 'http://rrc.ru/catalog/?login=yes',
-		'base'  : 'http://rrc.ru'}
+        super().__init__()
 
-	p = re.compile('^\/catalog\/[0-9]{4}_[0-9]_[0-9]{4}\/(\?PAGEN_[0-9]+=[0-9]+)?$')
+        self.stocks = {'stock': self.take_stock('stock', 'склад', 3, 10),
+                       'on-order': self.take_stock('on-order', 'на заказ', 20, 60)}
 
+    def run(self):
 
-	def __init__(self):
+        # Авторизуемся
+        self.login({'AUTH_FORM': 'Y',
+                    'TYPE': 'AUTH',
+                    'backurl': '/catalog/',
+                    'USER_LOGIN': self.updater.login,
+                    'USER_PASSWORD': self.updater.password,
+                    'Login': '1'})
 
-		super().__init__()
+        # Заходим на начальную страницу
+        tree = self.load_html(self.url['links'])
+        urls = []
 
-		self.stock    = self.take_stock('stock',    'склад',     3, 10)
-		self.on_order = self.take_stock('on-order', 'на заказ', 20, 60)
+        # Получаем id для получекния ссылок
+        for i in tree.xpath('//div/@data-id'):
 
-		self.count = {
-			'product' : 0,
-			'party'   : 0}
+            tree = self.load_html(url = self.url['sub_menu'], post = True,
+                                  data = {'id': i, 'url': '/catalog/'})
 
+            # Проходим по всем ссылкам
+            for url in self.get_urls(tree):
+                if url not in urls:
+                    urls.append(url)
 
-	def run(self):
+            time.sleep(1)
 
-		payload = {
-			'AUTH_FORM'     : 'Y',
-			'TYPE'          : 'AUTH',
-			'backurl'       : '/catalog/',
-			'USER_LOGIN'    : self.updater.login,
-			'USER_PASSWORD' : self.updater.password,
-			'Login'         : '1'}
-		if not self.login(payload):
-			return False
+        # Проходим по всем полученным ссылкам
+        i = 0
+        while i < len(urls):
 
-		tree = self.load_html(self.url['links'])
+            tree = self.load_html(urls[i])
 
-		# Проходим по всем ссылкам
-		urls = tree.xpath('//a/@href')
-		i = 0
-		while i < len(urls):
+            # Проходим по всем ссылкам
+            for url in self.get_urls(tree):
+                if url not in urls:
+                    urls.append(url)
 
-			# Сслыка на категорию
-			if re.match(self.p, urls[i]):
-				url = self.url['base'] + urls[i]
-				tree = self.load_html(url)
-				print("Загружена страница: {}.".format(url))
+            self.parse(tree)
+            time.sleep(1)
+            i += 1
 
-				for u in tree.xpath('//a/@href'):
-					if not u in urls:
-						urls.append(u)
+        # Чистим партии
+        for key in self.stocks:
+            Party.objects.clear(stock = self.stocks[key], time = self.start_time)
 
-				# Парсим таблицу с товарами
-				self.parse(tree)
+        self.log()
 
-				# Ждем, чтобы не получить отбой сервера
-				time.sleep(1)
+    def get_urls(self, tree):
 
-			i += 1
+        urls = []
 
-		# Чистим партии
-		Party.objects.clear(stock = self.on_order, time = self.start_time)
-		Party.objects.clear(stock = self.stock,    time = self.start_time)
+        for url in tree.xpath('//a/@href'):
 
-		self.log()
+            if re.match(self.p, url):
+                url = self.url['base'] + url
+                urls.append(url)
+        return urls            
 
+    def parse(self, tree):
 
-	def parse(self, tree):
+        for tr in tree.xpath('.//table[@class="catalog-item-list"]//tr'):
 
-		# Номера строк и столбцов
-		num = {'headers': 6}
+            product_ = {}
+            party_ = {}
 
-		# Распознаваемые слова
-		word = {
-			'article'  : 'Partnumber/',
-			'vendor'   : 'Вендор',
-			'name'     : 'Товар',
-			'quantity' : 'Доступно',
-			'price'    : 'Цена'}
+            # Товар
+            product_['article'] = self.xpath_string(tr, './/td')
+            product_['article'] = self.fix_article(product_['article'])
 
-		# Заголовок таблицы
-		ths = tree.xpath('//table[@class="catalog-item-list"]/thead/tr/th')
-		for thn, th in enumerate(ths):
+            product_['vendor'] = self.xpath_string(tr, './/td[2]')
+            if not product_['vendor']:
+                product_['vendor'] = self.xpath_string(tr, './/td[2]/a')
+            product_['vendor'] = self.fix_name(product_['vendor'])
+            product_['vendor'] = Vendor.objects.take(product_['vendor'])
 
-			if th.text == word['article']:
-				num['article'] = thn
-			elif th.text == word['vendor']:
-				num['vendor'] = thn
-			elif th.text == word['name']:
-				num['name'] = thn
-			elif th.text == word['quantity']:
-				num['quantity'] = thn
-			elif th.text == word['price']:
-				num['price'] = thn
+            product_['name'] = self.xpath_string(tr, './/td[@class="b-catalog-productName"]/a')
+            product_['name'] = self.fix_name(product_['name'])
 
-		# Проверяем, все ли столбцы распознались
-		if not len(num) == num['headers']:
-			return False
+            product_['url'] = self.xpath_string(tr, './/td[@class="b-catalog-productName"]/a/@href')
+            if self.url['base'] not in product_['url']:
+                product_['url'] = "{}{}".format(self.url['base'], product_['url'])
 
-		# Товар
-		tbs = tree.xpath('//table[@class="catalog-item-list"]/tbody[@class="b-products-item__table x-products-item"]')
-		for tr in tbs:
+            try:
+                product = Product.objects.take(article = product_['article'],
+                                               vendor = product_['vendor'],
+                                               name = product_['name'])
+                self.products.append(product)
+            except ValueError as error:
+                continue
 
-			# Обнуляем значения
-			article             = None
-			vendor_synonym_name = None
-			name                = None
-			quantity            = None
-			price               = None
-			currency            = None
+            # Партии
+            party_['article'] = self.xpath_string(tr, './/td/span[@class="ansm"]')
 
-			# Получаем информацию о товаре
-			for tdn, td in enumerate(tr[0]):
-				if tdn == num['article']:
-					article = str(td.text).strip()
-				if tdn == num['vendor']:
-					try: vendor_synonym_name = str(td[0].text).strip()
-					except IndexError: vendor_synonym_name = str(td.text).strip()
-				elif tdn == num['name']: name = str(td[0].text).strip()
-				elif tdn == num['quantity']: quantity = self.fix_quantity(td.text)
-				elif tdn == num['price']:
-					try:
-						price = td[0].text
-						if price and '$' == price[0]:
-							price = self.fix_price(price)
-							currency = self.usd
-						elif price and '€' == price[0]:
-							price = self.fix_price(price)
-							currency = self.eur
-						elif not price:
-							price = None
-							currency = self.usd
-						else:
-							price = self.fix_price(price)
-							currency = self.rub
-					except IndexError:
-						price = None
-						currency = self.usd
+            for n, q in enumerate(tr.xpath('.//td[4]/table//td')):
+                party_['on_stock'] = self.fix_quantity(q.text)
+                party_['currency'] = self.fix_currency(self.xpath_string(tr, './/td[5]/table//tr[{}]//span'.format(n+1)))
+                party_['price'] = self.fix_price(self.xpath_string(tr, './/td[5]/table//tr[{}]//span'.format(n+1)))
 
-			# Обрабатываем синоним производителя
-			if vendor_synonym_name:
-				vendor_synonym = self.take_vendorsynonym(vendor_synonym_name)
-			else:
-				continue
+                if party_['on_stock']:
+                    stock = self.stocks['stock']
+                else:
+                    stock = self.stocks['on-order']
 
-			# Получаем объект товара
-			if article and name and vendor_synonym.vendor:
-				product = Product.objects.take(
-					article = article,
-					vendor  = vendor_synonym.vendor,
-					name    = name,
-					unit    = self.default_unit)
-				self.count['product'] += 1
-			else:
-				continue
+                try:
+                    party = Party.objects.make(product = product,
+                                               stock = stock,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = party_['on_stock'],
+                                               time = self.start_time)
+                    self.parties.append(party)
+                except ValueError as error:
+                    pass
 
-			# Партии
-			if quantity:
-				party = Party.objects.make(
-					product    = product,
-					stock      = self.stock,
-					price      = price,
-					price_type = self.dp,
-					currency   = currency,
-					quantity   = quantity,
-					unit       = self.default_unit,
-					time       = self.start_time)
-				self.count['party'] += 1
-			else:
-				party = Party.objects.make(
-					product    = product,
-					stock      = self.on_order,
-					price      = price,
-					price_type = self.dp,
-					currency   = currency,
-					quantity   = 0,
-					unit       = self.default_unit,
-					time       = self.start_time)
-				self.count['party'] += 1
+    def fix_currency(self, string):
 
-		return True
+        if '$' in string:
+            currency = self.usd
+        elif '€' in string:
+            currency = self.eur
+        elif string:
+            currency = self.rub
+        else:
+            currency = None
 
+        return currency
 
-	def fix_price(self, price):
+    def fix_price(self, price):
 
-		price = price.replace(',', '')
+        price = price.replace(',', '')
 
-		price = super().fix_price(price)
+        price = super().fix_price(price)
 
-		return price
+        return price
+
+    def fix_quantity(self, quantity):
+
+        quantity = super().fix_quantity(quantity)
+
+        if not quantity:
+            quantity = None
+
+        return quantity

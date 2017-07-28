@@ -22,10 +22,6 @@ class Runner(catalog.runner.Runner):
 
 		self.stock = self.take_stock('stock', 'склад', 3, 10)
 
-		self.count = {
-			'product' : 0,
-			'party'   : 0}
-
 
 	def run(self):
 

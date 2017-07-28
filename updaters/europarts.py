@@ -9,9 +9,9 @@ class Runner(catalog.runner.Runner):
 
     name = 'EuroParts'
     alias = 'europarts'
-    url = {'start' : 'http://euro-parts.ru/catalog/index.aspx',
-           'base'  : 'http://euro-parts.ru',
-           'price' : 'http://euro-parts.ru/catalog/index.aspx'}
+    url = {'start': 'http://euro-parts.ru/catalog/index.aspx',
+           'base': 'http://euro-parts.ru',
+           'price': 'http://euro-parts.ru/catalog/index.aspx'}
 
     def __init__(self):
 
@@ -33,12 +33,10 @@ class Runner(catalog.runner.Runner):
             time.sleep(1)
 
             category = str(c.text)
-            print(category)
 
             # Загружаем список моделей
             c_url = self.xpath_string(c, './@href')
             c_url = '{}{}'.format(self.url['base'], c_url)
-            print(c_url)
             tree = self.load_html(c_url)
 
             # Проходим по всем моделям
@@ -54,7 +52,6 @@ class Runner(catalog.runner.Runner):
                 time.sleep(1)
 
                 m_url = '{}{}'.format(self.url['base'], m_url)
-                print(m_url)
                 tree = self.load_html(m_url)
 
                 self.parse(tree, category)
@@ -87,7 +84,7 @@ class Runner(catalog.runner.Runner):
             product_['url'] = self.fix_url(product_['url'])
 
             product_['vendor'] = self.xpath_string(row, './/li[@class="brand"]')
-            product_['vendor'] = Vendor.objects.get_by_key(updater = self.updater, key = product_['vendor'])
+            product_['vendor'] = Vendor.objects.take(product_['vendor'])
 
             try:
                 product = Product.objects.take(article = product_['article'],
