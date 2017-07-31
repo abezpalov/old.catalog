@@ -10,7 +10,7 @@ class Runner(catalog.runner.Runner):
 
     name  = 'Центральный банк России'
     alias = 'cbr'
-
+    test = False
 
     def __init__(self):
 
@@ -35,12 +35,10 @@ class Runner(catalog.runner.Runner):
 
         self.parse(tree)
 
-        Log.objects.add(
-            subject     = "catalog.updater.{}".format(self.updater.alias),
-            channel     = "info",
-            title       = "Updated",
-            description = "Обновлены курсы валют: {} шт.".format(len(self.currencies)))
-
+        Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
+                        channel = "info",
+                        title = "Updated",
+                        description = "Обновлены курсы валют: {} шт.".format(len(self.currencies)))
 
     def parse(self, tree):
 
@@ -48,11 +46,10 @@ class Runner(catalog.runner.Runner):
         num = {}
 
         # Распознаваемые слова
-        word = {
-            'alias':    'Char code',
-            'quantity': 'Unit',
-            'name':     'Currency',
-            'rate':     'Rate'}
+        word = {'alias': 'Char code',
+                'quantity': 'Unit',
+                'name': 'Currency',
+                'rate': 'Rate'}
 
         table = tree.xpath("//table[@class='CBRTBL']/tr")
         for trn, tr in enumerate(table):
@@ -77,23 +74,21 @@ class Runner(catalog.runner.Runner):
             else:
 
                 # Определяем значения переменных
-                alias    = tr[num['alias']].text.strip()
+                alias = tr[num['alias']].text.strip()
                 quantity = tr[num['quantity']].text.strip()
-                name     = tr[num['name']].text.strip()
-                rate     = tr[num['rate']].text.strip()
+                name = tr[num['name']].text.strip()
+                rate = tr[num['rate']].text.strip()
 
                 # Записываем информацию в базу
-                currency = Currency.objects.take(
-                    alias     = alias,
-                    name      = name,
-                    full_name = name,
-                    rate      = rate,
-                    quantity  = quantity)
-                currency.rate     = rate
+                currency = Currency.objects.take(alias = alias,
+                                                 name = name,
+                                                 full_name = name,
+                                                 rate = rate,
+                                                 quantity = quantity,
+                                                 test = self.test)
+                currency.rate = rate
                 currency.quantity = quantity
                 currency.modified = timezone.now()
                 currency.save()
 
-                self.currencies.append(currency)
-
-        return True
+                self.currencies.append(currency.id)

@@ -566,7 +566,7 @@ class CurrencyManager(models.Manager):
         return result
 
 
-    def take(self, alias, name, full_name, rate = 1, quantity = 1):
+    def take(self, alias, name, full_name, rate = 1, quantity = 1, test = False):
         try:
             currency = self.get(alias = alias)
         except Currency.DoesNotExist:
@@ -576,6 +576,9 @@ class CurrencyManager(models.Manager):
                                 rate      = rate,
                                 quantity  = quantity)
             currency.save()
+
+        if test:
+            print(currency)
 
         return currency
 

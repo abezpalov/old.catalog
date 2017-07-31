@@ -10,18 +10,18 @@ class Runner(catalog.runner.Runner):
 
     name = 'Comptek'
     alias = 'comptek'
-    url = {'start'    : 'http://comptek.ru/',
-           'login'    : 'http://comptek.ru/personal/auth.xhtml',
-           'price'    : 'http://comptek.ru/',
-           'filter'   : 'catalog/',
-           'unfilter' : 'item/',
-           'base'     : 'http://comptek.ru'}
+    url = {'start': 'http://comptek.ru/',
+           'login': 'http://comptek.ru/personal/auth.xhtml',
+           'price': 'http://comptek.ru/',
+           'filter': 'catalog/',
+           'unfilter': 'item/',
+           'base': 'http://comptek.ru'}
 
     def __init__(self):
 
         super().__init__()
 
-        self.stock    = self.take_stock('stock', 'склад', 3, 10)
+        self.stock = self.take_stock('stock', 'склад', 3, 10)
         self.transit  = self.take_stock('transit', 'транзит', 10, 60)
         self.on_order = self.take_stock('on-order', 'на заказ', 40, 80)
 
@@ -83,12 +83,11 @@ class Runner(catalog.runner.Runner):
 
 
         # Номера строк и столбцов
-        num = {
-            'product_article': 0,
-            'product_name':    1,
-            'stock':           3,
-            'transit':         4,
-            'price':           5}
+        num = {'product_article': 0,
+               'product_name': 1,
+               'stock': 3,
+               'transit': 4,
+               'price': 5}
 
         table = tree.xpath('//table[@class="list-table"]//tr')
 
@@ -119,41 +118,45 @@ class Runner(catalog.runner.Runner):
                 try:
                     product = Product.objects.take(article = product_['article'],
                                                    vendor = vendor,
-                                                   name = product_['name'])
-                    self.products.append(product)
+                                                   name = product_['name'],
+                                                   test = self.test)
+                    self.products.append(product.id)
                 except ValueError as error:
                     continue
 
                 try:
-                    party = Party.objects.make(product    = product,
-                                               stock      = self.stock,
-                                               price      = party_['price'],
-                                               currency   = party_['currency'],
-                                               quantity   = party_['on_stock'],
-                                               time       = self.start_time)
-                    self.parties.append(party)
+                    party = Party.objects.make(product = product,
+                                               stock = self.stock,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = party_['on_stock'],
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
                 except ValueError as error:
                     pass
 
                 try:
-                    party = Party.objects.make(product    = product,
-                                               stock      = self.transit,
-                                               price      = party_['price'],
-                                               currency   = party_['currency'],
-                                               quantity   = party_['on_transit'],
-                                               time       = self.start_time)
-                    self.parties.append(party)
+                    party = Party.objects.make(product = product,
+                                               stock = self.transit,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = party_['on_transit'],
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
                 except ValueError as error:
                     pass
 
                 try:
-                    party = Party.objects.make(product    = product,
-                                               stock      = self.on_order,
-                                               price      = party_['price'],
-                                               currency   = party_['currency'],
-                                               quantity   = None,
-                                               time       = self.start_time)
-                    self.parties.append(party)
+                    party = Party.objects.make(product = product,
+                                               stock = self.on_order,
+                                               price = party_['price'],
+                                               currency = party_['currency'],
+                                               quantity = None,
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
                 except ValueError as error:
                     pass
 

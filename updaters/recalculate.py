@@ -19,6 +19,8 @@ class Runner:
 
             product = Product.objects.get(id = product['id'])
             product.recalculate()
+            if self.test:
+                print('{} / {}: {}'.format(n+1, len(products), product))
 
         Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
                         channel = "info",

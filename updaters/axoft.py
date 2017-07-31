@@ -6,12 +6,12 @@ class Runner(catalog.runner.Runner):
 
     name  = 'Axoft'
     alias = 'axoft'
-    url   = {'start'   : 'http://axoft.ru/',
-             'login'   : 'http://axoft.ru/',
-             'vendors' : 'http://axoft.ru/vendors/',
-             'prefix'  : 'http://axoft.ru'}
-    word  = {'vendor' : '/vendors/',
-             'price'  : '/pricelists/download.php?'}
+    url   = {'start': 'http://axoft.ru/',
+             'login': 'http://axoft.ru/',
+             'vendors': 'http://axoft.ru/vendors/',
+             'prefix': 'http://axoft.ru'}
+    word  = {'vendor': '/vendors/',
+             'price': '/pricelists/download.php?'}
 
     def __init__(self):
 
@@ -23,14 +23,13 @@ class Runner(catalog.runner.Runner):
     def run(self):
 
         # Авторизуемся
-        self.login({
-            'backurl'       : '/',
-            'AUTH_FORM'     : 'Y',
-            'TYPE'          : 'AUTH',
-            'IS_POPUP'      : '1',
-            'USER_LOGIN'    : self.updater.login,
-            'USER_PASSWORD' : self.updater.password,
-            'Login'         : 'Вход для партнеров'})
+        self.login({'backurl': '/',
+                    'AUTH_FORM': 'Y',
+                    'TYPE': 'AUTH',
+                    'IS_POPUP': '1',
+                    'USER_LOGIN': self.updater.login,
+                    'USER_PASSWORD': self.updater.password,
+                    'Login': 'Вход для партнеров'})
 
         # Получаем список производителей
         prices = self.get_prices_urls()
@@ -101,21 +100,19 @@ class Runner(catalog.runner.Runner):
             'first_line'  : 5}
 
         # Распознаваемые слова
-        word = {
-            'party_article'   : 'AxoftSKU',
-            'product_article' : 'VendorSKU',
-            'product_name'    : 'ProductDescription',
-            'product_version' : 'Version',
-            'price_in'        : 'Partner',
-            'price_out'       : 'Retail',
-            'product_vat'     : 'NDS'}
+        word = {'party_article': 'AxoftSKU',
+                'product_article': 'VendorSKU',
+                'product_name': 'ProductDescription',
+                'product_version': 'Version',
+                'price_in': 'Partner',
+                'price_out': 'Retail',
+                'product_vat': 'NDS'}
 
         # Сопоставление валют
-        currencies = {
-            'General'           : None,
-            '#,##0.00[$р.-419]' : self.rub,
-            '[$$-409]#,##0.00'  : self.usd,
-            '[$€-2]\\ #,##0.00' : self.eur}
+        currencies = {'General': None,
+                      '#,##0.00[$р.-419]': self.rub,
+                      '[$$-409]#,##0.00': self.usd,
+                      '[$€-2]\\ #,##0.00': self.eur}
 
         # Имя категории поставщика
         category = None
@@ -172,13 +169,13 @@ class Runner(catalog.runner.Runner):
                     product_['article'] = self.fix_article(row[num['product_article']])
                 else:
                     product_['article'] = self.fix_article(row[num['party_article']])
-                product_['name']     = self.fix_name(row[num['product_name']])
-                product_['version']  = self.fix_string(row[num['product_version']])
-                product_['vat']      = self.fix_string(row[num['product_vat']])
+                product_['name'] = self.fix_name(row[num['product_name']])
+                product_['version'] = self.fix_string(row[num['product_version']])
+                product_['vat'] = self.fix_string(row[num['product_vat']])
 
                 # Данные о партии
-                party_['article']   = self.fix_article(row[num['party_article']])
-                party_['price']     = self.fix_price(row[num['price_in']])
+                party_['article'] = self.fix_article(row[num['party_article']])
+                party_['price'] = self.fix_price(row[num['price_in']])
                 party_['price_out'] = self.fix_price(row[num['price_out']])
 
                 # Валюта входной цены
@@ -200,25 +197,25 @@ class Runner(catalog.runner.Runner):
                 # Или же продукт
                 elif product_['name'] and product_['article']:
                     try:
-                        product = Product.objects.take(article  = product_['article'],
-                                                       vendor   = vendor,
-                                                       name     = product_['name'],
-                                                       category = category)
-                        self.products.append(product)
+                        product = Product.objects.take(article = product_['article'],
+                                                       vendor = vendor,
+                                                       name = product_['name'],
+                                                       category = category,
+                                                       test = self.test)
+                        self.products.append(product.id)
                     except ValueError as error:
                         continue
 
                     try:
                         party = Party.objects.make(product = product,
-                                                   stock          = self.stock,
-                                                   price          = party_['price'],
-                                                   currency       = party_['currency'],
-                                                   price_out      = party_['price_out'],
-                                                   currency_out   = party_['currency_out'],
-                                                   quantity       = None,
-                                                   time           = self.start_time)
-                        self.parties.append(party)
+                                                   stock = self.stock,
+                                                   price = party_['price'],
+                                                   currency = party_['currency'],
+                                                   price_out = party_['price_out'],
+                                                   currency_out = party_['currency_out'],
+                                                   quantity = None,
+                                                   time = self.start_time,
+                                                   test = self.test)
+                        self.parties.append(party.id)
                     except ValueError as error:
                         pass
-
-        return True

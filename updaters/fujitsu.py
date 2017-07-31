@@ -127,13 +127,12 @@ class Runner(catalog.runner.Runner):
         num = {}
 
         # Распознаваемые слова
-        word = {
-            'article'       : 'SachNr',
-            'name'          : 'Benennung',
-            'status'        : 'VertStat',
-            'category_numb' : 'PraesKategNr',
-            'description-1' : 'Beschreibung',
-            'description-2' : 'CfgHint'}
+        word = {'article': 'SachNr',
+                'name': 'Benennung',
+                'status': 'VertStat',
+                'category_numb': 'PraesKategNr',
+                'description-1': 'Beschreibung',
+                'description-2': 'CfgHint'}
 
         # Статусы продуктов
         self.quantity = {}
@@ -152,20 +151,21 @@ class Runner(catalog.runner.Runner):
                 for celn, cel in enumerate(row):
 
                     cel = cel.strip().replace('"', '')
-                    if   cel.strip() == word['article']:       num['article']       = celn
-                    elif cel.strip() == word['name']:          num['name']          = celn
-                    elif cel.strip() == word['status']:        num['status']        = celn
-                    elif cel.strip() == word['category_numb']: num['category_numb'] = celn
-                    elif cel.strip() == word['description-1']: num['description-1'] = celn
-                    elif cel.strip() == word['description-2']: num['description-2'] = celn
+                    if cel.strip() == word['article']:
+                        num['article'] = celn
+                    elif cel.strip() == word['name']:
+                        num['name'] = celn
+                    elif cel.strip() == word['status']:
+                        num['status'] = celn
+                    elif cel.strip() == word['category_numb']:
+                        num['category_numb'] = celn
+                    elif cel.strip() == word['description-1']:
+                        num['description-1'] = celn
+                    elif cel.strip() == word['description-2']:
+                        num['description-2'] = celn
 
                 if len(num) < 6:
-                    Log.objects.add(
-                        subject     = "catalog.updater.{}".format(self.updater.alias),
-                        channel     = "error",
-                        title       = "error",
-                        description = "Не опознаны необходимые столбцы.")
-                    return False
+                    raise(ValueError('Ошибка структуры данных: не все столбцы опознаны.'))
 
             # Строка с данными
             elif rown + 1 < len(rows):
@@ -202,8 +202,9 @@ class Runner(catalog.runner.Runner):
                     product = Product.objects.take(article = product_['article'],
                                                    vendor = self.vendor,
                                                    name = product_['name'],
-                                                   category = product_['category'])
-                    self.products.append(product)
+                                                   category = product_['category'],
+                                                   test = self.test)
+                    self.products.append(product.id)
                     #TODO
                     product.name = product_['name']
                     product.save()
@@ -298,8 +299,9 @@ class Runner(catalog.runner.Runner):
                                                price_type = self.rdp,
                                                currency = self.usd,
                                                quantity = quantity,
-                                               time = self.start_time)
-                    self.parties.append(party)
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
 
                 except ValueError as error:
                     pass

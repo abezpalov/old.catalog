@@ -8,7 +8,7 @@ from catalog.models import *
 
 class Runner:
 
-    test = True
+    test = False
 
     def __init__(self):
 

@@ -23,19 +23,19 @@ class Runner(catalog.runner.Runner):
     def run(self):
 
         # Авторизуемся
-        self.login({'AUTH_FORM'     : 'Y',
-                    'TYPE'          : 'AUTH',
-                    'backurl'       : '/',
-                    'USER_LOGIN'    : self.updater.login,
-                    'USER_PASSWORD' : self.updater.password,
-                    'Login'         : '%C2%A0',
-                    'USER_REMEMBER' : 'Y'})
+        self.login({'AUTH_FORM': 'Y',
+                    'TYPE': 'AUTH',
+                    'backurl': '/',
+                    'USER_LOGIN': self.updater.login,
+                    'USER_PASSWORD': self.updater.password,
+                    'Login': '%C2%A0',
+                    'USER_REMEMBER': 'Y'})
 
         # Загружаем данные
         self.data = self.load_data(self.url['price'])
         self.data = self.unpack_xml(self.data)
         if self.data is None:
-            return None
+            raise(ValueError('Ошибка! Не полученны данные.'))
 
         # Парсим
         self.parse(self.data)
@@ -51,10 +51,7 @@ class Runner(catalog.runner.Runner):
 
         import re
 
-        currency = {
-            'USD'   : self.usd,
-            'Евро'  : self.eur,
-            'Рубль' : self.rub}
+        currency = {'USD': self.usd, 'Евро': self.eur, 'Рубль': self.rub}
 
         for group in tree.xpath('.//Группа'):
 
@@ -111,23 +108,24 @@ class Runner(catalog.runner.Runner):
                 party_['price_out'] = self.fix_price(party_['price_out'])
 
                 try:
-                    party = Party.objects.make(product    = product,
-                                               stock      = self.stock,
-                                               price      = party_['price_in'],
-                                               currency   = party_['currency'],
-                                               quantity   = party_['quantity'],
-                                               time       = self.start_time)
+                    party = Party.objects.make(product = product,
+                                               stock = self.stock,
+                                               price = party_['price_in'],
+                                               currency = party_['currency'],
+                                               quantity = party_['quantity'],
+                                               time = self.start_time,
+                                               test = self.test)
                     self.parties.append(party.id)
                 except ValueError as error:
                     pass
 
                 try:
-                    party = Party.objects.make(product    = product,
-                                               stock      = self.factory,
-                                               price      = party_['price_in'],
-                                               currency   = party_['currency'],
-                                               quantity   = None,
-                                               time       = self.start_time)
+                    party = Party.objects.make(product = product,
+                                               stock = self.factory,
+                                               price = party_['price_in'],
+                                               currency = party_['currency'],
+                                               quantity = None,
+                                               time = self.start_time)
                     self.parties.append(party.id)
                 except ValueError as error:
                     pass

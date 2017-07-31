@@ -153,16 +153,17 @@ class Runner(catalog.runner.Runner):
 
                 # Продукт
                 product_['article'] = self.fix_article(row[num['product_article']])
-                product_['name']    = self.fix_name(row[num['product_name']])
+                product_['name'] = self.fix_name(row[num['product_name']])
 
                 # Гарантия
                 product_['warranty'] = self.fix_string(row[num['product_warranty']])
 
                 try:
-                    product = Product.objects.take(article  = product_['article'],
+                    product = Product.objects.take(article = product_['article'],
                                                    vendor = product_['vendor'],
-                                                   name = product_['name'])
-                    self.products.append(product)
+                                                   name = product_['name'],
+                                                   test = self.test)
+                    self.products.append(product.id)
                 except ValueError as error:
                     continue
 
@@ -186,8 +187,9 @@ class Runner(catalog.runner.Runner):
                                                price_out = party_['price_out'],
                                                currency_out = party_['currency_out'],
                                                quantity = party_['quantity_stock'],
-                                               time = self.start_time)
-                    self.parties.append(party)
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
                 except ValueError as error:
                     pass
 
@@ -200,8 +202,9 @@ class Runner(catalog.runner.Runner):
                                                price_out = party_['price_out'],
                                                currency_out = party_['currency_out'],
                                                quantity = party_['quantity_transit'],
-                                               time = self.start_time)
-                    self.parties.append(party)
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
                 except ValueError as error:
                     pass
 
@@ -214,7 +217,9 @@ class Runner(catalog.runner.Runner):
                                                price_out = party_['price_out'],
                                                currency_out = party_['currency_out'],
                                                quantity = party_['quantity_factory'],
-                                               time = self.start_time)
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
                 except ValueError as error:
                     pass
 

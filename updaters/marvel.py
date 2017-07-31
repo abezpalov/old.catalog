@@ -34,12 +34,8 @@ class Runner(catalog.runner.Runner):
         self.request_format = {'xml': '0', 'json': '1'}
         self.cookies = None
         self.categories = {}
-        self.currencies = {'RUB': self.rub,
-                           'RUR': self.rub,
-                           'USD': self.usd,
-                           'EUR': self.eur,
-                           '': None}
-        self.stocks = {'msk' : self.stock_msk, 'spb' : self.stock_spb}
+        self.currencies = {'RUB': self.rub, 'RUR': self.rub, 'USD': self.usd, 'EUR': self.eur, '': None}
+        self.stocks = {'msk': self.stock_msk,'spb' : self.stock_spb}
 
     def run(self):
 
@@ -71,44 +67,44 @@ class Runner(catalog.runner.Runner):
         # Собираем URL
         if not pack_status is None:
             url = '{url}{task}?user={login}&password={password}&secretKey={key}&packStatus={pack_status}&responseFormat={request_format}'.format(
-                url            = self.url,
-                task           = self.task[task],
-                login          = self.updater.login,
-                password       = self.updater.password,
-                key            = None,
-                pack_status    = pack_status,
-                request_format = self.request_format[request_format])
+                    url = self.url,
+                    task = self.task[task],
+                    login = self.updater.login,
+                    password = self.updater.password,
+                    key = None,
+                    pack_status = pack_status,
+                    request_format = self.request_format[request_format])
         else:
             url = '{url}{task}?user={login}&password={password}&secretKey={key}&responseFormat={request_format}'.format(
-                url            = self.url,
-                task           = self.task[task],
-                login          = self.updater.login,
-                password       = self.updater.password,
-                key            = None,
-                request_format = self.request_format[request_format])
+                    url = self.url,
+                    task = self.task[task],
+                    login = self.updater.login,
+                    password = self.updater.password,
+                    key = None,
+                    request_format = self.request_format[request_format])
 
         if articles:
 
             # Готовим начало
             url = '{url}{mid}'.format(
-                url = url,
-                mid = '&getExtendedItemInfo=1&items={"WareItem": [')
+                    url = url,
+                    mid = '&getExtendedItemInfo=1&items={"WareItem": [')
 
             # Добавляем артикулы
             for article in articles:
                 url = '{url}{mid}{article}{end}'.format(
-                    url     = url,
-                    mid     = '{"ItemId": "',
-                    article = article,
-                    end     = '"},')
+                        url = url,
+                        mid = '{"ItemId": "',
+                        article = article,
+                        end = '"},')
 
             # Удаляем лишнюю запятую
             url = url[0 : len(url) - 1]
 
             # Добавляем конец
             url = '{url}{end}'.format(
-                url = url,
-                end = ']}')
+                    url = url,
+                    end = ']}')
 
         # Выполняем запрос
         try:
@@ -132,21 +128,18 @@ class Runner(catalog.runner.Runner):
                 if data['Header']['Code'] != 0:
 
                     if data['Header']['Message']:
-                        Log.objects.add(
-                        subject     = "catalog.updater.{}".format(self.updater.alias),
-                        channel     = "error",
-                        title       = "?",
-                        description = data['Header']['Message'])
+                        Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
+                                        channel = "error",
+                                        title = "?",
+                                        description = data['Header']['Message'])
                     else:
-                        Log.objects.add(
-                        subject     = "catalog.updater.{}".format(self.updater.alias),
-                        channel     = "error",
-                        title       = "?",
-                        description = "Невнятный ответ сервера")
+                        Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
+                                        channel = "error",
+                                        title = "?",
+                                        description = "Невнятный ответ сервера")
 
                     raise(ValueError('Ошибка! Данные не получены.'))
 
-                    return False
                 else:
                     return data['Body']
             else:
@@ -200,8 +193,9 @@ class Runner(catalog.runner.Runner):
                 product = Product.objects.take(article = product_['article'],
                                                vendor = product_['vendor'],
                                                name = product_['name'],
-                                               category = product_['category'])
-                self.products.append(product)
+                                               category = product_['category'],
+                                               test = self.test)
+                self.products.append(product.id)
             except ValueError as error:
                 continue
             except TypeError:
@@ -224,8 +218,9 @@ class Runner(catalog.runner.Runner):
                                            price = party_['price'],
                                            currency = party_['currency'],
                                            quantity = party_['quantity_msk'],
-                                           time = self.start_time)
-                self.parties.append(party)
+                                           time = self.start_time,
+                                           test = self.test)
+                self.parties.append(party.id)
             except ValueError as error:
                 pass
 
@@ -235,8 +230,9 @@ class Runner(catalog.runner.Runner):
                                            price = party_['price'],
                                            currency = party_['currency'],
                                            quantity = party_['quantity_spb'],
-                                           time = self.start_time)
-                self.parties.append(party)
+                                           time = self.start_time,
+                                           test = self.test)
+                self.parties.append(party.id)
             except ValueError as error:
                 pass
 

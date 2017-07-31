@@ -9,9 +9,9 @@ class Runner(catalog.runner.Runner):
 
     name  = 'ЦМО'
     alias = 'cmo'
-    url   = {'start' : 'http://cmo.ru/',
-             'price' : 'http://cmo.ru/price/',
-             'base'  : 'http://cmo.ru'}
+    url   = {'start': 'http://cmo.ru/',
+             'price': 'http://cmo.ru/price/',
+             'base': 'http://cmo.ru'}
 
     def __init__(self):
 
@@ -43,10 +43,9 @@ class Runner(catalog.runner.Runner):
         num = {'header': 0}
 
         # Распознаваемые слова
-        word = {
-            'article' : 'Артикул',
-            'code'    : 'Код (ID)',
-            'name'    : 'Наименование продукции'}
+        word = {'article': 'Артикул',
+                'code': 'Код (ID)',
+                'name': 'Наименование продукции'}
 
         # Проходим по таблицам
         for table in tree.xpath(".//div[@class='price-list']"):
@@ -77,23 +76,25 @@ class Runner(catalog.runner.Runner):
 
                     # Получаем объект товара
                     try:
-                        product = Product.objects.take(article  = product_['article'],
-                                                       vendor   = self.vendor,
-                                                       name     = product_['name'],
-                                                       category = category)
-                        self.products.append(product)
+                        product = Product.objects.take(article = product_['article'],
+                                                       vendor = self.vendor,
+                                                       name = product_['name'],
+                                                       category = category,
+                                                       test = self.test)
+                        self.products.append(product.id)
                     except ValueError as error:
                         continue
 
                     try:
-                        party = Party.objects.make(product    = product,
-                                                   stock      = self.stock,
-                                                   article    = party_['article'],
-                                                   price      = party_['price'],
+                        party = Party.objects.make(product = product,
+                                                   stock = self.stock,
+                                                   article = party_['article'],
+                                                   price = party_['price'],
                                                    price_type = self.rp,
-                                                   currency   = self.rub,
-                                                   quantity   = -1,
-                                                   time       = self.start_time)
-                        self.parties.append(party)
+                                                   currency = self.rub,
+                                                   quantity = -1,
+                                                   time = self.start_time,
+                                                   self.test)
+                        self.parties.append(party.id)
                     except ValueError as error:
                         pass

@@ -20,7 +20,7 @@ class Runner:
     updaters = ['cbr', 'auvix', 'axoft', 'cmo', 'comptek', 'digis', 'elko', 'europarts', 'fujitsu', 'kramer', 'landata',
                 'marvel', 'merlion', 'mics', 'ocs', 'rrc', 'treolan']
 
-    final_updaters = ['tohpe', 'recalculate']
+    final_updaters = ['tohpe', 'recalculate', 'fixdoubles']
 
     def __init__(self):
 
@@ -34,15 +34,7 @@ class Runner:
 
         start = datetime.datetime.now()
 
-        for arg in sys.argv:
-            if 'mp' == arg:
-                mp = True
-                break
-        else:
-            mp = False
-
-
-        if mp:
+        if self.mp:
             # Make the Pool of workers
             pool = ThreadPool(4)
 
@@ -60,8 +52,6 @@ class Runner:
         for updater in self.final_updaters:
             self.run_updater(updater)
 
-
-
         print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
 
         return True
@@ -74,6 +64,8 @@ class Runner:
             Runner = __import__('catalog.updaters.' + updater, fromlist=['Runner'])
             runner = Runner.Runner()
             if runner.updater.state:
+                runner.test = self.test
+                runner.mp = self.mp
                 if runner.run():
                     runner.updater.updated = timezone.now()
                     runner.updater.save()
@@ -95,4 +87,3 @@ class Runner:
 
         else:
             return False
-

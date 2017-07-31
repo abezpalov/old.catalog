@@ -108,8 +108,9 @@ class Runner(catalog.runner.Runner):
             try:
                 product = Product.objects.take(article = product_['article'],
                                                vendor = product_['vendor'],
-                                               name = product_['name'])
-                self.products.append(product)
+                                               name = product_['name'],
+                                               test = self.test)
+                self.products.append(product.id)
             except ValueError as error:
                 continue
 
@@ -132,8 +133,9 @@ class Runner(catalog.runner.Runner):
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = party_['on_stock'],
-                                               time = self.start_time)
-                    self.parties.append(party)
+                                               time = self.start_time,
+                                               test = self.test)
+                    self.parties.append(party.id)
                 except ValueError as error:
                     pass
 

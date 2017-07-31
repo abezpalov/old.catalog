@@ -90,13 +90,14 @@ class Runner(catalog.runner.Runner):
                 product = Product.objects.take(article = product_['article'],
                                                vendor = product_['vendor'],
                                                name = product_['name'],
-                                               category = category)
+                                               category = category,
+                                               test = self.test)
 
                 # Один продукт может встречаться в разных моделях, поэтому:
                 # проверяем, не обработан ли уже этот продукт
-                if product in self.products:
+                if product.id in self.products:
                     continue
-                self.products.append(product)
+                self.products.append(product.id)
             except ValueError as error:
                 continue
 
@@ -112,8 +113,9 @@ class Runner(catalog.runner.Runner):
                                            price = party_['price'],
                                            currency = self.usd,
                                            quantity = party_['quantity_stock'],
-                                           time = self.start_time)
-                self.parties.append(party)
+                                           time = self.start_time,
+                                           test = self.test)
+                self.parties.append(party.id)
             except ValueError as error:
                 pass
 
@@ -123,8 +125,9 @@ class Runner(catalog.runner.Runner):
                                            price = party_['price'],
                                            currency = self.usd,
                                            quantity = party_['quantity_transit'],
-                                           time = self.start_time)
-                self.parties.append(party)
+                                           time = self.start_time,
+                                           test = self.test)
+                self.parties.append(party.id)
             except ValueError as error:
                 pass
 
