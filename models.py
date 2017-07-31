@@ -1018,9 +1018,9 @@ class PartyManager(models.Manager):
     def make(self, product, stock, **kwargs):
 
         if product is None:
-            raise(ValueError('Внимание: не указан товар.'))
+            raise(ValueError('Ошибка! Не указан товар.'))
         if stock is None:
-            raise(ValueError('Внимание: не указан склад.'))
+            raise(ValueError('Ошибка! Не указан склад.'))
 
         time = kwargs.get('time', None)
         if time:
