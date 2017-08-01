@@ -28,16 +28,22 @@ class Runner(catalog.runner.Runner):
 
         self.vendors = Vendor.objects.all()
 
-        # Make the Pool of workers
-        pool = ThreadPool(4)
+        if self.mp:
 
-        # Open the urls in their own threads
-        # and return the results
-        pool.map(self.get_match, self.vendors)
+            # Make the Pool of workers
+            pool = ThreadPool(4)
 
-        #close the pool and wait for the work to finish 
-        pool.close()
-        pool.join()
+            # Open the urls in their own threads
+            # and return the results
+            pool.map(self.get_match, self.vendors)
+
+            #close the pool and wait for the work to finish 
+            pool.close()
+            pool.join()
+
+        else:
+            for vendor in self.vendors:
+                self.get_match(vendor)
 
         Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
                         channel = "info",
