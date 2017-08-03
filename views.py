@@ -310,9 +310,10 @@ def products(request, **kwargs):
             # Требуется ли разбивка на страницы
             count = products.count()
             page_max = count // parameters['items']
+            if count % parameters['items']:
+                page_max += 1
+
             if page_max > 1:
-                if count % parameters['items']:
-                    page_max += 1
 
                 pages = []
                 dispersion = 3
