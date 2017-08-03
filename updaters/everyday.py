@@ -20,7 +20,7 @@ class Runner:
     updaters = ['cbr', 'auvix', 'axoft', 'cmo', 'comptek', 'digis', 'elko', 'europarts', 'fujitsu', 'kramer', 'landata',
                 'marvel', 'merlion', 'mics', 'ocs', 'rrc', 'treolan']
 
-    final_updaters = ['tohpe', 'recalculate', 'fixdoubles']
+    final_updaters = ['tohpe', 'recalculate']
 
     def __init__(self):
 

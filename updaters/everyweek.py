@@ -11,7 +11,7 @@ class Runner:
 
 		self.name  = 'Служебное: еженедельный запуск'
 		self.alias = 'everyweek'
-		self.updaters = []
+		self.updaters = ['fixdoubles']
 
 		# Загрузчик
 		self.updater = Updater.objects.take(
