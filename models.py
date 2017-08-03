@@ -228,28 +228,36 @@ class CategoryManager(models.Manager):
         return result
 
 
-    def getCategoryTree(self, tree, parent = None):
+    def get_category_tree(self, tree, parent = None, state = False):
         "Функция: дерево категорий (используется рекурсия)."
 
         # Получаем список дочерних категорий
         categories = self.filter(parent = parent).order_by('order')
+        if state:
+            categories = self.filter(parent = parent).filter(state = True)
+        else:
+            categories = self.filter(parent = parent)
+
 
         # Проходим по списку категорий с рекурсивным погружением
         for category in categories:
             tree.append(category)
-            tree = self.getCategoryTree(tree, category)
+            tree = self.get_category_tree(tree, parent = category, state = state)
 
         return tree
 
 
-    def getCategoryHTMLTree(self, root, parent = None, first = None):
+    def get_category_tree_html(self, root, parent = None, first = None, state = False):
         "Функция: дерево категорий (используется рекурсия)."
 
         # Импортируем
         from lxml import etree
 
         # Получаем список дочерних категорий
-        categories = self.filter(parent = parent).filter(state = True).order_by('order')
+        if state:
+            categories = self.filter(parent = parent).filter(state = True)
+        else:
+            categories = self.filter(parent = parent)
 
         # Проходим по списку категорий с рекурсивным погружением
         if len(categories):
@@ -270,7 +278,11 @@ class CategoryManager(models.Manager):
                 li = etree.SubElement(ul, "li")
 
                 # Если есть дочерние
-                childs = self.filter(parent=category).filter(state=True).order_by('order')
+                if state:
+                    childs = self.filter(parent=category).filter(state=True).order_by('order')
+                else:
+                    childs = self.filter(parent=category).order_by('order')
+
                 if len(childs):
                     li.attrib['class'] = 'closed'
                     i = etree.SubElement(li, "i")
@@ -287,7 +299,7 @@ class CategoryManager(models.Manager):
                 a.attrib['data-id'] = str(category.id)
                 a.attrib['class'] = 'tm-li-category-name'
                 a.text = category.name
-                self.getCategoryHTMLTree(li, category)
+                self.get_category_tree_html(root = li, parent = category, state = state)
 
         # Возвращаем результат
         return root
@@ -310,6 +322,14 @@ class Category(models.Model):
     modified    = models.DateTimeField(default = timezone.now, db_index = True)
 
     objects     = CategoryManager()
+
+    def _name_leveled(self):
+
+        return '— ' * self.level + self.name
+
+    name_leveled = property(_name_leveled)
+
+
 
 
     def get_dicted(self):
@@ -783,7 +803,7 @@ class Product(models.Model):
         if self.price:
             price = '{:,}'.format(round(self.price, 2)).replace(',', '&nbsp;').replace('.', ',')
         else:
-            return '<i class="fa fa-phone"></i>'
+            return '?'
 
         return '{}&nbsp;{}'.format(price, currency.name)
 

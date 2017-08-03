@@ -9,7 +9,7 @@ $('#top-search-input').keypress(function (e) {
 
 $("body").delegate("#top-search-button", "click", function(){
 	if ($.trim($('#top-search-input').val()) != ''){
-		location.href = '/catalog/products/search/' + $.trim($('#top-search-input').val()) + '/';
+		location.href = '/catalog/products/search=' + $.trim($('#top-search-input').val()) + '/';
 	}
 	return false;
 });

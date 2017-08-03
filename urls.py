@@ -24,8 +24,9 @@ urlpatterns = [
     url(r'^currencies/$', catalog.views.currencies),
 
     url(r'^$', catalog.views.products),
-    url(r'^products(/category/(?P<category>[0-9]+)-(?P<childs>[yn]{1})){0,1}(/vendor/(?P<vendor>[a-zA-Z0-9_-]+)){0,1}(/search/(?P<search>[\S\s]+)){0,1}/page/(?P<page>[0-9]+)/$', catalog.views.products),
-    url(r'^products(/category/(?P<category>[0-9]+)-(?P<childs>[yn]{1})){0,1}(/vendor/(?P<vendor>[a-zA-Z0-9_-]+)){0,1}(/search/(?P<search>[\S\s]+)){0,1}/$', catalog.views.products),
+    url(r'^products/(?P<string>[\S\s]+)/$', catalog.views.products),
+#   url(r'^products(/category/(?P<category>[0-9]+)-(?P<childs>[yn]{1})){0,1}(/vendor/(?P<vendor>[a-zA-Z0-9_-]+)){0,1}(/search/(?P<search>[\S\s]+)){0,1}(/page/(?P<page>[0-9]+)){0,1}/$', catalog.views.products),
+#   url(r'^products(/category/(?P<category>[0-9]+)-(?P<childs>[yn]{1})){0,1}(/vendor/(?P<vendor>[a-zA-Z0-9_-]+)){0,1}(/search/(?P<search>[\S\s]+)){0,1}/$', catalog.views.products),
     url(r'^product/(?P<id>[0-9]+)/$', catalog.views.product),
 
     url(r'^parametertypes/$', catalog.views.parametertypes),

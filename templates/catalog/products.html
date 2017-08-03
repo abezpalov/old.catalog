@@ -7,33 +7,33 @@
 
 {% block content %}
 
-<!-- Панель вызова фильтра вывода -->
-<div class="row collapse">
-	<ul class="button-group even-3">
-		<li><button id="filter-products-category" data-do="open-filter-products-category"{% if category == None %} class="secondary"{% endif %}><i class="fa fa-folder-open-o"></i> Категория</button></li>
-		<li><button id="filter-products-vendor" data-do="open-filter-products-vendor"{% if vendor == None %} class="secondary"{% endif %}><i class="fa fa-building"></i> Производитель</button></li>
-		<li><button id="filter-products-search" data-do="open-filter-products-search"{% if not search %} class="secondary"{% endif %}><i class="fa fa-search"></i> Дополнительно</button></li>
-	</ul>
-</div>
-
 <!-- Таблица со списком продуктов -->
+{% if count %}
 <div class="row collapse">
 	<table>
-		<tr>
-			<th class="text-center">#</th>
-			<th class="text-center">Артикул</th>
-			<th class="text-center">Наименование</th>
-			<th class="text-center">Производитель</th>
-			<th class="text-center">Цена</th>
-			<th class="text-center" colspan="3">Количество</th>
-			{% if perms.catalog.change_product or perms.catalog.delete_product %}<th{% if perms.catalog.change_product and perms.catalog.delete_product %} colspan = "2"{% endif %}>Статус</th>{% endif %}
-		</tr>
+        <thead>
+    		<tr>
+	    		<th class="text-center">#</th>
+	    		<th class="text-center">Производитель</th>
+	    		<th class="text-center">Артикул</th>
+	    		<th class="text-center">Наименование</th>
+	    		<th class="text-center">Цена</th>
+	    		<th class="text-center" colspan="3">Количество</th>
+	    	</tr>
+        </thead>
 		{% for product in products %}
 		{% ifchanged product.category %}
 		<tr><td colspan="10"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
 		{% endifchanged %}
 		<tr data-product = "{{ product.id }}">
 			<td>{{ product.n }}</td>
+			<td class="text-center">
+				<a
+					href = "/catalog/vendor/{{ product.vendor.alias }}/"
+					data-do = "open-edit-vendor"
+					data-vendor-id = "{{ product.vendor.id }}"
+					data-vendor-name = "{{ product.vendor.id }}"
+					data-product-vendor-name = "{{ product.id }}">{{ product.vendor.name }}</a></td>
 			<td
 				data-product-article = "{{ product.id }}">{{ product.article }}</td>
 			<td style="word-break: break-all;">
@@ -42,13 +42,6 @@
 					data-do = "open-edit-product"
 					data-product-id = "{{ product.id }}"
 					data-product-name = "{{ product.id }}">{{ product.name }}</a></td>
-			<td class="text-center">
-				<a
-					href = "/catalog/vendor/{{ product.vendor.alias }}/"
-					data-do = "open-edit-vendor"
-					data-vendor-id = "{{ product.vendor.id }}"
-					data-vendor-name = "{{ product.vendor.id }}"
-					data-product-vendor-name = "{{ product.id }}">{{ product.vendor.name }}</a></td>
 			<td class="text-right" style="white-space: nowrap;">
 				<a
 					data-do = "open-view-parties"
@@ -56,28 +49,6 @@
 			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_stock_xml }}{% endautoescape %}</td>
 			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_transit_xml }}{% endautoescape %}</td>
 			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_factory_xml }}{% endautoescape %}</td>
-			{% if perms.catalog.change_product %}
-			<td>
-				<div class = "switch small">
-					<input
-						id = "product-{{ product.id }}-state"
-						data-do = "switch-product-state"
-						data-product-id = "{{ product.id }}"
-						data-product-state = "{{ product.id }}"
-						type = "checkbox"{% if product.state %} checked{% endif %}>
-					<label for = "product-{{ product.id }}-state"></label>
-				</div>
-			</td>
-			{% endif %}
-			{% if perms.catalog.delete_product %}
-			<td>
-				<button class = "tiny secondary"
-					data-do = "open-delete-product"
-					data-product-id = "{{ product.id }}">
-					<i class="fa fa-trash"></i>
-				</button>
-			</td>
-			{% endif %}
 		</tr>
 		{% endfor %}
 	</table>
@@ -86,19 +57,20 @@
 	{% if pages %}
 	<div class="pagination-centered">
 		<ul class="pagination">
-			<li class="arrow{% if not page_prev %} unavailable{% endif %}"><a{% if page_prev %} href="{{ url }}{% if page_prev > 1 %}page/{{ page_prev }}/{% endif %}"{% endif %}>&laquo; Влево</a></li>
+			<li class="arrow{% if page_prev %} unavailable{% endif %}"><a{% if page_prev > 1 %} href="{{ url }}page={{ page_prev }}/"{% endif %}>&laquo; Влево</a></li>
 			{% for n in pages %}
 				{% if n %}
-				<li{% if page == n %} class="current"{% endif %}><a href="{{ url }}page/{{ n }}/">{{ n }}</a></li>
+				<li{% if page == n %} class="current"{% endif %}><a href="{{ url }}{% if n > 1 %}page={{ n }}/{% endif %}">{{ n }}</a></li>
 				{% else %}
 				<li class="unavailable"><a>&hellip;</a></li>
 				{% endif %}
 			{% endfor %}
-			<li class="arrow{% if not page_next %} unavailable{% endif %}"><a{% if page_next %} href="{{ url }}page/{{ page_next }}/"{% endif %}>Вправо &raquo;</a></li>
+			<li class="arrow{% if page_next %} unavailable{% endif %}"><a{% if page_next %} href="{{ url }}page={{ page_next }}/"{% endif %}>Вправо &raquo;</a></li>
 		</ul>
 	</div>
 	{% endif %}
 </div>
+{% endif %}
 
 {% include "catalog/modal/product.html" %}
 {% include "catalog/modal/vendor.html" %}

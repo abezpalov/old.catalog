@@ -15,15 +15,17 @@ application = get_wsgi_application()
 print("Пробую выполнить загрузчик " + sys.argv[1])
 Runner = __import__('catalog.updaters.' + sys.argv[1], fromlist=['Runner'])
 
+# Тестовый режим больше логов на экране
 for arg in sys.argv:
-    if 'test' == arg:
+    if '-t' == arg:
         test = True
         break
     else:
         test = False
 
+# Режим многопоточности
 for arg in sys.argv:
-    if 'mp' == arg:
+    if '-m' == arg:
         mp = True
         break
     else:

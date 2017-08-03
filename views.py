@@ -181,115 +181,171 @@ def currencies(request):
     return render(request, 'catalog/currencies.html', locals())
 
 
-def products(request, search=None, vendor=None, category=None, childs=None, page=1):
+def products(request, **kwargs):
     "Представление: список продуктов."
 
+
+    # TODO Почистить код
+    import json
     from lxml import etree
+
     from django.db.models import Q
+
     from catalog.models import Product, Category, Vendor
 
-    items_on_page = 100
+    # Получаем предварительные значения параметров из строки адреса
+    # и, паралельно собираем базовый URL для Pagination
+    parameters_ = {}
+    url = '/catalog/products/'
+    for parameter in kwargs.get('string', '').split('/'):
+        name = parameter.split('=')[0]
 
-    page = int(page)
+        try:
+            values = parameter.split('=')[1]
+        except IndexError:
+            values = ''
 
-    categories = []
-    product_categories = []
-    products = []
-    pages = []
+        if name:
+            parameters_[name] = values
 
-    # Получаем список всех имеющихся категорий
-    categories = Category.objects.getCategoryTree(categories)
+        if name != 'page':
+            url = '{}{}/'.format(url, parameter)
 
-    # Корректируем имена категорий с учетом вложенноти
-    for c in categories:
-        c.name = '— ' * c.level + c.name
+    # Очищаем значения параметров
+    parameters = {}
 
+    # Количество элементов на странице
+    try:
+        parameters['items'] = int(parameters_.get('items'))
+    except Exception:
+        parameters['items'] = 100
+    if parameters['items'] < 1:
+        parameters['items'] = 100
+
+    # Номер страницы
+    try:
+        parameters['page'] = int(parameters_.get('page'))
+    except Exception:
+        parameters['page'] = 1
+    if parameters['page'] < 1:
+        parameters['page'] = 1
+
+    # Категории
+    # Дерево всех категорий (список)
+    categories = Category.objects.get_category_tree([], state = True)
+
+    # Дерево всех категорий (HTML)
     root = etree.Element("div")
-    Category.objects.getCategoryHTMLTree(root, None, True)
-    categories_ul = etree.tostring(root)
+    Category.objects.get_category_tree_html(root, parent = None, first = True, state = True)
+    categories_tree = etree.tostring(root)
 
-    # Получаем список всех имеющихся производителей
+    # Список категорий для фильтра
+    parameters_['categories'] = parameters_.get('categories', '').split(',')
+    parameters['categories'] = []
+    for category in categories:
+        for id_ in parameters_['categories']:
+            if id_ == None:
+                parameters['categories'].append(None)
+            else:
+                try:
+                    if category.id == int(id_):
+                        parameters['categories'].append(category)
+                except Exception:
+                    pass
+
+    # Производители
+    # Список всех производителей
     vendors = Vendor.objects.filter(state=True)
 
-    # Получаем список категорий, из которых выводить товар
-    if category and childs == 'y': # Указанная категория и все потомки
-        category = Category.objects.get(id=category)
-        product_categories.append(category)
-        product_categories = Category.objects.getCategoryTree(product_categories, category)
-    elif category and childs == 'n': # Только указанная категория
-        category = Category.objects.get(id=category)
-        product_categories.append(category)
-    else: # Все категории
-        category = None
-        product_categories = categories
-        product_categories.append(None)
+    # Список отфильтрованных производителей
+    parameters_['vendors'] = parameters_.get('vendors', '').split(',')
+    parameters['vendors'] = []
+    for vendor in vendors:
+        for alias_ in parameters_['vendors']:
+            if vendor.alias == str(alias_):
+                parameters['vendors'].append(vendor)
 
-    # Получаем объект производителя, чей товар необходимо показать
-    if vendor: vendor = Vendor.objects.get(alias=vendor)
+    # Строка поиска
+    parameters_['search'] = str(parameters_.get('search', ''))
+    if parameters_['search']:
+        translation_map = {ord(';'): ' ', ord(','): ' ', ord('\''): '', ord('-'): ' ',
+                           ord('+'): ' ', ord('|'): ' ', ord('/') : ' '}
+        parameters_['search'] = parameters_['search'].translate(translation_map)
+        parameters_['search'] = parameters_['search'].strip()
+    parameters['search'] = parameters_['search'].split(' ')
 
-    # TODO Разбиваем строку поиска на слова
-    if search:
-        words = search.split(' ')
+    # TODO Параметры товара для фильтра
 
-    # Получаем список продуктов, которые необходимо показать
-    # Если есть параметры запроса
-    if search or category or vendor:
-        for product_category in product_categories:
-            if search and vendor:
-                for n, word in enumerate(words):
-                    if not n:
-                        new_products = Product.objects.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(vendor=vendor).filter(category=product_category).filter(state=True)
-                    else:
-                        new_products = new_products.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(vendor=vendor).filter(category=product_category).filter(state=True)
-            elif search:
-                for n, word in enumerate(words):
-                    if not n:
-                        new_products = Product.objects.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(category=product_category).filter(state=True)
-                    else:
-                        new_products = new_products.filter(Q(article__icontains=word) | Q(name__icontains=word)).filter(category=product_category).filter(state=True)
-            elif vendor:
-                new_products = Product.objects.filter(vendor=vendor).filter(category=product_category).filter(state=True)
-            else:
-                new_products = Product.objects.filter(category=product_category).filter(state=True)
-            products.extend(new_products)
-    else:
-        # TODO Что показывать когда нечего показывать?
-        think = True
+    # Готовим фильтр для отбора продуктов
+    filters = {}
+    if not request.user.has_perm('catalog.change_product'):
+        filters['state'] = Q(state = True)
+        filters['double'] = Q(double = None)
+        filters['vendor_state'] = Q(vendor__state = True)
 
-    # Нумеруем элементы списка
-    for n, product in enumerate(products):
-        product.n = n + 1
+    if parameters['categories'] or parameters['vendors'] or parameters['search']:
 
-    # Разбиваем на страницы
-    if len(products) > items_on_page:
+        if parameters['categories']:
+            filters['categories'] = Q()
+            for category in parameters['categories']:
+                filters['categories'] = filters['categories'] | Q(category = category)
 
-        # Формируем базовый URL
-        url = '/catalog/products/'
-        if category: url = "{}category/{}-{}/".format(url, category.id, childs)
-        if vendor:   url = "{}vendor/{}/".format(url, vendor.alias)
-        if search:   url = "{}search/{}/".format(url, search)
+        if parameters['vendors']:
+            filters['vendors'] = Q()
+            for vendor in parameters['vendors']:
+                filters['vendors'] = filters['vendors'] | Q(vendor = vendor)
 
-        # Формируем список номеров страниц для ссылок
-        page_max = len(products) // items_on_page
-        if len(products) % items_on_page:
+        if parameters['search']:
+            filters['search'] = Q()
+            for search in parameters['search']:
+                filters['search'] = filters['search'] & (Q(article__icontains = search) | Q(name__icontains = search) | Q(vendor__name__icontains = search))
+
+        products = Product.objects.all()
+        for key in filters:
+            products = products.filter(filters[key])
+
+
+    # Требуется ли разбивка на страницы
+    count = products.count()
+    page_max = count // parameters['items']
+
+    if page_max > 1:
+        if count % parameters['items']:
             page_max += 1
 
+        pages = []
+        dispersion = 3
+        prev = False
         for n in range(1, page_max + 1):
-            if n < 4 or n-3 < page < n+3 or n > page_max - 3:
-                pages.append(n)
-            elif (n == 4 or n == page_max - 4) and pages[len(pages)-1]:
+
+            # Добавляем номер страницы в ссылки
+            if ((parameters['page'] - n) < dispersion and (n - parameters['page']) < dispersion)\
+                or ((page_max - n) < dispersion and (n - page_max) < dispersion) \
+                or ((1 - n) < dispersion and (n - 1) < dispersion):
+                    pages.append(n)
+                    prev = True
+            # Будем добавлять многоточие
+            elif prev:
                 pages.append(0)
+                prev = False
 
-        # TODO Вторая версия пейджинга
+        first = (parameters['page'] - 1) * parameters['items']
+        last = parameters['page']*parameters['items']
 
-        # Определяем номера предыдущих и последующих страниц
-        page_prev = page - 1
-        if page == page_max:
-            page_next = 0
-        else:
-            page_next = page + 1
+        if parameters['page'] > 1:
+            page_prev = parameters['page'] - 1
+        if parameters['page'] < page_max:
+            page_next = parameters['page'] + 1
 
-        products = products[(page - 1) * items_on_page : page * items_on_page]
+        products = products[first : last]
+
+    else:
+        first = 0
+        last = count
+
+    # Нумеруем
+    for n in range(len(products)):
+        products[n].n = n + first + 1
 
     return render(request, 'catalog/products.html', locals())
 
@@ -876,8 +932,9 @@ def ajax_link_same_foreign(request, *args, **kwargs):
 def ajax_get_parties(request):
     "AJAX-представление: Get Parties."
 
-    from catalog.models import Product, Party
     import json
+
+    from catalog.models import Product, Party
 
     items = []
 
