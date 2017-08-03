@@ -263,7 +263,7 @@ def products(request, **kwargs):
     # Строка поиска
     parameters_['search'] = str(parameters_.get('search', ''))
     if parameters_['search']:
-        translation_map = {ord(';'): ' ', ord(','): ' ', ord('\''): '', ord('-'): ' ',
+        translation_map = {ord(';'): ' ', ord(','): ' ', ord('\''): '',
                            ord('+'): ' ', ord('|'): ' ', ord('/') : ' '}
         parameters_['search'] = parameters_['search'].translate(translation_map)
         parameters_['search'] = parameters_['search'].strip()
@@ -275,12 +275,11 @@ def products(request, **kwargs):
     # TODO Параметры товара для фильтра
 
     # Готовим фильтр для отбора продуктов
-    filters_ = {}
+    filters_ = {'state': Q(state = True),
+                'double': Q(double = None),
+                'vendor_state': Q(vendor__state = True),
+                'vendor_double': Q(vendor__double = None)}
     filters = {}
-    if not request.user.has_perm('catalog.change_product'):
-        filters_['state'] = Q(state = True)
-        filters_['double'] = Q(double = None)
-        filters_['vendor_state'] = Q(vendor__state = True)
 
     if parameters['categories'] or parameters['vendors'] or parameters['search']:
 
