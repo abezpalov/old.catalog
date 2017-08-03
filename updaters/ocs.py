@@ -127,9 +127,9 @@ class Runner(catalog.runner.Runner):
             party_['price'] = self.fix_price(p['Price'])
 
             try:
-                currency = currencies[p['Currency']]
+                party_['currency'] = currencies[p['Currency']]
             except KeyError:
-                currency = currencies['EUR']
+                party_['currency'] = currencies['EUR']
 
             for l in p['Locations']:
 
