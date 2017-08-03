@@ -1,8 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import RequestContext, loader
-import math
-
 
 def manage_updaters(request):
     "Представление: управление загрузчиками."
@@ -184,9 +182,6 @@ def currencies(request):
 def products(request, **kwargs):
     "Представление: список продуктов."
 
-
-    # TODO Почистить код
-    import json
     from lxml import etree
 
     from django.db.models import Q
@@ -272,16 +267,20 @@ def products(request, **kwargs):
                            ord('+'): ' ', ord('|'): ' ', ord('/') : ' '}
         parameters_['search'] = parameters_['search'].translate(translation_map)
         parameters_['search'] = parameters_['search'].strip()
-    parameters['search'] = parameters_['search'].split(' ')
+    parameters['search'] = []
+    for word in parameters_['search'].split(' '):
+        if word:
+            parameters['search'].append(word)
 
     # TODO Параметры товара для фильтра
 
     # Готовим фильтр для отбора продуктов
+    filters_ = {}
     filters = {}
     if not request.user.has_perm('catalog.change_product'):
-        filters['state'] = Q(state = True)
-        filters['double'] = Q(double = None)
-        filters['vendor_state'] = Q(vendor__state = True)
+        filters_['state'] = Q(state = True)
+        filters_['double'] = Q(double = None)
+        filters_['vendor_state'] = Q(vendor__state = True)
 
     if parameters['categories'] or parameters['vendors'] or parameters['search']:
 
@@ -300,52 +299,57 @@ def products(request, **kwargs):
             for search in parameters['search']:
                 filters['search'] = filters['search'] & (Q(article__icontains = search) | Q(name__icontains = search) | Q(vendor__name__icontains = search))
 
-        products = Product.objects.all()
-        for key in filters:
-            products = products.filter(filters[key])
+        # Фильтруем
+        if len(filters):
+            products = Product.objects.all()
+            for key in filters_:
+                products = products.filter(filters_[key])
+            for key in filters:
+                products = products.filter(filters[key])
 
+            # Требуется ли разбивка на страницы
+            count = products.count()
+            page_max = count // parameters['items']
+            if page_max > 1:
+                if count % parameters['items']:
+                    page_max += 1
 
-    # Требуется ли разбивка на страницы
-    count = products.count()
-    page_max = count // parameters['items']
-
-    if page_max > 1:
-        if count % parameters['items']:
-            page_max += 1
-
-        pages = []
-        dispersion = 3
-        prev = False
-        for n in range(1, page_max + 1):
-
-            # Добавляем номер страницы в ссылки
-            if ((parameters['page'] - n) < dispersion and (n - parameters['page']) < dispersion)\
-                or ((page_max - n) < dispersion and (n - page_max) < dispersion) \
-                or ((1 - n) < dispersion and (n - 1) < dispersion):
-                    pages.append(n)
-                    prev = True
-            # Будем добавлять многоточие
-            elif prev:
-                pages.append(0)
+                pages = []
+                dispersion = 3
                 prev = False
+                for n in range(1, page_max + 1):
 
-        first = (parameters['page'] - 1) * parameters['items']
-        last = parameters['page']*parameters['items']
+                    # Добавляем номер страницы в ссылки
+                    if ((parameters['page'] - n) < dispersion and (n - parameters['page']) < dispersion)\
+                        or ((page_max - n) < dispersion and (n - page_max) < dispersion) \
+                        or ((1 - n) < dispersion and (n - 1) < dispersion):
+                            pages.append(n)
+                            prev = True
+                    # Будем добавлять многоточие
+                    elif prev:
+                        pages.append(0)
+                        prev = False
 
-        if parameters['page'] > 1:
-            page_prev = parameters['page'] - 1
-        if parameters['page'] < page_max:
-            page_next = parameters['page'] + 1
+                first = (parameters['page'] - 1) * parameters['items']
+                last = parameters['page']*parameters['items']
 
-        products = products[first : last]
+                if parameters['page'] > 1:
+                    page_prev = parameters['page'] - 1
+                if parameters['page'] < page_max:
+                    page_next = parameters['page'] + 1
+
+                products = products[first : last]
+
+            else:
+                first = 0
+                last = count
+
+            # Нумеруем
+            for n in range(len(products)):
+                products[n].n = n + first + 1
 
     else:
-        first = 0
-        last = count
-
-    # Нумеруем
-    for n in range(len(products)):
-        products[n].n = n + first + 1
+       products = []
 
     return render(request, 'catalog/products.html', locals())
 
