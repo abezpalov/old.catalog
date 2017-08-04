@@ -130,6 +130,7 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = stock,
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = party_['on_stock'],

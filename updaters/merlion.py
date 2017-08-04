@@ -197,6 +197,8 @@ class Runner(catalog.runner.Runner):
                                     try:
                                         party = Party.objects.make(product = product,
                                                                    stock = self.stocks['chehov'],
+                                                                   article = party_['article'],
+                                                                   product_name = product_['name'],
                                                                    price = party_['price'],
                                                                    currency = party_['currency'],
                                                                    quantity = party_['quantity_chehov'],
@@ -211,6 +213,8 @@ class Runner(catalog.runner.Runner):
                                     try:
                                         party = Party.objects.make(product = product,
                                                                    stock = self.stocks['bykovo'],
+                                                                   article = party_['article'],
+                                                                   product_name = product_['name'],
                                                                    price = party_['price'],
                                                                    currency = party_['currency'],
                                                                    quantity = party_['quantity_bykovo'],
@@ -225,6 +229,8 @@ class Runner(catalog.runner.Runner):
                                     try:
                                         party = Party.objects.make(product = product,
                                                                    stock = self.stocks['samara'],
+                                                                   article = party_['article'],
+                                                                   product_name = product_['name'],
                                                                    price = party_['price'],
                                                                    currency = party_['currency'],
                                                                    quantity = party_['quantity_samara'],
@@ -239,6 +245,8 @@ class Runner(catalog.runner.Runner):
                                     try:
                                         party = Party.objects.make(product = product,
                                                                    stock = self.stocks['moscow'],
+                                                                   article = party_['article'],
+                                                                   product_name = product_['name'],
                                                                    price = party_['price'],
                                                                    currency = party_['currency'],
                                                                    quantity = party_['quantity_moscow'],
@@ -253,6 +261,8 @@ class Runner(catalog.runner.Runner):
                                     try:
                                         party = Party.objects.make(product = product,
                                                                    stock = self.stocks['transit_b'],
+                                                                   article = party_['article'],
+                                                                   product_name = product_['name'],
                                                                    price = party_['price'],
                                                                    currency = party_['currency'],
                                                                    quantity = party_['quantity_transit_b'],
@@ -267,6 +277,8 @@ class Runner(catalog.runner.Runner):
                                     try:
                                         party = Party.objects.make(product = product,
                                                                    stock = self.stocks['transit_d'],
+                                                                   article = party_['article'],
+                                                                   product_name = product_['name'],
                                                                    price = party_['price'],
                                                                    currency = party_['currency'],
                                                                    quantity = party_['quantity_transit_d'],

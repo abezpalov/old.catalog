@@ -89,12 +89,13 @@ class Runner(catalog.runner.Runner):
                         party = Party.objects.make(product = product,
                                                    stock = self.stock,
                                                    article = party_['article'],
+                                                   product_name = product_['name'],
                                                    price = party_['price'],
                                                    price_type = self.rp,
                                                    currency = self.rub,
                                                    quantity = -1,
                                                    time = self.start_time,
-                                                   self.test)
+                                                   test = self.test)
                         self.parties.append(party.id)
                     except ValueError as error:
                         pass

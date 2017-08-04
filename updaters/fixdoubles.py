@@ -61,7 +61,7 @@ class Runner(catalog.runner.Runner):
 
             if vendor != vendor_2 \
                 and (vendor.id, vendor_2.id) not in self.complite \
-                and vendor.double != vendor_2 and vendor_2.double != vendor:
+                and not vendor.double and not vendor_2.double:
 
                 match = []
 
@@ -75,7 +75,7 @@ class Runner(catalog.runner.Runner):
                         if product_1['article'] == product_2['article']:
                             match.append(product_1['article'])
 
-                if len(match) > 0:
+                if len(match) > 1:
 
                     Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
                                     channel = "info",

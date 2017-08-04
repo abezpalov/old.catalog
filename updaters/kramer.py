@@ -41,12 +41,9 @@ class Runner(catalog.runner.Runner):
             if self.url['price'] in url:
                 prices.add(url)
 
-        # Скачиваем архивы
-        if len(prices) >= 2:
-
-            for url in prices:
-                request = self.load(url)
-                self.parse_price(request)
+        for url in prices:
+            request = self.load(url)
+            self.parse_price(request)
 
         # Чистим партии
         Party.objects.clear(stock=self.stock, time = self.start_time)
@@ -54,25 +51,18 @@ class Runner(catalog.runner.Runner):
         # Пишем результат в лог
         self.log()
 
-
     def parse_price(self, request):
 
         from io import BytesIO
-        from zipfile import ZipFile
-
-        # Распознаваемые слова
-        words = {'cable': 'Cable', 'device': 'device'}
 
         filename = request.headers.get('content-disposition')
 
         xls_data = BytesIO(request.content)
 
-        if words['cable'] in filename:
+        if 'Cable' in filename:
             self.parse_cables(xls_data)
-            return True
-        elif words['device'] in filename:
+        elif 'device' in filename:
             self.parse_devices(xls_data)
-            return True
 
     def parse_devices(self, xls_data):
 
@@ -144,7 +134,7 @@ class Runner(catalog.runner.Runner):
                 product_['name'] = self.fix_name(product_['name'])
 
                 product_['article'] = row[num['article']]
-                product_['article'] = self.fix_article(product_['name'])
+                product_['article'] = self.fix_article(product_['article'])
 
                 try:
                     product = Product.objects.take(article = product_['article'],
@@ -162,6 +152,7 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.stock,
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = self.usd,
                                                quantity = -1,
@@ -192,6 +183,7 @@ class Runner(catalog.runner.Runner):
         book = xlrd.open_workbook(file_contents = xls_data.read())
         sheet = book.sheet_by_index(0)
         category = ''
+
         for row_num in range(sheet.nrows):
             row = sheet.row_values(row_num)
 
@@ -233,8 +225,10 @@ class Runner(catalog.runner.Runner):
                 if row[num['size']]:
                     product_['name'] = '{} (длина: {} м.)'.format(product_['name'],
                                                                   str(row[num['size']]).replace('.', ','))
+                product_['name'] = self.fix_name(product_['name'])
 
                 product_['article'] = row[num['article']]
+                product_['article'] = self.fix_article(product_['article'])
 
                 try:
                     product = Product.objects.take(article = product_['article'],
@@ -252,6 +246,7 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.stock,
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = self.usd,
                                                quantity = -1,

@@ -144,10 +144,10 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.stocks['stock'],
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = party_['quantity_stock'],
-                                               product_name = product_['name'],
                                                time = self.start_time,
                                                test = self.test)
                     self.parties.append(party.id)
@@ -157,10 +157,10 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.stocks['transit'],
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = party_['quantity_transit'],
-                                               product_name = product_['name'],
                                                time = self.start_time,
                                                test = self.test)
                     self.parties.append(party.id)
@@ -170,10 +170,10 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.stocks['on-order'],
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = None,
-                                               product_name = product_['name'],
                                                time = self.start_time,
                                                test = self.test)
                     self.parties.append(party.id)

@@ -40,7 +40,7 @@ class Runner:
 			runner = __import__('catalog.updaters.{}'.format(updater.alias), fromlist=['Runner']).Runner()
 
 
-#			try:
+exit#			try:
 			runner.update_products_description()
 
 				# TODO !!!

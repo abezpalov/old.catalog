@@ -127,6 +127,7 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.stock,
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = party_['on_stock'],
@@ -139,6 +140,7 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.transit,
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = party_['on_transit'],
@@ -151,6 +153,7 @@ class Runner(catalog.runner.Runner):
                 try:
                     party = Party.objects.make(product = product,
                                                stock = self.on_order,
+                                               product_name = product_['name'],
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = None,
