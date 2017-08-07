@@ -108,7 +108,6 @@ class Runner(catalog.runner.Runner):
                                            price = party_['price'],
                                            currency = party_['currency'],
                                            quantity = party_['stock'],
-                                           product_name = product_['name'],
                                            time = self.start_time,
                                            test = self.test)
                 self.parties.append(party.id)
@@ -123,7 +122,6 @@ class Runner(catalog.runner.Runner):
                                            price = party_['price'],
                                            currency = party_['currency'],
                                            quantity = party_['transit'],
-                                           product_name = product_['name'],
                                            time = self.start_time,
                                            test = self.test)
                 self.parties.append(party.id)
@@ -140,7 +138,6 @@ class Runner(catalog.runner.Runner):
                                                price = party_['price'],
                                                currency = party_['currency'],
                                                quantity = None,
-                                               product_name = product_['name'],
                                                time = self.start_time,
                                                test = self.test)
                     self.parties.append(party.id)
