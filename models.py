@@ -668,7 +668,7 @@ class ProductManager(models.Manager):
             raise(ValueError('Внимание: не указано имя!'))
 
         try:
-            product = self.get(article = article, vendor = vendor)
+            product = self.get(article__iexact = article, vendor = vendor)
 
         except Product.DoesNotExist:
 
@@ -775,6 +775,32 @@ class Product(models.Model):
     def __str__(self):
         return '{} {}'.format(self.vendor.name, self.article)
 
+    def _get_input_name(self):
+
+        names = []
+        for name in self.input_names.all():
+            names.append(name.name)
+
+        name = ' '.join(names)        
+
+        return name
+
+    input_name = property(_get_input_name)
+
+    def _get_input_category(self):
+
+        categories = []
+        for category in self.input_categories.all():
+            categories.append(category.category)
+
+        try:
+            category = ' '.join(categories)
+        except TypeError:
+            category = ''
+
+        return category
+
+    input_category = property(_get_input_category)
 
     def _get_price_str(self):
 
