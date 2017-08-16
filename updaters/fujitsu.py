@@ -205,9 +205,6 @@ class Runner(catalog.runner.Runner):
                                                    category = product_['category'],
                                                    test = self.test)
                     self.products.append(product.id)
-                    #TODO
-                    product.name = product_['name']
-                    product.save()
 
                 except ValueError as error:
                     continue

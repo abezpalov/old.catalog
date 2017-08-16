@@ -5,13 +5,11 @@ from django.utils import timezone
 
 class DistributorManager(models.Manager):
 
-
     def get_all_dicted(self):
         result = []
         for o in self.all():
             result.append(o.get_dicted())
         return result
-
 
     def take(self, *args, **kwargs):
 
@@ -638,10 +636,8 @@ class Currency(models.Model):
 
         return result
 
-
     def __str__(self):
         return self.name
-
 
     def _to_rub(self):
 
@@ -679,6 +675,8 @@ class ProductManager(models.Manager):
             product.article     = article
             product.unit        = kwargs.get('unit', Unit.objects.take(alias = 'pcs', name = 'шт.'))
             product.description = kwargs.get('description', '')
+
+            product.set_alias()
             product.save()
 
         if product.double:
@@ -710,6 +708,7 @@ class Product(models.Model):
 
     name        = models.TextField(db_index = True)
     article     = models.TextField(db_index = True)
+    alias       = models.TextField(db_index = True, null = True, default = None)
     description = models.TextField(null = True, default = '')
     edited      = models.BooleanField(default = False, db_index = True)
     tested      = models.BooleanField(default = False, db_index = True)
@@ -732,6 +731,37 @@ class Product(models.Model):
         ordering = ['name']
         unique_together = ('vendor', 'article')
 
+    def set_alias(self):
+
+        import unidecode
+
+        # Собираем в единую строку
+        self.alias = ' '.join([self.vendor.name, self.article, self.name])
+
+        translation_map = {ord('&') : 'and', ord('\'') : '', ord('(') : ' ', ord(')') : ' ',
+                           ord('[') : ' ', ord(']') : ' ', ord('.') : ' ', ord(',') : ' ',
+                           ord('+') : ' ', ord('/') : ' '}
+        self.alias = self.alias.translate(translation_map)
+
+        translation_map = {ord('й'): 'q', ord('ц'): 'w', ord('у'): 'e', ord('к'): 'r',
+                           ord('е'): 't', ord('н'): 'y', ord('г'): 'u', ord('ш'): 'i',
+                           ord('щ'): 'o', ord('з'): 'p', ord('х'): '[', ord('ъ'): ']',
+                           ord('ф'): 'a', ord('ы'): 's', ord('в'): 'd', ord('а'): 'f',
+                           ord('п'): 'g', ord('р'): 'h', ord('о'): 'j', ord('л'): 'k',
+                           ord('д'): 'l', ord('ж'): ' ', ord('э'): ' ', ord('я'): 'z',
+                           ord('ч'): 'x', ord('с'): 'c', ord('м'): 'v', ord('и'): 'b',
+                           ord('т'): 'n', ord('ь'): 'm', ord('б'): ' ', ord('ю'): ' '}
+        self.alias = '{} {}'.format(self.alias, self.alias.translate(translation_map))
+
+        self.alias = unidecode.unidecode(self.alias).lower()
+        self.alias = self.alias.strip()
+
+        while '  ' in self.alias:
+            self.alias = self.alias.replace('  ', ' ')
+
+        self.alias = self.alias[:2500]
+
+        return True
 
     def get_dicted(self):
 

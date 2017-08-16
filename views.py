@@ -182,8 +182,8 @@ def currencies(request):
 def products(request, **kwargs):
     "Представление: список продуктов."
 
+    import unidecode
     from lxml import etree
-
     from django.db.models import Q
 
     from catalog.models import Product, Category, Vendor
@@ -263,10 +263,11 @@ def products(request, **kwargs):
     # Строка поиска
     parameters_['search'] = str(parameters_.get('search', ''))
     if parameters_['search']:
-        translation_map = {ord(';'): ' ', ord(','): ' ', ord('\''): '',
-                           ord('+'): ' ', ord('|'): ' ', ord('/') : ' '}
+        translation_map = {ord('&') : 'and', ord('\'') : '', ord('(') : ' ', ord(')') : ' ',
+                           ord('[') : ' ', ord(']') : ' ', ord('.') : ' ', ord(',') : ' ',
+                           ord('+') : ' ', ord('/') : ' '}
         parameters_['search'] = parameters_['search'].translate(translation_map)
-        parameters_['search'] = parameters_['search'].strip()
+        parameters_['search'] = parameters_['search'].strip().lower()
     parameters['search'] = []
     for word in parameters_['search'].split(' '):
         if word:
@@ -296,7 +297,7 @@ def products(request, **kwargs):
         if parameters['search']:
             filters['search'] = Q()
             for search in parameters['search']:
-                filters['search'] = filters['search'] & (Q(article__icontains = search) | Q(name__icontains = search) | Q(vendor__name__icontains = search))
+                filters['search'] = filters['search'] & (Q(alias__icontains = search))
 
         # Фильтруем
         if len(filters):
@@ -348,6 +349,12 @@ def products(request, **kwargs):
             for n in range(len(products)):
                 products[n].n = n + first + 1
 
+            if not count:
+                from anodos.models import Log
+                Log.objects.add(subject = "catalog.views.products",
+                                channel = "info",
+                                title = "Not found",
+                                description = '{} {}: {}'.format(request.user.first_name, request.user.last_name, parameters_['search']))
     else:
        products = []
 
