@@ -263,15 +263,20 @@ def products(request, **kwargs):
     # Строка поиска
     parameters_['search'] = str(parameters_.get('search', ''))
     if parameters_['search']:
+
         translation_map = {ord('&') : 'and', ord('\'') : '', ord('(') : ' ', ord(')') : ' ',
                            ord('[') : ' ', ord(']') : ' ', ord('.') : ' ', ord(',') : ' ',
                            ord('+') : ' ', ord('/') : ' '}
         parameters_['search'] = parameters_['search'].translate(translation_map)
+
         parameters_['search'] = parameters_['search'].strip().lower()
+
     parameters['search'] = []
     for word in parameters_['search'].split(' '):
         if word:
             parameters['search'].append(word)
+
+    parameters_['search'] = str(parameters_.get('search', ''))
 
     # TODO Параметры товара для фильтра
 
@@ -295,9 +300,19 @@ def products(request, **kwargs):
                 filters['vendors'] = filters['vendors'] | Q(vendor = vendor)
 
         if parameters['search']:
+
+            translation_map = {ord('o'): '0', ord('е'): 'e', ord('т'): 't', ord('у'): 'y',
+                               ord('о'): 'o', ord('р'): 'p', ord('а'): 'a', ord('н'): 'h',
+                               ord('к'): 'k', ord('l'): 'i', ord('х'): 'x', ord('c'): 'c',
+                               ord('в'): 'b', ord('м'): 'm'}
+
             filters['search'] = Q()
+
             for search in parameters['search']:
-                filters['search'] = filters['search'] & (Q(alias__icontains = search))
+
+                search_ = search.translate(translation_map)
+
+                filters['search'] = filters['search'] & (Q(alias__icontains = search) | Q(alias__icontains = search_))
 
         # Фильтруем
         if len(filters):

@@ -743,14 +743,10 @@ class Product(models.Model):
                            ord('+') : ' ', ord('/') : ' '}
         self.alias = self.alias.translate(translation_map)
 
-        translation_map = {ord('й'): 'q', ord('ц'): 'w', ord('у'): 'e', ord('к'): 'r',
-                           ord('е'): 't', ord('н'): 'y', ord('г'): 'u', ord('ш'): 'i',
-                           ord('щ'): 'o', ord('з'): 'p', ord('х'): '[', ord('ъ'): ']',
-                           ord('ф'): 'a', ord('ы'): 's', ord('в'): 'd', ord('а'): 'f',
-                           ord('п'): 'g', ord('р'): 'h', ord('о'): 'j', ord('л'): 'k',
-                           ord('д'): 'l', ord('ж'): ' ', ord('э'): ' ', ord('я'): 'z',
-                           ord('ч'): 'x', ord('с'): 'c', ord('м'): 'v', ord('и'): 'b',
-                           ord('т'): 'n', ord('ь'): 'm', ord('б'): ' ', ord('ю'): ' '}
+        translation_map_o = {ord('o'): '0', ord('е'): 'e', ord('т'): 't', ord('у'): 'y',
+                             ord('о'): 'o', ord('р'): 'p', ord('а'): 'a', ord('н'): 'h',
+                             ord('к'): 'k', ord('l'): 'i', ord('х'): 'x', ord('c'): 'c',
+                             ord('в'): 'b', ord('м'): 'm'}
         self.alias = '{} {}'.format(self.alias, self.alias.translate(translation_map))
 
         self.alias = unidecode.unidecode(self.alias).lower()
