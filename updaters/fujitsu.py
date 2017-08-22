@@ -61,10 +61,7 @@ class Runner(catalog.runner.Runner):
             self.log()
 
         else:
-            Log.objects.add(subject = "catalog.updater.{}".format(self.updater.alias),
-                            channel = "error",
-                            title = "return False",
-                            description = "Не найден прайс-лист.")
+            raise(ValueError('Ошибка: не найден прайс-лист.'))
 
     def unpack(self, data, mdb_name):
 

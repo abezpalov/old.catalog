@@ -17,10 +17,11 @@ class Runner:
 
     max_time = datetime.timedelta(0, 23*60*60, 0)
 
-    updaters = ['cbr', 'auvix', 'axoft', 'cmo', 'comptek', 'digis', 'elko', 'europarts', 'fujitsu', 'kramer', 'landata',
-                'marvel', 'merlion', 'mics', 'ocs', 'rrc', 'treolan']
+    updaters_all = [['cbr', 'fujitsu', 'kramer', 'cmo'],
+                    ['auvix', 'axoft', 'comptek', 'digis', 'elko', 'europarts', 'landata',
+                     'marvel', 'merlion', 'mics', 'ocs', 'rrc', 'treolan'],
+                    ['tohpe', 'recalculate']]
 
-    final_updaters = ['tohpe', 'recalculate']
 
     def __init__(self):
 
@@ -34,23 +35,22 @@ class Runner:
 
         start = datetime.datetime.now()
 
-        if self.mp:
-            # Make the Pool of workers
-            pool = ThreadPool(4)
+        for updaters in self.updaters_all:
 
-            # Open the urls in their own threads
-            # and return the results
-            pool.map(self.run_updater, self.updaters)
+            if self.mp:
+                # Make the Pool of workers
+                pool = ThreadPool(4)
 
-            #close the pool and wait for the work to finish 
-            pool.close()
-            pool.join()
-        else:
-            for updater in self.updaters:
-                self.run_updater(updater)
+                # Open the urls in their own threads
+                # and return the results
+                pool.map(self.run_updater, updaters)
 
-        for updater in self.final_updaters:
-            self.run_updater(updater)
+                #close the pool and wait for the work to finish 
+                pool.close()
+                pool.join()
+            else:
+                for updater in updaters:
+                    self.run_updater(updater)
 
         print("Обработки завершены за {}.".format(datetime.datetime.now() - start))
 
