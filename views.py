@@ -366,10 +366,14 @@ def products(request, **kwargs):
 
             if not count:
                 from anodos.models import Log
+                if request.user.id:
+                    user_name = '{} {}'.format(request.user.first_name, request.user.last_name)
+                else:
+                    user_name = 'AnonymousUser'
                 Log.objects.add(subject = "catalog.views.products",
                                 channel = "info",
                                 title = "Not found",
-                                description = '{} {}: {}'.format(request.user.first_name, request.user.last_name, parameters_['search']))
+                                description = '{}: {}'.format(user_name, parameters_['search']))
     else:
        products = []
 
