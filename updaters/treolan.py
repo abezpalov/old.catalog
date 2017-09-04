@@ -44,11 +44,13 @@ class Runner(catalog.runner.Runner):
         word = {'article': 'Артикул',
                 'name': 'Наименование',
                 'vendor': 'Производитель',
-                'quantity_stock': 'Св.',
-                'quantity_transit': 'Св.+Тр.',
+                'quantity_stock': 'Склад',
+                'quantity_transit': 'Транзит',
                 'transit_date': 'Б. Тр.',
                 'price_usd': 'Цена*',        
-                'price_rub': 'Цена руб.**'}
+                'price_rub': 'Цена руб.**',
+                'parameter_warranty': 'Гар.',
+                'parameter_mass': 'Вес [кг]'}
 
         # Парсим
         try:
@@ -79,6 +81,10 @@ class Runner(catalog.runner.Runner):
                         num['price_usd'] = tdn + 1
                     elif td[0].text.strip() == word['price_rub']:
                         num['price_rub'] = tdn + 1
+                    elif td[0].text.strip() == word['parameter_warranty']:
+                        num['parameter_warranty'] = tdn + 1
+                    elif td[0].text.strip() == word['parameter_mass']:
+                        num['parameter_mass'] = tdn + 1
 
                 # Проверяем, все ли столбцы распознались
                 if len(num) < len(word):
