@@ -200,6 +200,7 @@ class Runner(catalog.runner.Runner):
                                                    vendor = self.vendor,
                                                    name = product_['name'],
                                                    category = product_['category'],
+                                                   description = product_['description'],
                                                    test = self.test)
                     self.products.append(product.id)
 

@@ -413,6 +413,25 @@ class VendorManager(models.Manager):
 
         return vendor
 
+    # Return all objects in Pandas.DataFrame
+    def get_df(self, **kwargs):
+
+        import pandas as pd
+
+        columns = ['id', 'double', 'name', 'alias', 'description', 'state', 'created', 'modified']
+
+        vendors_ = self.filter(**kvargs).values(*columns)
+
+        vendors = {}
+        for key in columns:
+            vendors[key] = []
+        for vendor_ in vendors_:
+            for key in columns:
+                vendors[key].append(vendor_[key])
+
+        vendors = pd.DataFrame(vendors, columns = columns)
+        return vendors
+
 
 class Vendor(models.Model):
 
@@ -695,51 +714,31 @@ class ProductManager(models.Manager):
 
         return product
 
-    # Return all active objects in Pandas.DataFrame
-    def get_all_df(self):
+    # Return objects in Pandas.DataFrame
+    def get_df(self, **kwargs):
 
         import pandas as pd
 
-        products_ = self.filter(state = True, vendor__state = True, double = None).values(
-                'id', 'vendor', 'category', 'unit', 'double', 'price_type', 'currency', 'name',
-                'article', 'alias', 'description', 'edited', 'tested', 'for_export', 'on_stock',
-                'on_transit', 'on_factory', 'price', 'fixed', 'state', 'created', 'modified')
-        products = {'id': [], 'vendor': [], 'category': [], 'unit': [], 'double': [],
-                    'price_type': [], 'currency': [], 'name': [], 'article': [], 'alias': [],
-                    'description': [], 'edited': [], 'tested': [], 'for_export': [], 'on_stock': [],
-                    'on_transit': [], 'on_factory': [], 'price': [], 'fixed': [], 'state': [],
-                    'created': [], 'modified': []}
-        for product_ in products_:
-            products['id'].append(product_['id'])
-            products['vendor'].append(product_['vendor'])
-            products['category'].append(product_['category'])
-            products['unit'].append(product_['unit'])
-            products['double'].append(product_['double'])
-            products['price_type'].append(product_['price_type'])
-            products['currency'].append(product_['currency'])
-            products['name'].append(product_['name'])
-            products['article'].append(product_['article'])
-            products['alias'].append(product_['alias'])
-            products['description'].append(product_['description'])
-            products['edited'].append(product_['edited'])
-            products['tested'].append(product_['tested'])
-            products['for_export'].append(product_['for_export'])
-            products['on_stock'].append(product_['on_stock'])
-            products['on_transit'].append(product_['on_transit'])
-            products['on_factory'].append(product_['on_factory'])
-            products['price'].append(product_['price'])
-            products['fixed'].append(product_['fixed'])
-            products['state'].append(product_['state'])
-            products['created'].append(product_['created'])
-            products['modified'].append(product_['modified'])
+        columns = ['id', 'vendor', 'category', 'unit', 'double', 'price_type', 'currency', 'name',
+                   'article', 'alias', 'description', 'edited', 'tested', 'for_export', 'on_stock',
+                   'on_transit', 'on_factory', 'price', 'fixed', 'state', 'created', 'modified']
 
-        products = pd.DataFrame(products, columns = ['id', 'vendor', 'category', 'unit', 'double',
-                                                     'price_type', 'currency', 'name', 'article',
-                                                     'alias', 'description', 'edited', 'tested',
-                                                     'for_export', 'on_stock', 'on_transit',
-                                                     'on_factory', 'price', 'fixed', 'state',
-                                                     'created', 'modified'])
-        return products
+        products_ = self.filter(**kwargs).values(*columns)
+
+        products = {}
+        for key in columns:
+            products[key] = []
+        for product_ in products_:
+            for key in columns:
+                products[key].append(product_[key])
+
+        df = pd.DataFrame(products, columns = columns)
+
+        df.on_stock = df.on_stock.astype('float64')
+        df.on_transit = df.on_transit.astype('float64')
+        df.on_factory = df.on_factory.astype('float64')
+
+        return df
 
 class Product(models.Model):
 
@@ -1070,24 +1069,23 @@ class ProductInputNameManager(models.Manager):
 
         return name
 
-    # Return all objects in Pandas.DataFrame
-    def get_all_df(self):
+    # Return objects in Pandas.DataFrame
+    def get_df(self, **kwargs):
 
         import pandas as pd
 
-        names_ = self.all().values('id', 'product', 'name', 'state', 'created', 'modified')
-        names = {'id': [], 'product': [], 'name': [], 'state': [], 'created': [],
-                 'modified': []}
-        for name_ in names_:
-            names['id'].append(name_['id'])
-            names['product'].append(name_['product'])
-            names['name'].append(name_['name'])
-            names['state'].append(name_['state'])
-            names['created'].append(name_['created'])
-            names['modified'].append(name_['modified'])
+        columns = ['id', 'product', 'name', 'state', 'created', 'modified']
 
-        names = pd.DataFrame(names, columns = ['id', 'product', 'name', 'state', 'created',
-                                               'modified'])
+        names_ = self.filter(**kwargs).values(*columns)
+
+        names = {}
+        for key in columns:
+            names[key] = []
+        for name_ in names_:
+            for key in columns:
+                names[key].append(name_[key])
+
+        names = pd.DataFrame(names, columns = columns)
         return names
 
 class ProductInputName(models.Model):
@@ -1123,25 +1121,25 @@ class ProductInputCategoryManager(models.Manager):
 
         return category
 
-    # Return all objects in Pandas.DataFrame
-    def get_all_df(self):
+    # Return objects in Pandas.DataFrame
+    def get_df(self, **kwargs):
 
         import pandas as pd
 
-        categories_ = self.all().values('id', 'product', 'category', 'state', 'created', 'modified')
-        categories = {'id': [], 'product': [], 'category': [], 'state': [], 'created': [],
-                 'modified': []}
-        for category_ in categories_:
-            categories['id'].append(category_['id'])
-            categories['product'].append(category_['product'])
-            categories['category'].append(category_['category'])
-            categories['state'].append(category_['state'])
-            categories['created'].append(category_['created'])
-            categories['modified'].append(category_['modified'])
+        columns = ['id', 'product', 'category', 'state', 'created', 'modified']
 
-        categories = pd.DataFrame(categories, columns = ['id', 'product', 'category', 'state',
-                                                         'created', 'modified'])
+        categories_ = self.filter(**kwargs).values(*columns)
+
+        categories = {}
+        for key in columns:
+            categories[key] = []
+        for category_ in categories_:
+            for key in columns:
+                categories[key].append(category_[key])
+
+        categories = pd.DataFrame(categories, columns = columns)
         return categories
+
 
 class ProductInputCategory(models.Model):
 
