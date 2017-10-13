@@ -1,55 +1,102 @@
-{% if perms.catalog.change_category or perms.catalog.add_category %}
-<div id="modal-edit-category" class="reveal-modal large" data-reveal>
+<!-- Просмотр и редактирование категорий -->
+<div id="modal-category" class="ui modal">
+  <i class="close icon"></i>
 
-	<h2 id="modal-edit-category-header"> </h2>
+  <div id="modal-category-header" class="header">Категория</div>
 
-	<input id="edit-category-id" type="hidden" value="0">
+  <div class="content">
 
-	<label>Наименование
-		<input id="edit-category-name" type="text" value="">
-	</label>
+    {% if perms.catalog.change_category %}
+    <div class="ui top attached tabular menu">
+      <a class="item active" data-tab="view">Просмотр</a>
+      <a class="item" data-tab="edit">Редактирование</a>
+    </div>
 
-	<label>Псевдоним (служебное поле)
-		<input id="edit-category-alias" type="text" value="">
-	</label>
+    <div class="ui bottom attached tab segment active" data-tab="view">
+      <div id="view-category-name"></div>
+      <div id="view-category-description"></div>
+    </div>
 
-	<label>Родительская категория
-		<select id="edit-category-parent">
-			<option value="0" selected>Корневая категория</option>
-			{% for parent in categories %}
-			<option value="{{ parent.id }}">{{ parent.name }}</option>
-			{% endfor %}
-		</select>
-	</label>
+    <div class="ui bottom attached tab segment" data-tab="edit">
+      <form class="ui form">
+        <input id="edit-category-id" type="hidden" value="0">
+        <div class="field">
 
-	<label>Описание
-		<textarea id="edit-category-description"></textarea>
-	</label>
+        <!-- TODO -->
 
-	<label>Статус
-		<div class="switch small">
-			<input id="edit-category-state" type="checkbox">
-			<label for="edit-category-state"></label>
-		</div>
-	</label>
 
-	<button data-do="edit-category-save" class="primary"><i class="fa fa-ok"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-category-cancel" class="secondary">Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
+
+
+
+
+
+        <label>Наименование
+            <input id="edit-category-name" type="text" value="">
+        </label>
+
+        <label>Псевдоним (служебное поле)
+            <input id="edit-category-alias" type="text" value="">
+        </label>
+
+        <label>Родительская категория
+            <select id="edit-category-parent">
+                <option value="0" selected>Корневая категория</option>
+                {% for parent in categories %}
+                <option value="{{ parent.id }}">{{ parent.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Описание
+            <textarea id="edit-category-description"></textarea>
+        </label>
+
+        <label>Статус
+            <div class="switch small">
+                <input id="edit-category-state" type="checkbox">
+                <label for="edit-category-state"></label>
+            </div>
+        </label>
+
+        <hr/>
+
+        <div class="button-group">
+            <a class="button" data-do="edit-category-save"><i class="far fa-save"></i> Сохранить</a>
+            <a class="button secondary" data-do="edit-category-cancel"><i class="far fa-times"></i> Отменить</a>
+        </div>
+
+    </form>
+
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
 </div>
 {% endif %}
 
 {% if perms.catalog.delete_category %}
-<div id="modal-delete-category" class="reveal-modal" data-reveal>
+<div id="modal-delete-category" class="reveal" data-reveal>
 
-	<h2>Удалить категорию?</h2>
+    <h2>Удалить категорию?</h2>
 
-	<input id="delete-category-id" type="hidden" value="0">
+    <form>
 
-	<p id="delete-category-name"></p>
+        <input id="delete-category-id" type="hidden" value="0">
 
-	<button data-do="delete-category-apply" class="alert"><i class="fa fa-trash"></i>&nbsp;Удалить</button>
-	<button data-do="delete-category-cancel" class="secondary">Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
+        <p id="delete-category-name"></p>
+
+        <hr/>
+
+        <div class="button-group">
+            <a class="button alert" data-do="delete-category-apply">Сохранить</a>
+            <a class="button secondary" data-do="delete-category-cancel">Отменить</a>
+        </div>
+
+    </form>
+
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
 </div>
 {% endif %}

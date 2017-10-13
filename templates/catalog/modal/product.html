@@ -1,65 +1,145 @@
-<div id="modal-view-parties" class="reveal" data-reveal>
+<!-- Просмотр и редактирование продуктов -->
+<div id="modal-product" class="ui modal">
+  <i class="close icon"></i>
 
-	<h2>Партии</h2>
+  <div id="modal-product-header" class="header">Продукт</div>
 
-	<div id="modal-view-parties-content"></div>
+  <div class="content">
+    <div class="ui top attached tabular menu">
+      <a class="item active" data-tab="view">Просмотр</a>
+      <a class="item" data-tab="parameters">Характеристики</a>
+      {% if perms.catalog.change_product %}
+      <a class="item" data-tab="edit">Редактирование</a>
+      <a class="item" data-tab="analisis">Аналитика</a>
+      {% endif %}
+    </div>
 
-    <button class="close-button" data-close aria-label="Close modal" type="button">
-        <span aria-hidden="true">&times;</span>
-    </button>
+    <div class="ui bottom attached tab segment active" data-tab="view">
+      <div class="ui grid">
+        <div class="four wide column">
+          <img src="" id="view-product-img" class="ui image">
+        </div>
+        <div class="twelve wide column">
+          <p id="view-product-name">Name</p>
+          <p id="view-product-description">Description</p>
+        </div>
+      </div>
+      <div class="ui divider"></div>
+      <div id="view-product-parties"></div>
+    </div>
+
+    <div class="ui bottom attached tab segment" data-tab="parameters">
+      TODO
+    </div>
+
+    {% if perms.catalog.change_product %}
+    <div class="ui bottom attached tab segment" data-tab="edit">
+      <form class="ui form">
+        <input id="edit-product-id" type="hidden" value="0" />
+        <div class="field">
+          <label>Наименование</label>
+          <input id="edit-product-name" type="text" value="" />
+        </div>
+        <div class="field">
+          <label>Артикул</label>
+          <input id="edit-product-article" type="text" value="" />
+        </div>
+        <div class="field">
+          <label>Производитель</label>
+          <select id="edit-product-vendor">
+            {% for vendor in vendors %}
+            <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Категория</label>
+          <select id="edit-product-category">
+            <option value="0" selected> - Не определена - </option>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Описание</label>
+          <textarea id="edit-product-description" type="text"></textarea>
+        </div>
+        <div class="field">
+          <label>Дубль</label>
+          <input id="edit-product-double" type="text">
+        </div>
+        <div class="field">
+          <input id="edit-product-state" type="checkbox">
+          <label>Активен</label>
+        </div>
+      </form>
+    </div>
+
+    <div class="ui bottom attached tab segment" data-tab="analisis">
+      TODO
+    </div>
+    {% endif %}
+
+  </div>
+
+  {% if perms.catalog.change_product %}
+  <div class="actions">
+    <div data-do="edit-product-save" class="ui positive left labeled icon button">
+      <i class="checkmark icon"></i>
+      Сохранить
+    </div>
+    <div class="ui black deny button">
+      <i class="remove icon"></i>
+      Отмена
+    </div>
+  </div>
+  {% endif %}
 
 </div>
 
 
-{% if perms.catalog.change_product or perms.catalog.add_product %}
-<div id="modal-edit-product" class="reveal-modal large" data-reveal>
+{% if perms.catalog.change_product %}
+<!-- Кластеризация продуктов -->
+<div id="modal-products-clustering" class="ui modal">
+  <i class="close icon"></i>
 
-	<h2 id="modal-edit-product-header"> </h2>
+  <div id="modal-products-clustering-header" class="header">Кластеризация</div>
 
-	<input id="edit-product-id" type="hidden" value="0">
+  <div class="content">
 
-	<label>Наименование
-		<input id="edit-product-name" type="text" value="">
-	</label>
+    <div class="ui top attached tabular menu">
+      <a class="item active" data-tab="vendor">Продукты одного произдодителя</a>
+      <a class="item" data-tab="new">Новые продукты</a>
+    </div>
+    <div class="ui bottom attached tab segment active" data-tab="first">
+      <form class="ui form">
+        <div class="field">
+          <label>Производитель</label>
+            <select id="products-clustering-vendor">
+              {% for vendor in vendors %}
+              <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+              {% endfor %}
+            </select>
+        </div>
+      </form>
+    </div>
 
-	<label>Артикул
-		<input id="edit-product-article" type="text" value="">
-	</label>
+    <div class="ui bottom attached tab segment" data-tab="second">
+      <p>TODO</p>
+    </div>
 
-	<label>Производитель
-		<select id="edit-product-vendor">
-			{% for vendor in vendors %}
-			<option value="{{ vendor.id }}">{{ vendor.name }}</option>
-			{% endfor %}
-		</select>
-	</label>
+  </div>
 
-	<label>Категория
-		<select id="edit-product-category">
-			<option value="0" selected> - Не определена - </option>
-			{% for category in categories %}
-			<option value="{{ category.id }}">{{ category.name }}</option>
-			{% endfor %}
-		</select>
-	</label>
-
-	<label>Описание
-		<textarea id="edit-product-description" type="text"></textarea>
-	</label>
-
-	<label>Дубль
-		<input id="edit-product-double" type="text">
-	</label>
-
-	<label>Статус
-		<div class="switch small">
-			<input id="edit-product-state" type="checkbox">
-			<label for="edit-product-state"></label>
-		</div>
-	</label>
-
-	<button data-do="edit-product-save" class="primary"><i class="fa fa-save"></i>&nbsp;Сохранить</button>
-	<button data-do="edit-product-cancel" class="secondary"><i class="fa fa-close"></i>&nbsp;Отменить</button>
-	<a class="close-reveal-modal">&#215;</a>
+  <div class="actions">
+    <div data-do="edit-product-cluster" class="ui positive left labeled icon button">
+      <i class="checkmark icon"></i>
+      Сохранить
+    </div>
+    <div class="ui black deny button">
+      <i class="remove icon"></i>
+      Отмена
+    </div>
+  </div>
 </div>
 {% endif %}

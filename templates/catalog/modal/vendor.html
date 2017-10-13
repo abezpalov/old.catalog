@@ -1,57 +1,89 @@
-{% if perms.catalog.change_vendor or perms.catalog.add_vendor %}
-<div id="modal-edit-vendor" class="reveal" data-reveal>
+<!-- Просмотр и редактирование производителей -->
+<div id="modal-vendor" class="ui modal">
+  <i class="close icon"></i>
 
-	<h2 id="modal-edit-vendor-header"> </h2>
+  <div id="modal-vendor-header" class="header">Производитель</div>
 
-    <form>
+  <div class="content">
 
-    	<input id="edit-vendor-id" type="hidden" value="0">
+    {% if perms.catalog.change_vendor %}
+    <div class="ui top attached tabular menu">
+      <a class="item active" data-tab="view">Просмотр</a>
+      <a class="item" data-tab="edit">Редактирование</a>
+      <a class="item" data-tab="analisis">Аналитика</a>
+    </div>
 
-    	<label>Наименование
-    		<input id="edit-vendor-name" type="text" value="">
-    	</label>
+    <div class="ui bottom attached tab segment active" data-tab="view">
 
-    	<label>Псевдоним (служебное поле)
-    		<input id="edit-vendor-alias" type="text" value="">
-    	</label>
+      <div class="image content">
+        <img id="view-vendor-logo" class="image" />
+        <div id="view-vendor-description" class="description">description</div>
+      </div>
+    </div>
 
-    	<label>Описание
-    		<textarea id="edit-vendor-description"></textarea>
-    	</label>
-
-    	<label>Статус
-    		<div class="switch small">
-    			<input class="switch-input" id="edit-vendor-state" type="checkbox">
-    			<label class="switch-paddle" for="edit-vendor-state"></label>
-    		</div>
-    	</label>
-
-        <hr/>
-
-        <div class="button-group">
-            <a class="button" data-do="edit-vendor-save">Сохранить</a>
-            <a class="button secondary" data-do="edit-vendor-cancel">Отменить</a>
+    <div class="ui bottom attached tab segment" data-tab="edit">
+      <form class="ui form">
+        <input id="edit-vendor-id" type="hidden" value="0" />
+        <div class="field">
+          <label>Наименование</label>
+          <input id="edit-vendor-name" type="text" value="" />
         </div>
+        <div class="field">
+          <label>Псевдоним (служебное поле)</label>
+          <input id="edit-vendor-alias" type="text" value="">
+        </div>
+        <div class="field">
+          <label>Описание</label>
+          <textarea id="edit-vendor-description"></textarea>
+        </div>
+        <div class="field">
+          <input id="edit-vendor-state" type="checkbox">
+          <label>Активен</label>
+        </div>
+      </form>
+    </div>
 
-    </form>
+    <div class="ui bottom attached tab segment" data-tab="analisis">
+      TODO
+    </div>
+    {% else %}
+    <div class="image content">
+      <img id="view-vendor-logo" class="image" />
+      <div id="view-vendor-description" class="description">description</div>
+    </div>
+    {% endif %}
 
-    <button class="close-button" data-close aria-label="Close modal" type="button">
-        <span aria-hidden="true">&times;</span>
-    </button>
+  </div>
+
+  {% if perms.catalog.change_vendor %}
+  <div class="actions">
+    <div data-do="edit-vendor-save" class="ui positive left labeled icon button">
+      <i class="checkmark icon"></i>
+      Сохранить
+    </div>
+    <div class="ui black deny button">
+      <i class="remove icon"></i>
+      Отмена
+    </div>
+  </div>
+  {% endif %}
 
 </div>
 
-<div id="modal-link-vendor" class="reveal" data-reveal>
+<div id="modal-link-vendor"  class="ui modal">
+  <i class="close icon"></i>
 
-	<h2 id="modal-link-vendor-header">Переименовать или связать</h2>
+  <div id="modal-link-vendor-header" class="header">Производитель</div>
+
+  <div class="content">
 
     <form>
 
-    	<input id="link-vendor-id" type="hidden" value="0">
+        <input id="link-vendor-id" type="hidden" value="0">
 
-    	<label>Целевое имя
-    		<input id="link-vendor-name" type="text" value="">
-    	</label>
+        <label>Целевое имя
+            <input id="link-vendor-name" type="text" value="">
+        </label>
 
         <hr/>
 
@@ -67,4 +99,3 @@
     </button>
 
 </div>
-{% endif %}

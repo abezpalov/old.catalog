@@ -10,76 +10,89 @@
 <!-- Таблица со списком продуктов -->
 {% if count %}
 <div class="row collapse">
-	<table>
-        <thead>
-    		<tr>
-	    		<th class="text-center">#</th>
-	    		<th class="text-center">Производитель</th>
-	    		<th class="text-center">Артикул</th>
-	    		<th class="text-center">Наименование</th>
-	    		<th class="text-center">Цена</th>
-	    		<th class="text-center" colspan="3">Количество</th>
-	    	</tr>
-        </thead>
-		{% for product in products %}
-		{% ifchanged product.category %}
-		<tr><td colspan="10"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td></tr>
-		{% endifchanged %}
-		<tr data-product = "{{ product.id }}">
-			<td>{{ product.n }}</td>
-			<td class="text-center">
-				<a
-					href = "/catalog/vendor/{{ product.vendor.alias }}/"
-					data-do = "open-edit-vendor"
-					data-vendor-id = "{{ product.vendor.id }}"
-					data-vendor-name = "{{ product.vendor.id }}"
-					data-product-vendor-name = "{{ product.id }}">{{ product.vendor.name }}</a></td>
-			<td
-				data-product-article = "{{ product.id }}">{{ product.article }}</td>
-			<td style="word-break: break-all;">
-				<a
-					href = "/catalog/product/{{ product.id }}/"
-					data-do = "open-edit-product"
-					data-product-id = "{{ product.id }}"
-					data-product-name = "{{ product.id }}">{{ product.name }}</a></td>
-			<td class="text-right" style="white-space: nowrap;">
-				<a
-					data-do = "open-view-parties"
-					data-id = "{{ product.id }}">{% autoescape off %}{{ product.price_xml }}{% endautoescape %}</a></td>
-			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_stock_xml }}{% endautoescape %}</td>
-			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_transit_xml }}{% endautoescape %}</td>
-			<td class="text-center" style="white-space: nowrap;">{% autoescape off %}{{ product.on_factory_xml }}{% endautoescape %}</td>
-		</tr>
-		{% endfor %}
-	</table>
-
-	<!-- Pagination -->
-	{% if pages %}
-	<div class="pagination-centered">
-		<ul class="pagination">
-			<li class="arrow{% if page_prev %} unavailable{% endif %}"><a{% if page_prev > 1 %} href="{{ url }}page={{ page_prev }}/"{% endif %}>&laquo; Влево</a></li>
-			{% for n in pages %}
-				{% if n %}
-				<li{% if page == n %} class="current"{% endif %}><a href="{{ url }}{% if n > 1 %}page={{ n }}/{% endif %}">{{ n }}</a></li>
-				{% else %}
-				<li class="unavailable"><a>&hellip;</a></li>
-				{% endif %}
-			{% endfor %}
-			<li class="arrow{% if page_next %} unavailable{% endif %}"><a{% if page_next %} href="{{ url }}page={{ page_next }}/"{% endif %}>Вправо &raquo;</a></li>
-		</ul>
-	</div>
-	{% endif %}
+  <table class="ui very basic table">
+    <thead>
+      <tr>
+        <th class="text-center">#</th>
+        <th class="text-center">Производитель</th>
+        <th class="text-center">Артикул</th>
+        <th class="text-center">Наименование</th>
+        <th class="text-center">Цена</th>
+        <th class="text-center" colspan="3">Количество</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      {% ifchanged product.category %}
+      <tr>
+        <td colspan="10"><strong>{% if not product.category %}Без категории{% else %}{{ product.category.name }}{% endif %}</strong></td>
+      </tr>
+      {% endifchanged %}
+      <tr data-product = "{{ product.id }}">
+        <td>{{ product.n }}</td>
+        <td class="text-center">
+          <a href = "/catalog/vendor/{{ product.vendor.alias }}/"
+             data-do = "open-vendor"
+             data-vendor-id = "{{ product.vendor.id }}"
+             data-vendor-name = "{{ product.vendor.id }}"
+             data-product-vendor-name = "{{ product.id }}">{{ product.vendor.name }}
+          </a>
+        </td>
+        <td data-product-article = "{{ product.id }}">{{ product.article }}</td>
+        <td style="word-break: break-all;">
+          <a href = "/catalog/product/{{ product.id }}/"
+             data-do = "open-product"
+             data-product-id = "{{ product.id }}"
+             data-product-name = "{{ product.id }}">{{ product.name }}
+          </a>
+        </td>
+        <td style="white-space: nowrap;">{% autoescape off %}{{ product.price_xml }}{% endautoescape %}</td>
+        <td style="white-space: nowrap;">{% autoescape off %}{{ product.on_stock_xml }}{% endautoescape %}</td>
+        <td style="white-space: nowrap;">{% autoescape off %}{{ product.on_transit_xml }}{% endautoescape %}</td>
+        <td style="white-space: nowrap;">{% autoescape off %}{{ product.on_factory_xml }}{% endautoescape %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    {% if pages %}
+    <tfoot>
+      <tr>
+        <th colspan="10">
+          <div class="ui left floated pagination menu">
+            <a class="icon {% if page_prev < 1 %}disabled {% endif %}item" {% if page_prev > 0 %}href="{{ url }}page={{ page_prev }}/"{% endif %}>
+              <i class="left chevron icon"></i>
+            </a>
+            {% for n in pages %}
+              {% if n %}
+              <a class="item{% if page == n %} active{% endif %}" href="{{ url }}{% if n > 1 %}page={{ n }}/{% endif %}">{{ n }}</a>
+              {% else %}
+              <a class="disabled item">&hellip;</a>
+              {% endif %}
+            {% endfor %}
+            <a class="icon {% if not page_next %}disabled {% endif %}item" {% if page_next %}href="{{ url }}page={{ page_next }}/"{% endif %}>
+              <i class="right chevron icon"></i>
+            </a>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
 </div>
 {% endif %}
+
+{% block managemet-menu %}
+<div class="header">Продукты</div>
+<a class="item">Новый</a>
+<a class="item">Перенести в категорию</a>
+{% endblock %}
+
 
 {% include "catalog/modal/product.html" %}
 {% include "catalog/modal/vendor.html" %}
 {% endblock %}
 
 {% block js-content %}
-<script>
 {% include "catalog/js/product.js" %}
 {% include "catalog/js/vendor.js" %}
 {% include "catalog/js/search-on-stocks.js" %}
-</script>
 {% endblock %}

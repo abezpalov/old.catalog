@@ -10,12 +10,9 @@ urlpatterns = [
     url(r'^manage/stocks/$', catalog.views.manage_stocks),
 
     url(r'^manage/vendors/$', catalog.views.manage_vendors),
-    url(r'^manage/vendorkeys/$', catalog.views.manage_vendorkeys),
-    url(r'^manage/vendorkeys/(?P<updater_selected>[a-zA-Z0-9_-]+)/(?P<vendor_selected>[a-zA-Z0-9_-]+)/$', catalog.views.manage_vendorkeys),
-
 
     url(r'^manage/categories/$', catalog.views.manage_categories),
-    url(r'^manage/products(/page/(?P<page>[0-9]+)){0,1}/$', catalog.views.manage_products),
+    url(r'^manage/products/(?P<string>[\S\s]*)$', catalog.views.manage_products),
 
     url(r'^units/$', catalog.views.units),
 

@@ -54,45 +54,13 @@ def manage_vendors(request):
     return render(request, 'catalog/manage_vendors.html', locals())
 
 
-def manage_vendorkeys(request, updater_selected = 'all', vendor_selected = 'all'):
-    "Представление: ключи производителей."
-
-    from catalog.models import VendorKey, Vendor, Updater
-
-    if updater_selected != 'all':
-        updater_selected = int(updater_selected)
-    if vendor_selected != 'all':
-        vendor_selected = int(vendor_selected)
-
-    if request.user.has_perm('catalog.add_vendorkey')\
-    or request.user.has_perm('catalog.change_vendorkey')\
-    or request.user.has_perm('catalog.delete_vendorkey'):
-
-        vendorkeys = VendorKey.objects.select_related().all()
-
-        if updater_selected and updater_selected != 'all':
-            vendorkeys = vendorkeys.select_related().filter(updater = updater_selected)
-        if not updater_selected:
-            vendorkeys = vendorkeys.select_related().filter(updater = None)
-
-        if vendor_selected and vendor_selected != 'all':
-            vendorkeys = vendorkeys.select_related().filter(vendor = vendor_selected)
-        if not vendor_selected:
-            vendorkeys = vendorkeys.select_related().filter(vendor = None)
-
-        updaters = Updater.objects.select_related().all()
-        vendors = Vendor.objects.select_related().all()
-
-    return render(request, 'catalog/manage_vendorkeys.html', locals())
-
-
 def manage_categories(request):
     "Представление: управление категорями."
 
     from catalog.models import Category
 
     categories = []
-    categories = Category.objects.getCategoryTree(categories)
+    categories = Category.objects.get_category_tree(categories)
 
     for category in categories:
         category.name = '— ' * category.level + category.name
@@ -103,46 +71,127 @@ def manage_categories(request):
 def manage_products(request, **kwargs):
     'Представление: управление продуктами'
 
-    from catalog.models import Product
+    from django.db.models import Q
 
-    items_on_page = 500
-    pages = []
+    from catalog.models import Product, Category, Vendor
+
+    # Получаем предварительные значения параметров из строки адреса
+    # и, паралельно собираем базовый URL для Pagination
+    parameters_ = {}
+    url = '/catalog/manage/products/'
+    for parameter in kwargs.get('string', '').split('/'):
+        name = parameter.split('=')[0]
+        try:
+            values = parameter.split('=')[1]
+        except IndexError:
+            values = ''
+        if name:
+            parameters_[name] = values
+        if name != 'page':
+            url = '{}{}/'.format(url, parameter)
+
+    # Очищаем значения параметров
+    parameters = {}
+
+    # Количество элементов на странице
     try:
-        page = int(kwargs.get('page', 1))
-    except TypeError:
-        page = 1
+        parameters['items'] = int(parameters_.get('items'))
+    except Exception:
+        parameters['items'] = 100
+    if parameters['items'] < 1:
+        parameters['items'] = 100
 
-    count = Product.objects.all().count()
+    # Номер страницы
+    parameters['page'] = fix_parameter_page(parameters_.get('page'))
 
-    if count > items_on_page:
+    # Категории
+    parameters['category'] = fix_parameter_category(parameters_.get('category', ''))
+    categories = Category.objects.get_category_tree([], state = True)
 
-        url = '/catalog/manage/products/'
+    # Производитель
+    parameters['vendor'] = fix_parameter_vendor(parameters_.get('vendor', ''))
+    vendors = Vendor.objects.filter(state = True, double = None)
 
-        # Формируем список номеров страниц для ссылок
-        page_max = count // items_on_page
-        if count % items_on_page:
-            page_max += 1
+    # Строка поиска
+    parameters['search'] = fix_parameter_search(parameters_.get('search', ''))
 
+    # Готовим фильтр для отбора продуктов
+    filters_ = {'double': Q(double = None),
+                'vendor_double': Q(vendor__double = None)}
+    filters = {}
+
+    if parameters['category'] or parameters['vendor'] or parameters['search']:
+
+        if parameters['category']:
+            filters['category'] = Q(category = parameters['category'])
+
+        if parameters['vendor']:
+            filters['vendor'] = Q(vendor = parameters['vendor'])
+
+        if parameters['search']:
+
+            translation_map = {ord('o'): '0', ord('е'): 'e', ord('т'): 't', ord('у'): 'y',
+                               ord('о'): 'o', ord('р'): 'p', ord('а'): 'a', ord('н'): 'h',
+                               ord('к'): 'k', ord('l'): 'i', ord('х'): 'x', ord('c'): 'c',
+                               ord('в'): 'b', ord('м'): 'm'}
+
+            filters['search'] = Q()
+
+            for search in parameters['search']:
+
+                search_ = search.translate(translation_map)
+
+                filters['search'] = filters['search'] & (Q(alias__icontains = search) | Q(alias__icontains = search_))
+
+    # Фильтруем
+    products = Product.objects.all()
+    for key in filters_:
+        products = products.filter(filters_[key])
+    for key in filters:
+        products = products.filter(filters[key])
+
+    # Требуется ли разбивка на страницы
+    count = products.count()
+    page_max = count // parameters['items']
+    if count % parameters['items']:
+        page_max += 1
+
+    if page_max > 1:
+        pages = []
+        dispersion = 3
+        prev = False
         for n in range(1, page_max + 1):
-            if n < 4 or n-3 < page < n+3 or n > page_max - 3:
-                pages.append(n)
-            elif (n == 4 or n == page_max - 4) and pages[len(pages)-1]:
+
+            # Добавляем номер страницы в ссылки
+            if ((parameters['page'] - n) < dispersion and (n - parameters['page']) < dispersion)\
+                or ((page_max - n) < dispersion and (n - page_max) < dispersion) \
+                or ((1 - n) < dispersion and (n - 1) < dispersion):
+                    pages.append(n)
+                    prev = True
+            # Будем добавлять многоточие
+            elif prev:
                 pages.append(0)
+                prev = False
 
-        # Определяем номера предыдущих и последующих страниц
-        page_prev = page - 1
-        if page == page_max:
-            page_next = 0
-        else:
-            page_next = page + 1
+        first = (parameters['page'] - 1) * parameters['items']
+        last = parameters['page']*parameters['items']
 
-        products = Product.objects.all()[(page - 1) * items_on_page : page * items_on_page]
+        if parameters['page'] > 1:
+            page_prev = parameters['page'] - 1
+        if parameters['page'] < page_max:
+            page_next = parameters['page'] + 1
 
-    for n, product in enumerate(products):
-        product.n = (page - 1) * items_on_page + n + 1
+        products = products[first : last]
+
+    else:
+        first = 0
+        last = count
+
+    # Нумеруем
+    for n in range(len(products)):
+        products[n].n = n + first + 1
 
     return render(request, 'catalog/manage_products.html', locals())
-
 
 
 def units(request):
@@ -218,12 +267,7 @@ def products(request, **kwargs):
         parameters['items'] = 100
 
     # Номер страницы
-    try:
-        parameters['page'] = int(parameters_.get('page'))
-    except Exception:
-        parameters['page'] = 1
-    if parameters['page'] < 1:
-        parameters['page'] = 1
+    parameters['page'] = fix_parameter_page(parameters_.get('page'))
 
     # Категории
     # Дерево всех категорий (список)
@@ -512,27 +556,32 @@ def ajax_get(request, *args, **kwargs):
     import json
     import catalog.models
 
-    model = catalog.models.models[kwargs['model_name']]
+    model_name = kwargs.get('model_name', '')
+
+    model = catalog.models.models[model_name]
 
     if (not request.is_ajax()) or (request.method != 'POST'):
         return HttpResponse(status=400)
 
-    if not request.user.has_perm('catalog.change_{}'.format(kwargs['model_name']))\
-    or not request.user.has_perm('catalog.delete_{}'.format(kwargs['model_name'])):
-        return HttpResponse(status = 403)
+    open_models = ['product', 'vendor', 'category']
+
+    if not model_name in open_models:
+        if not request.user.has_perm('catalog.change_{}'.format(kwargs['model_name']))\
+        or not request.user.has_perm('catalog.delete_{}'.format(kwargs['model_name'])):
+            return HttpResponse(status = 403)
 
     try:
         m = model.objects.get(id = request.POST.get('id'))
 
         result = {
-            'status'             : 'success',
-            kwargs['model_name'] : m.get_dicted()}
+            'status': 'success',
+            kwargs['model_name']: m.get_dicted()}
 
     except model.DoesNotExist:
         result = {
-            'status'  : 'alert',
-            'message' : 'Ошибка: объект отсутствует в базе.',
-            'id'      : request.POST.get('id')}
+            'status': 'alert',
+            'message': 'Ошибка: объект отсутствует в базе.',
+            'id': request.POST.get('id')}
 
     return HttpResponse(json.dumps(result), 'application/javascript')
 
@@ -1048,21 +1097,66 @@ def ajax_get_parties(request):
 def fix_alias(alias, model_name = None):
 
     import unidecode
-
     if model_name == 'currency':
         alias = alias.upper()
     else:
         alias = alias.lower()
-
     alias = unidecode.unidecode(alias)
-
     alias = alias.replace(' ', '-')
     alias = alias.replace('&', 'and')
     alias = alias.replace('\'', '')
     alias = alias.replace('(', '')
     alias = alias.replace(')', '')
     alias = alias.replace('.', '')
-
     alias = alias.strip()[:100]
-
     return alias
+
+def fix_parameter_page(page):
+
+    try:
+        page = int(page)
+    except Exception:
+        page = 1
+    if page < 1:
+        page = 1
+    return page
+
+
+def fix_parameter_category(category):
+
+    from catalog.models import Category
+    try:
+        category = int(category)
+    except Exception:
+        category = None
+    if category:
+        category = Category.objects.get(id = category)
+    return category
+
+
+def fix_parameter_vendor(vendor):
+
+    from catalog.models import Vendor
+    try:
+        vendor = str(vendor)
+    except Exception:
+        vendor = None
+    if vendor:
+        vendor = Vendor.objects.get(alias = vendor)
+    return vendor
+
+
+def fix_parameter_search(string):
+
+    string = str(string)
+    if string:
+        translation_map = {ord('&') : 'and', ord('\'') : '', ord('(') : ' ', ord(')') : ' ',
+                           ord('[') : ' ', ord(']') : ' ', ord('.') : ' ', ord(',') : ' ',
+                           ord('+') : ' ', ord('/') : ' '}
+        string = string.translate(translation_map)
+        string = string.strip().lower()
+    words = []
+    for word in string.split(' '):
+        if word:
+            words.append(word)
+    return words

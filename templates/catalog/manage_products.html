@@ -20,14 +20,11 @@
 
 <div class="row">
 	<div class="button-group">
-		{% if perms.catalog.add_product %}
-        <a class="button secondary" data-do="open-new-product"><i class="fal fal-lg"></i>&nbsp;Добавить продукт</a>
+		{% if perms.catalog.change_product %}
+        <a class="button secondary" data-do="open-products-clustering"><i class="far fa-sitemap"></i> Кластеризовать продукты</a>
         {% endif %}
-		{% if perms.catalog.add_category %}
-        <a class="button secondary" data-do="open-new-category"><i class="fal fal-lg"></i>&nbsp;Добавить категорию</a>
-        {% endif %}
-		{% if perms.catalog.add_vendor %}
-        <a class="button secondary" data-do="open-new-vendor"><i class="fal fal-lg"></i>&nbsp;Добавить производителя</a>
+		{% if perms.catalog.change_product %}
+        <a class="button secondary" data-do="set-products-category"><i class="far fa-folder-open"></i> Перенести в категорию</a>
         {% endif %}
 	</div>
 </div>
@@ -54,7 +51,7 @@
                 <td>{{ product.article }}</td>
     			<td>
     				<a
-    					data-do = "open-edit-product"
+    					data-do = "open-product"
     					data-product-id = "{{ product.id }}"
     					data-product-name = "{{ product.id }}">{{ product.name }}</a>
                 </td>
