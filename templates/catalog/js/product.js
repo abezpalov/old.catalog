@@ -98,6 +98,7 @@ $("body").delegate("[data-do='edit-product-save']", "click", function(){
             }
         } else {
             result = false;
+        }
     }, "json");
     return result;
 });

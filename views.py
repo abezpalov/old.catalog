@@ -252,7 +252,7 @@ def products(request, **kwargs):
         if name:
             parameters_[name] = values
 
-        if name != 'page':
+        if name != 'page' and name:
             url = '{}{}/'.format(url, parameter)
 
     # Очищаем значения параметров
@@ -427,7 +427,7 @@ def products(request, **kwargs):
 def product(request, id = None, vendor = None, article = None):
     "Представление: продукт."
 
-    from catalog.models import Vendor, Product, ParameterToProduct, ProductPhoto
+    from catalog.models import Vendor, Product, ProductPhoto
 
     if id:
         product = Product.objects.get(id=id)
@@ -435,119 +435,9 @@ def product(request, id = None, vendor = None, article = None):
         vendor = Vendor.objects.get(alias=vendor)
         product = Product.objects.get(vendor=vendor, article=article)
 
-    parameters = ParameterToProduct.objects.filter(product = product)
-    photos     = ProductPhoto.objects.filter(product = product)
+    photos = ProductPhoto.objects.filter(product = product)
 
     return render(request, 'catalog/product.html', locals())
-
-
-def parametertypes(request):
-    "Представление: список типов данных параметров."
-
-    from catalog.models import ParameterType
-
-    parametertypes = ParameterType.objects.all().order_by('name')
-
-    return render(request, 'catalog/parametertypes.html', locals())
-
-
-def parameters(request):
-    "Представление: список параметров."
-
-    from catalog.models import Parameter, ParameterType, Unit
-
-    parameters = Parameter.objects.all().order_by('name')
-    parametertypes = ParameterType.objects.all().order_by('name')
-    units = Unit.objects.all().order_by('name')
-
-    return render(request, 'catalog/parameters.html', locals())
-
-
-def parametervalues(request):
-    "Представление: список значений параметров."
-
-    from catalog.models import ParameterValue
-
-    parameter_values = ParameterValue.objects.all()
-
-    return render(request, 'catalog/parametervalues.html', locals())
-
-
-def parametervaluesynonyms(request, updater_selected = 'all', parameter_selected = 'all'):
-    "Представление: список синонимов значений параметров."
-
-    from catalog.models import ParameterValueSynonym, Parameter,\
-            ParameterValue, Updater
-
-    if updater_selected != 'all':
-        updater_selected = int(updater_selected)
-    if parameter_selected != 'all':
-        parameter_selected = int(parameter_selected)
-
-    if request.user.has_perm('catalog.add_parametervaluesynonym')\
-    or request.user.has_perm('catalog.change_parametervaluesynonym')\
-    or request.user.has_perm('catalog.delete_parametervaluesynonym'):
-
-        parametervaluesynonyms = ParameterValueSynonym.objects.select_related().all()
-
-        if updater_selected and updater_selected != 'all':
-            parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
-                updater = updater_selected)
-        if not updater_selected:
-            parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
-                updater = None)
-
-        if parameter_selected and parameter_selected != 'all':
-            parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
-                parameter = parameter_selected)
-        if not parameter_selected:
-            parametervaluesynonyms = parametervaluesynonyms.select_related().filter(
-                parameter = None)
-
-        updaters        = Updater.objects.select_related().all()
-        parameters      = Parameter.objects.select_related().all()
-        parametervalues = ParameterValue.objects.select_related().all()
-
-    return render(request, 'catalog/parametervaluesynonyms.html', locals())
-
-
-def parametersynonyms(request, updater_selected = 'all', parameter_selected = 'all'):
-    "Представление: список синонимов параметров."
-
-    from catalog.models import ParameterSynonym, Parameter, Updater,\
-            ParameterType, Unit
-
-    if updater_selected != 'all':
-        updater_selected = int(updater_selected)
-    if parameter_selected != 'all':
-        parameter_selected = int(parameter_selected)
-
-    if request.user.has_perm('catalog.add_parametersynonym')\
-    or request.user.has_perm('catalog.change_parametersynonym')\
-    or request.user.has_perm('catalog.delete_parametersynonym'):
-
-        parametersynonyms = ParameterSynonym.objects.select_related().all()
-
-        if updater_selected and updater_selected != 'all':
-            parametersynonyms = parametersynonyms.select_related().filter(
-                updater = updater_selected)
-        if not updater_selected:
-            parametersynonyms = parametersynonyms.select_related().filter(
-                updater = None)
-
-        if parameter_selected and parameter_selected != 'all':
-            parametersynonyms = parametersynonyms.select_related().filter(
-                parameter = parameter_selected)
-        if not parameter_selected:
-            parametersynonyms = parametersynonyms.select_related().filter(
-                parameter = None)
-
-        updaters       = Updater.objects.select_related().all()
-        parameters     = Parameter.objects.select_related().all()
-        parametertypes = ParameterType.objects.select_related().all()
-        units          = Unit.objects.select_related().all()
-
-    return render(request, 'catalog/parametersynonyms.html', locals())
 
 
 def ajax_get(request, *args, **kwargs):

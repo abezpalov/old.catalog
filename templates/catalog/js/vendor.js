@@ -49,6 +49,7 @@ $("body").delegate("[data-do='edit-vendor-save']", "click", function(){
             result = true;
         } else {
             result = false;
+        }
     }, "json");
     return result;
 });

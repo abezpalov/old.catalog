@@ -58,7 +58,7 @@
       <tr>
         <th colspan="10">
           <div class="ui left floated pagination menu">
-            <a class="icon {% if page_prev < 1 %}disabled {% endif %}item" {% if page_prev > 0 %}href="{{ url }}page={{ page_prev }}/"{% endif %}>
+            <a class="icon {% if page_prev < 1 %}disabled {% endif %}item" {% if page_prev > 1 %}href="{{ url }}page={{ page_prev }}/"{% endif %}>
               <i class="left chevron icon"></i>
             </a>
             {% for n in pages %}
@@ -79,6 +79,7 @@
   </table>
 </div>
 {% endif %}
+{% endblock %}
 
 {% block managemet-menu %}
 <div class="header">Продукты</div>
@@ -86,7 +87,7 @@
 <a class="item">Перенести в категорию</a>
 {% endblock %}
 
-
+{% block modals %}
 {% include "catalog/modal/product.html" %}
 {% include "catalog/modal/vendor.html" %}
 {% endblock %}
@@ -94,5 +95,4 @@
 {% block js-content %}
 {% include "catalog/js/product.js" %}
 {% include "catalog/js/vendor.js" %}
-{% include "catalog/js/search-on-stocks.js" %}
 {% endblock %}
